@@ -20,7 +20,8 @@ Los docs viven en `main`. El **código** de cada estado vive en ramas:
 Regla: `sN/start = s(N-1)/end` (continuidad).
 
 ## Contenido por sesión
-- `docs/sN/guion.md` — guion en vivo (qué dice y hace el mentor; incluye setup, slides 📌 y timing).
+- `docs/sN/guion.md` — guion en vivo (qué dice y hace el mentor; setup, timing, marcadores 📌).
+- `docs/sN/slides.md` — deck **autocontenido** con la teoría (el "porqué"); pensado para el alumno que NO hizo el asíncrono. Convertible a diapositivas.
 - `docs/sN/prompts.md` — los prompts exactos, listos para copiar.
 
 ## Artefactos que produce el proyecto (en ramas de sesión, no aquí)
