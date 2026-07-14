@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Builds
+**/dist/
+**/build/
+
+# Entornos
+.env
+.env.local
+**/.env
+!**/.env.example
+
+# AdonisJS
+**/tmp/
+
+# Cobertura / logs
+coverage/
+*.log
+
+# SO / editores
+.DS_Store
+.vscode/
+.idea/
