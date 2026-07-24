@@ -13,7 +13,8 @@ node_modules/
 !**/.env.example
 
 # AdonisJS
-**/tmp/
+**/tmp/*
+!**/tmp/.gitkeep
 
 # Cobertura / logs
 coverage/
