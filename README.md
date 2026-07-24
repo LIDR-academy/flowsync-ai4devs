@@ -10,7 +10,7 @@ cd flowsync-ai4devs
 git checkout s1/start
 ```
 
-> Repo privado: si el `clone` falla por permisos, avisa a tu TA para que te añada como colaborador de GitHub.
+> Si el `clone` falla, avisa a tu TA.
 
 ## Backend (`backend/`)
 
