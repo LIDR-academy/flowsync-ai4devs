@@ -27,10 +27,14 @@ Arranca en `http://localhost:3333`.
 
 ## Frontend (`frontend/`)
 
+Abre otra terminal en la raíz del repo (el backend se queda corriendo en la primera):
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+Arranca en `http://localhost:5173`.
 
 Las instrucciones completas de prework (checklist + priming) están en el Módulo 1 del asíncrono del curso.
