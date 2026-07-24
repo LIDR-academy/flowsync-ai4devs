@@ -1,6 +1,6 @@
 # FlowSync
 
-Proyecto base del Bloque Fundacional de AI4Devs (Módulos 1–5). API en AdonisJS 7 (`backend/`) + frontend en React 19 + Vite (`frontend/`).
+Proyecto de práctica del curso: gestión de tareas en equipo. API en AdonisJS 7 (`backend/`) + frontend en React 19 + Vite (`frontend/`).
 
 ## Empezar
 
