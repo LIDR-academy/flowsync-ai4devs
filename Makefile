@@ -16,12 +16,13 @@ FRONTEND := frontend
 .DEFAULT_GOAL := help
 .PHONY: help setup start install env migrate clean
 
+# La ayuda se genera a partir de los comentarios `## ...` de cada target, para
+# que no haya un segundo listado que mantener a mano y que pueda divergir.
 help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
-	@echo "  make setup    Instala dependencias, prepara .env, genera APP_KEY y migra la BD"
-	@echo "  make start    Levanta backend (:3333) y frontend (:5173) a la vez"
-	@echo "  make clean    Borra node_modules y la BD SQLite"
+	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
@@ -68,10 +69,22 @@ migrate:
 # start
 # ---------------------------------------------------------------------------
 
-# Lanza los dos servidores en paralelo dentro de la misma receta. El trap sobre
-# `kill 0` manda la señal a todo el grupo de procesos, así que Ctrl-C (o que uno
-# de los dos se caiga y termine el `wait`) se lleva por delante ambos servidores
-# y no deja nodos huérfanos ocupando los puertos.
+# Lanza los dos servidores en paralelo dentro de la misma receta.
+#
+# `kill -INT 0` manda un SIGINT a todo el grupo de procesos — exactamente lo
+# mismo que hace un Ctrl-C real — y así se lleva por delante ambos servidores y
+# sus hijos, sin dejar nodos huérfanos ocupando los puertos. Tiene que ser
+# SIGINT y no el SIGTERM por defecto de `kill 0`: con SIGTERM, el wrapper de
+# `npm run dev` y el `node ace serve --hmr` sobreviven a la señal y quedan
+# colgados. Se dispara desde dos sitios:
+#
+#   - el trap, cuando llega un Ctrl-C (SIGINT al grupo) o un SIGTERM;
+#   - el final de cada subshell, cuando *ese* servidor termina por su cuenta.
+#
+# Lo segundo es necesario porque `wait` a secas espera a que acaben TODOS los
+# jobs: si el backend crashea al arrancar, el frontend seguiría vivo para
+# siempre y el usuario no se enteraría. No se usa `wait -n` (que sería lo
+# natural) porque llegó en bash 4.3 y macOS trae bash 3.2.
 start: ## Levanta backend y frontend a la vez
 	@if [ ! -d $(BACKEND)/node_modules ] || [ ! -d $(FRONTEND)/node_modules ]; then \
 		echo "❌ Faltan dependencias. Ejecuta primero: make setup"; exit 1; \
@@ -79,13 +92,14 @@ start: ## Levanta backend y frontend a la vez
 	@if [ ! -f $(BACKEND)/.env ]; then \
 		echo "❌ Falta $(BACKEND)/.env. Ejecuta primero: make setup"; exit 1; \
 	fi
-	@echo "🚀 Backend  → http://localhost:3333"
-	@echo "🚀 Frontend → http://localhost:5173"
-	@echo "   (Ctrl-C para parar los dos)"
+	@echo "🚀 Arrancando backend (http://localhost:3333) y frontend (http://localhost:5173)..."
+	@echo "   Ctrl-C para parar los dos. Si uno se cae, el otro se cierra también."
 	@echo ""
-	@trap 'trap - INT TERM EXIT; kill 0' INT TERM EXIT; \
-	( cd $(BACKEND)  && npm run dev ) & \
-	( cd $(FRONTEND) && npm run dev ) & \
+	@trap 'trap - INT TERM EXIT; kill -INT 0' INT TERM EXIT; \
+	( cd $(BACKEND)  && npm run dev; \
+	  echo ""; echo "⚠️  El backend se ha parado. Cerrando el frontend."; kill -INT 0 ) & \
+	( cd $(FRONTEND) && npm run dev; \
+	  echo ""; echo "⚠️  El frontend se ha parado. Cerrando el backend."; kill -INT 0 ) & \
 	wait
 
 # ---------------------------------------------------------------------------
@@ -94,5 +108,6 @@ start: ## Levanta backend y frontend a la vez
 
 clean: ## Borra node_modules y la base de datos SQLite
 	@echo "🧹 Limpiando..."
-	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules $(BACKEND)/tmp/db.sqlite3
+	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
+	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"
