@@ -119,4 +119,4 @@ El formato es **Prettier** (`.prettierrc.json`: sin punto y coma, comillas simpl
 
 ## Reglas de proceso
 - Antes de tocar código: crear una rama nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main`/`s1/start`.
-- Al cerrar la tarea: usar la skill `/commit`, luego `gh pr create`.
+- Al cerrar la tarea: usar la skill /commit, luego gh pr create con una descripción completa de los cambios en el cuerpo del PR. No repetir ese resumen en el chat — responder solo con la URL del PR.
