@@ -37,4 +37,7 @@ npm run dev
 
 Arranca en `http://localhost:5173`.
 
+Apunta al backend de `http://localhost:3333` por defecto. Para cambiarlo, copia
+`.env.example` a `.env` y ajusta `VITE_API_URL`.
+
 Las instrucciones completas de prework (checklist + priming) están en el Módulo 1 del asíncrono del curso.
