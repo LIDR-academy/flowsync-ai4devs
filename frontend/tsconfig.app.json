@@ -8,6 +8,12 @@
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 
+    /* Path aliases (sin `baseUrl`: está deprecado en TS 6 y con
+       `moduleResolution: bundler` las rutas ya se resuelven desde este fichero) */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
