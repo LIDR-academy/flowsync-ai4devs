@@ -85,6 +85,12 @@ migrate:
 # jobs: si el backend crashea al arrancar, el frontend seguiría vivo para
 # siempre y el usuario no se enteraría. No se usa `wait -n` (que sería lo
 # natural) porque llegó en bash 4.3 y macOS trae bash 3.2.
+# Ojo: `start` está pensado para uso interactivo, desde una terminal. No lo
+# llames desde un script ni desde CI: sin control de trabajos, el grupo de
+# procesos incluye al proceso que invocó a make, y el SIGINT se lo llevaría por
+# delante a él también. Aislar los servidores en su propio grupo con `set -m`
+# no vale: los dejaría en segundo plano y el primer `read` de stdin les
+# provocaría un SIGTTIN, colgando el "Press h" de Adonis y los atajos de Vite.
 start: ## Levanta backend y frontend a la vez
 	@if [ ! -d $(BACKEND)/node_modules ] || [ ! -d $(FRONTEND)/node_modules ]; then \
 		echo "❌ Faltan dependencias. Ejecuta primero: make setup"; exit 1; \
