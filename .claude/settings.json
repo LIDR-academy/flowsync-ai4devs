@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Formateando con Prettier...",
+            "timeout": 30,
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | { read -r f; [ -n \"$f\" ] || exit 0; case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/frontend/*) cd \"$CLAUDE_PROJECT_DIR/frontend\" && ./node_modules/.bin/prettier --write --ignore-unknown \"$f\" ;; esac; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
