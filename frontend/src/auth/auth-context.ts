@@ -7,6 +7,8 @@ export type AuthContextValue = {
   user: User | null
   token: string | null
   status: AuthStatus
+  /** Motivo por el que se perdió una sesión previa, para poder explicarlo. */
+  sessionError: string | null
   login: (payload: LoginPayload) => Promise<void>
   signup: (payload: SignupPayload) => Promise<void>
   logout: () => Promise<void>

@@ -13,10 +13,14 @@ import { Label } from '@/components/ui/label'
 const FIELDS = ['email', 'password'] as const
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, sessionError } = useAuth()
   const { isSubmitting, formError, fieldErrors, submit } = useAuthForm(FIELDS)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  // El error del intento actual manda; si no hay, se explica por qué se ha
+  // perdido la sesión anterior (token caducado, backend caído…).
+  const alertMessage = formError ?? sessionError
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
@@ -29,10 +33,10 @@ export function LoginPage() {
       description="Entra con tu cuenta para volver a tus tareas."
     >
       <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
-        {formError && (
+        {alertMessage && (
           <Alert variant="destructive">
             <AlertCircleIcon />
-            <AlertDescription>{formError}</AlertDescription>
+            <AlertDescription>{alertMessage}</AlertDescription>
           </Alert>
         )}
 
