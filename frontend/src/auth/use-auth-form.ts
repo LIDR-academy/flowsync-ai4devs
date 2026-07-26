@@ -26,6 +26,10 @@ export function useAuthForm(fields: readonly string[]) {
 
       try {
         await action()
+        // Normalmente el redirect desmonta el formulario antes de llegar aquí,
+        // pero el estado tiene que quedar consistente igualmente: si no, un
+        // éxito sin navegación dejaría el botón bloqueado para siempre.
+        setState(EMPTY)
       } catch (error) {
         if (error instanceof ApiError) {
           const fieldErrors = Object.fromEntries(

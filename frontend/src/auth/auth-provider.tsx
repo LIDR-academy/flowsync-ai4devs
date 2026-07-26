@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as api from '@/lib/api'
+import { ApiError } from '@/lib/api'
 import type { AuthResult, LoginPayload, SignupPayload, User } from '@/lib/types'
 import { AuthContext, type AuthStatus } from '@/auth/auth-context'
 
@@ -15,6 +16,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>(() =>
     readStoredToken() ? 'loading' : 'anonymous',
   )
+  // Por qué se cayó una sesión que ya existía. Se pinta en el login para que
+  // nadie acabe ahí sin saber por qué.
+  const [sessionError, setSessionError] = useState<string | null>(null)
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY)
@@ -29,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(nextToken)
       setUser(nextUser)
       setStatus('authenticated')
+      setSessionError(null)
     },
     [],
   )
@@ -49,8 +54,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(storedToken)
         setStatus('authenticated')
       })
-      .catch(() => {
-        if (!cancelled) clearSession()
+      .catch((error: unknown) => {
+        if (cancelled) return
+
+        if (error instanceof ApiError && error.status === 401) {
+          // El backend ha rechazado el token: ya no sirve para nada.
+          clearSession()
+        } else {
+          // Backend caído o error del servidor. El token puede seguir siendo
+          // bueno, así que se conserva y bastará con recargar cuando vuelva;
+          // borrarlo aquí cerraría la sesión por un corte de red pasajero.
+          setToken(null)
+          setUser(null)
+          setStatus('anonymous')
+        }
+
+        setSessionError(
+          error instanceof ApiError
+            ? error.message
+            : 'No hemos podido restaurar tu sesión.',
+        )
       })
 
     return () => {
@@ -77,14 +100,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // La sesión local se cierra pase lo que pase: si el token ya no vale en el
     // servidor, el objetivo (dejar de estar logueado) está igualmente cumplido.
     clearSession()
+    setSessionError(null)
     if (currentToken) {
       await api.logout(currentToken).catch(() => undefined)
     }
   }, [clearSession, token])
 
   const value = useMemo(
-    () => ({ user, token, status, login, signup, logout }),
-    [user, token, status, login, signup, logout],
+    () => ({ user, token, status, sessionError, login, signup, logout }),
+    [user, token, status, sessionError, login, signup, logout],
   )
 
   return <AuthContext value={value}>{children}</AuthContext>
