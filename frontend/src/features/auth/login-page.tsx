@@ -1,38 +1,47 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/features/auth/auth-context'
-import { ApiError } from '@/lib/api'
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/features/auth/auth-context";
+import { ApiError } from "@/lib/api";
 
 export function LoginPage() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    setError(null)
-    setIsSubmitting(true)
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
 
     try {
-      await login(email, password)
-      navigate('/profile')
+      await login(email, password);
+      navigate("/profile");
     } catch (err) {
-      if (err instanceof ApiError && err.message === 'Invalid user credentials') {
-        setError('Correo o contraseña incorrectos.')
-      } else if (err instanceof ApiError) {
-        setError(err.message)
+      if (
+        err instanceof ApiError &&
+        err.message === "Invalid user credentials"
+      ) {
+        setError("Correo o contraseña incorrectos.");
+      } else if (err instanceof ApiError && Object.keys(err.fieldErrors).length > 0) {
+        setError("Revisá los datos ingresados e intentá de nuevo.");
       } else {
-        setError('No se pudo iniciar sesión. Intentá de nuevo.')
+        setError("No se pudo iniciar sesión. Intentá de nuevo.");
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -73,11 +82,14 @@ export function LoginPage() {
               </p>
             )}
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Ingresando...' : 'Ingresar'}
+              {isSubmitting ? "Ingresando..." : "Ingresar"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              ¿No tenés cuenta?{' '}
-              <Link to="/signup" className="text-primary underline-offset-4 hover:underline">
+              ¿No tenés cuenta?{" "}
+              <Link
+                to="/signup"
+                className="text-primary underline-offset-4 hover:underline"
+              >
                 Registrate
               </Link>
             </p>
@@ -85,5 +97,5 @@ export function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

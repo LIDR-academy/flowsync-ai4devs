@@ -1,22 +1,28 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/features/auth/auth-context'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/features/auth/auth-context";
 
 export function ProfilePage() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   async function handleLogout() {
-    setIsLoggingOut(true)
-    await logout()
-    navigate('/login')
+    setIsLoggingOut(true);
+    await logout();
+    navigate("/login");
   }
 
   if (!user) {
-    return null
+    return null;
   }
 
   return (
@@ -29,17 +35,21 @@ export function ProfilePage() {
         <CardContent className="flex flex-col gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Nombre</p>
-            <p>{user.fullName ?? '—'}</p>
+            <p>{user.fullName ?? "—"}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Email</p>
             <p>{user.email}</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} disabled={isLoggingOut}>
-            {isLoggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? "Cerrando sesión..." : "Cerrar sesión"}
           </Button>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
