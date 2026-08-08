@@ -23,14 +23,29 @@ El artefacto que dirige la implementación es el de este repositorio: los criter
 
 ---
 
-## Las dos historias
+## Las historias enriquecidas
+
+Seis historias de E2 tienen criterios de aceptación escritos. **Solo dos están descompuestas en tickets**: son las que la sesión de implementación ataca con más detalle.
+
+### Con criterios y con tickets
 
 | Historia | Qué resuelve | Tickets |
 |---|---|---|
 | [**FS-118** — Fecha de vencimiento y tareas vencidas](./E2-gestion-tareas/us-fechas-vencimiento.md) | Poner o quitar una fecha, y saber si algo se ha pasado de plazo | 5 · de la migración a las pruebas |
 | [**FS-142** — Filtrar las tareas por estado](./E2-gestion-tareas/us-filtrar-por-estado.md) | Centrarse en lo pendiente sin que lo terminado estorbe | 1 · deliberadamente ligera |
 
-**Identificadores.** Solo estas dos historias tienen ID asignado. Sus tickets lo derivan: `FS-118.1`, `FS-118.2`… El resto de historias de E2 aparece en la matriz con etiqueta provisional `E2-n`, **pendiente de ID**; no se inventan aquí.
+### Con criterios, todavía sin tickets — la base de la capability
+
+Encabezan el orden priorizado: sin ellas no hay lista de tareas que filtrar ni fechar. Trazan a `RF-5`…`RF-9` del PRD.
+
+| Historia | Qué resuelve |
+|---|---|
+| [**E2-1** — Crear tarea con solo el título](./E2-gestion-tareas/us-crear-tarea.md) | Anotar en qué andas cuesta segundos, sin formulario |
+| [**E2-2** — Título obligatorio](./E2-gestion-tareas/us-titulo-obligatorio.md) | Ninguna fila de la lista queda sin decir de qué trabajo habla |
+| [**E2-3** — Nace mía y pendiente](./E2-gestion-tareas/us-responsable-y-estado-por-defecto.md) | La tarea nueva ya viene a tu nombre y en «Pendiente» |
+| [**E2-4** — Cambiar el estado desde la lista](./E2-gestion-tareas/us-cambiar-estado.md) | Mantener al día en qué andas cuesta un gesto |
+
+**Identificadores.** Solo FS-118 y FS-142 tienen ID asignado. Sus tickets lo derivan: `FS-118.1`, `FS-118.2`… Las cuatro historias de la base conservan su etiqueta provisional `E2-n`, **pendiente de ID**; por eso su archivo lleva nombre descriptivo y no ID. No se inventan aquí.
 
 **Qué es un ticket.** Una unidad de trabajo que una persona termina en una sesión, con media jornada como techo. **Hereda** los criterios de su historia; su Definition of Done es una checklist de *cómo entregamos* (pruebas, manejo de error, convenciones), **no** criterios nuevos ni estimación en horas. Nombra la capa que toca; **no diseña**: tipo de columna, nulabilidad, índices, rutas y códigos de estado se deciden al implementar.
 
