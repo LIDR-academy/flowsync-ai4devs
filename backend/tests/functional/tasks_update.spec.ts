@@ -258,6 +258,13 @@ test.group('PATCH /api/v1/tasks/:id', (group) => {
 
     response.assertStatus(404)
     assert.lengthOf(await Task.all(), 0)
+    // La misma forma de error que el resto de la API, y sin filtrar nada del
+    // servidor: ni traza, ni rutas de fichero, ni nombres internos.
+    const body = bodyOf(response)
+    assert.isArray(body.errors)
+    assert.isString(body.errors[0].message)
+    assert.notProperty(body, 'stack')
+    assert.notProperty(body, 'frames')
   })
 
   test('sin credencial se responde 401 y la tarea queda como estaba', async ({

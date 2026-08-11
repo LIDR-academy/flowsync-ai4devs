@@ -43,8 +43,18 @@ export default class TasksController {
    * petición no menciona conserva su valor; vaciar el responsable se pide de
    * forma explícita con `assigneeId: null`.
    */
-  async update({ params, request, serialize }: HttpContext) {
-    const task = await Task.findOrFail(params.id)
+  async update({ params, request, response, serialize }: HttpContext) {
+    const task = await Task.find(params.id)
+
+    // Una tarea que no está es un desenlace previsto, no una excepción: se
+    // responde con la misma forma de error que el resto de la API en lugar de
+    // dejarlo caer en el manejador genérico.
+    if (!task) {
+      return response.notFound({
+        errors: [{ message: 'No existe ninguna tarea con ese identificador' }],
+      })
+    }
+
     const payload = await request.validateUsing(updateTaskValidator)
 
     task.title = payload.title

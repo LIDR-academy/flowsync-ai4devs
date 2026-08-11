@@ -15,6 +15,9 @@ import type { Task, TaskStatus } from '@/lib/types'
 export function TasksPage() {
   const { token, user } = useAuth()
   const [tasks, setTasks] = useState<Task[] | null>(null)
+  // «No hay tareas» y «no hemos podido cargarlas» son cosas distintas, y solo
+  // la primera merece la explicación del estado vacío.
+  const [loadFailed, setLoadFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [titleError, setTitleError] = useState<string | undefined>(undefined)
   const [isCreating, setCreating] = useState(false)
@@ -42,7 +45,7 @@ export function TasksPage() {
       })
       .catch((cause: unknown) => {
         if (cancelled) return
-        setTasks([])
+        setLoadFailed(true)
         setError(describe(cause))
       })
 
@@ -118,7 +121,7 @@ export function TasksPage() {
     }
   }
 
-  if (tasks === null) return <FullScreenLoader />
+  if (tasks === null && !loadFailed) return <FullScreenLoader />
 
   return (
     <div className="bg-muted/40 min-h-svh p-6">
@@ -140,32 +143,45 @@ export function TasksPage() {
           </Alert>
         )}
 
-        <Card className="mb-4">
-          <CardContent>
-            <NewTaskForm
-              onCreate={handleCreate}
-              titleError={titleError}
-              isSubmitting={isCreating}
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="py-0">
-          {tasks.length === 0 ? (
-            <TasksEmptyState />
-          ) : (
-            <ul>
-              {tasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  isBusy={busyIds.includes(task.id)}
-                  onStatusChange={handleStatusChange}
+        {/* Sin lista cargada no se ofrece crear: la tarea nueva quedaría sola
+            en una pantalla que no representa lo que hay en el equipo. */}
+        {loadFailed ? (
+          <Card className="py-0">
+            <p className="text-muted-foreground p-10 text-center text-sm">
+              No hemos podido cargar la lista. Vuelve a cargar la página para
+              intentarlo otra vez.
+            </p>
+          </Card>
+        ) : (
+          <>
+            <Card className="mb-4">
+              <CardContent>
+                <NewTaskForm
+                  onCreate={handleCreate}
+                  titleError={titleError}
+                  isSubmitting={isCreating}
                 />
-              ))}
-            </ul>
-          )}
-        </Card>
+              </CardContent>
+            </Card>
+
+            <Card className="py-0">
+              {tasks!.length === 0 ? (
+                <TasksEmptyState />
+              ) : (
+                <ul>
+                  {tasks!.map((task) => (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      isBusy={busyIds.includes(task.id)}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </>
+        )}
       </div>
     </div>
   )

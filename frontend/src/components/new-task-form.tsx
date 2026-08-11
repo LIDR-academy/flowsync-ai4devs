@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { FieldError } from '@/components/field-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,12 +22,23 @@ export function NewTaskForm({
   isSubmitting = false,
 }: NewTaskFormProps) {
   const [title, setTitle] = useState('')
+  // El `disabled` del botón no llega al DOM hasta el siguiente render, así que
+  // dos envíos muy seguidos podrían colarse y crear la tarea por duplicado.
+  // Esto cierra la puerta en el mismo tick.
+  const inFlight = useRef(false)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    // El campo se vacía solo si la tarea llegó a crearse; si el backend la
-    // rechaza, lo escrito sigue ahí para corregirlo.
-    if (await onCreate(title)) setTitle('')
+    if (inFlight.current) return
+
+    inFlight.current = true
+    try {
+      // El campo se vacía solo si la tarea llegó a crearse; si el backend la
+      // rechaza, lo escrito sigue ahí para corregirlo.
+      if (await onCreate(title)) setTitle('')
+    } finally {
+      inFlight.current = false
+    }
   }
 
   return (
@@ -39,6 +50,7 @@ export function NewTaskForm({
           name="title"
           placeholder="¿Qué hay que hacer?"
           value={title}
+          disabled={isSubmitting}
           onChange={(event) => setTitle(event.target.value)}
           aria-invalid={Boolean(titleError)}
           aria-describedby={titleError ? 'new-task-title-error' : undefined}
