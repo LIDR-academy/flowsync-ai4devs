@@ -1,3 +1,4 @@
+import env from '#start/env'
 import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
 
@@ -15,7 +16,11 @@ const dbConfig = defineConfig({
       client: 'better-sqlite3',
 
       connection: {
-        filename: app.tmpPath('db.sqlite3'),
+        /**
+         * El nombre del fichero sale del entorno para que las suites de test
+         * escriban en su propia base y no sobre la de desarrollo.
+         */
+        filename: app.tmpPath(env.get('DB_FILENAME', 'db.sqlite3')),
       },
 
       /**

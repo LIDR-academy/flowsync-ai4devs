@@ -24,4 +24,9 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
+
+  // Database
+  // Fichero SQLite dentro de `tmp/`. Opcional a propósito: sin declarar, la
+  // conexión cae en `db.sqlite3` y se comporta como antes de existir la variable.
+  DB_FILENAME: Env.schema.string.optional(),
 })

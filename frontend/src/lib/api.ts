@@ -1,4 +1,12 @@
-import type { AuthResult, LoginPayload, SignupPayload, User } from '@/lib/types'
+import type {
+  AuthResult,
+  CreateTaskPayload,
+  LoginPayload,
+  SignupPayload,
+  Task,
+  UpdateTaskPayload,
+  User,
+} from '@/lib/types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333'
 
@@ -35,6 +43,9 @@ const FIELD_LABELS: Record<string, string> = {
   email: 'el email',
   password: 'la contraseña',
   passwordConfirmation: 'la confirmación de la contraseña',
+  title: 'el título',
+  status: 'el estado',
+  assigneeId: 'el responsable',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
@@ -53,12 +64,26 @@ function translate(error: BackendError): string {
         : `Ya existe un registro con ${label(field)}.`
     case 'sameAs':
       return 'Las contraseñas no coinciden.'
+    case 'database.exists':
+      return field === 'assigneeId'
+        ? 'Esa persona no existe. Elige a alguien del equipo.'
+        : `No existe ningún registro con ${label(field)}.`
+    case 'enum':
+      return field === 'status'
+        ? 'Ese estado no existe. Usa «Pendiente», «En curso» o «Hecho».'
+        : `Ese valor no es válido para ${label(field)}.`
     case 'email':
       return 'Introduce una dirección de email válida.'
     case 'required':
-      return `Falta rellenar ${label(field)}.`
+      return field === 'title'
+        ? 'Escribe un título para la tarea.'
+        : `Falta rellenar ${label(field)}.`
     case 'minLength':
-      return `${label(field)} debe tener al menos ${meta?.min} caracteres.`
+      // El título solo exige un carácter: decir «al menos 1 caracteres» no
+      // explica nada, y lo que ha pasado es que se ha enviado en blanco.
+      return field === 'title'
+        ? 'El título no puede quedarse en blanco.'
+        : `${label(field)} debe tener al menos ${meta?.min} caracteres.`
     case 'maxLength':
       return `${label(field)} no puede superar los ${meta?.max} caracteres.`
     default:
@@ -84,6 +109,15 @@ function toApiError(status: number, body: unknown): ApiError {
     return new ApiError('El email o la contraseña no son correctos.', status)
   }
 
+  // Una tarea que ya no está: quien la tenga en pantalla necesita saber que ha
+  // desaparecido, no leer un fallo genérico del servidor.
+  if (status === 404) {
+    return new ApiError(
+      'Eso ya no existe. Puede que alguien lo haya cambiado mientras tanto.',
+      status,
+    )
+  }
+
   if (status === 422 && errors?.length) {
     const fieldErrors: Record<string, string> = {}
     for (const error of errors) {
@@ -102,7 +136,7 @@ function toApiError(status: number, body: unknown): ApiError {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   token?: string | null
 }
@@ -163,4 +197,37 @@ export function logout(token: string): Promise<void> {
   return request('/api/v1/account/logout', { method: 'POST', token }).then(
     () => undefined,
   )
+}
+
+/**
+ * La lista compartida completa. El backend no declara ningún orden, así que el
+ * que llegue es el que se conserva en pantalla.
+ */
+export function listTasks(token: string): Promise<Task[]> {
+  return request<{ data: Task[] }>('/api/v1/tasks', { token }).then(
+    (response) => response.data,
+  )
+}
+
+export function createTask(
+  payload: CreateTaskPayload,
+  token: string,
+): Promise<Task> {
+  return request<{ data: Task }>('/api/v1/tasks', {
+    method: 'POST',
+    body: payload,
+    token,
+  }).then((response) => response.data)
+}
+
+export function updateTask(
+  id: number,
+  payload: UpdateTaskPayload,
+  token: string,
+): Promise<Task> {
+  return request<{ data: Task }>(`/api/v1/tasks/${id}`, {
+    method: 'PATCH',
+    body: payload,
+    token,
+  }).then((response) => response.data)
 }
