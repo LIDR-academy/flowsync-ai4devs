@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const j=JSON.parse(d);const f=j.tool_input&&j.tool_input.file_path;if(f)process.stdout.write(f)}catch(e){}})\" | { read -r f; case \"$f\" in frontend/*) (cd frontend && npx --no-install prettier --write \"${f#frontend/}\") ;; esac; } 2>/dev/null || true",
+            "statusMessage": "Formateando frontend..."
+          }
+        ]
+      }
+    ]
+  }
+}
