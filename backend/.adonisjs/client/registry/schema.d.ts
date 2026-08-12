@@ -55,4 +55,40 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/access_tokens_controller').default['destroy']>>>
     }
   }
+  'tasks.tasks.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/tasks'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/task').listTasksValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'tasks.tasks.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/tasks'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/task').createTaskValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/task').createTaskValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'tasks.tasks.update_status': {
+    methods: ["PATCH"]
+    pattern: '/api/v1/tasks/:id/status'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/task').updateTaskStatusValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/task').updateTaskStatusValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['updateStatus']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['updateStatus']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
 }
