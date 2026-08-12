@@ -52,11 +52,21 @@ export function TasksPage() {
   const [isLoading, setLoading] = useState(invalidFilter === null)
   const [error, setError] = useState<string | null>(null)
 
-  /** El filtro vigente, legible desde una petición que ya estaba en vuelo. */
+  /**
+   * El filtro vigente, legible desde una petición que ya estaba en vuelo.
+   *
+   * Toda respuesta que llega tarde se coloca contra este valor y nunca contra
+   * el `filter` que quedó capturado al lanzarla: si mientras tanto se ha
+   * cambiado de vista, la lista que hay en pantalla es ya la de otro filtro y
+   * decidir con el viejo mete o saca filas que no tocan.
+   */
   const filterRef = useRef(filter)
   useEffect(() => {
     filterRef.current = filter
   }, [filter])
+
+  /** Se incrementa para repetir una carga que falló, sin cambiar de filtro. */
+  const [retries, setRetries] = useState(0)
 
   /**
    * `setSearchParams` se recrea cada vez que cambian los parámetros, así que sin
@@ -110,7 +120,7 @@ export function TasksPage() {
     return () => {
       cancelled = true
     }
-  }, [token, filter, invalidFilter])
+  }, [token, filter, invalidFilter, retries])
 
   /**
    * La tarea nueva se coloca en cabeza, que es donde la dejaría el orden del
@@ -126,13 +136,13 @@ export function TasksPage() {
       const created = await api.createTask(token, title)
       setError(null)
 
-      if (matchesFilter(created.status, filter)) {
+      if (matchesFilter(created.status, filterRef.current)) {
         setTasks((current) => [created, ...(current ?? [])])
       } else {
         setFilter(NO_FILTER)
       }
     },
-    [token, filter],
+    [token],
   )
 
   /**
@@ -151,7 +161,9 @@ export function TasksPage() {
 
       try {
         const updated = await api.updateTaskStatus(token, task.id, status)
-        setTasks((current) => applyChange(current ?? previous, updated, filter))
+        setTasks((current) =>
+          applyChange(current ?? previous, updated, filterRef.current),
+        )
       } catch (caught) {
         // Si mientras tanto se ha cambiado de filtro, la lista de la que salió
         // esta fila ya no es la que se está mirando: devolverla ahí metería en
@@ -214,7 +226,25 @@ export function TasksPage() {
             {error && (
               <Alert variant="destructive">
                 <AlertCircleIcon />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription className="grid gap-3">
+                  <p>{error}</p>
+                  {/*
+                    Si nunca llegó a haber lista, no hay nada en pantalla desde
+                    lo que volver a intentarlo: sin esto, la única salida sería
+                    recargar a mano.
+                  */}
+                  {tasks === null && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="justify-self-start"
+                      disabled={isLoading}
+                      onClick={() => setRetries((count) => count + 1)}
+                    >
+                      {isLoading ? 'Reintentando…' : 'Reintentar'}
+                    </Button>
+                  )}
+                </AlertDescription>
               </Alert>
             )}
 
@@ -229,6 +259,13 @@ export function TasksPage() {
                         <TaskRow
                           key={task.id}
                           task={task}
+                          /*
+                            Mientras llega la lista del filtro nuevo, lo que se
+                            está viendo es la del anterior. Tocar el estado ahí
+                            cambiaría de verdad una tarea que está a punto de
+                            desaparecer de la vista.
+                          */
+                          disabled={isLoading}
                           onStatusChange={(status) =>
                             handleStatusChange(task, status)
                           }
