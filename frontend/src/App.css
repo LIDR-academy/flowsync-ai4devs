@@ -1,3 +1,56 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 320px;
+  max-width: 100%;
+  margin: auto;
+  padding: 32px 20px;
+  text-align: left;
+
+  label {
+    font-size: 14px;
+    color: var(--text-h);
+  }
+
+  input {
+    font: inherit;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-h);
+  }
+
+  button {
+    margin-top: 8px;
+  }
+}
+
+.login-form-error {
+  color: #e5484d;
+  font-size: 14px;
+}
+
+#session-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 32px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+
+  button {
+    font: inherit;
+    color: var(--text-h);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
