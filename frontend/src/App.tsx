@@ -3,12 +3,41 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
+import LoginForm from "./components/LoginForm";
+import { logout, type AuthUser } from "./lib/api";
+import { clearSession, loadSession, saveSession } from "./lib/session";
 
 function App() {
   const [count, setCount] = useState(0);
+  const [session, setSession] = useState(() => loadSession());
+
+  function handleLoginSuccess(user: AuthUser, token: string) {
+    const newSession = { user, token };
+    saveSession(newSession);
+    setSession(newSession);
+  }
+
+  async function handleLogout() {
+    if (session) await logout(session.token);
+    clearSession();
+    setSession(null);
+  }
+
+  if (!session) {
+    return <LoginForm onSuccess={handleLoginSuccess} />;
+  }
 
   return (
     <>
+      <section id="session-bar">
+        <span>
+          Hola, {session.user.fullName ?? session.user.email} ({session.user.initials})
+        </span>
+        <button type="button" onClick={handleLogout}>
+          Cerrar sesión
+        </button>
+      </section>
+
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
