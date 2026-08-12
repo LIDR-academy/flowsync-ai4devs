@@ -13,6 +13,15 @@ export type TaskStatus = (typeof TASK_STATUSES)[number]
 
 export const DEFAULT_TASK_STATUS: TaskStatus = 'pending'
 
+/**
+ * Lo que se ve cuando no se pide ningún estado. No es «todas»: las hechas se
+ * quedan fuera a propósito, que es justo lo que hace útil a la lista.
+ */
+export const UNFILTERED_TASK_STATUSES = [
+  'pending',
+  'in_progress',
+] as const satisfies readonly TaskStatus[]
+
 export default class Task extends TaskSchema {
   /**
    * El esquema generado tipa la columna como `string`; aquí se estrecha a los

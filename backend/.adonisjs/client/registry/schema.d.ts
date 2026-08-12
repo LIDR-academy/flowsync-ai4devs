@@ -62,9 +62,9 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/task').listTasksValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'tasks.tasks.store': {

@@ -1,16 +1,29 @@
-import Task, { DEFAULT_TASK_STATUS } from '#models/task'
+import Task, { DEFAULT_TASK_STATUS, UNFILTERED_TASK_STATUSES } from '#models/task'
 import type { HttpContext } from '@adonisjs/core/http'
 import TaskTransformer from '#transformers/task_transformer'
-import { createTaskValidator, updateTaskStatusValidator } from '#validators/task'
+import {
+  createTaskValidator,
+  listTasksValidator,
+  updateTaskStatusValidator,
+} from '#validators/task'
 
 export default class TasksController {
   /**
    * La lista compartida del equipo: una sola, la misma para todos, sin filtrar
-   * por quién pregunta.
+   * por quién pregunta. Acepta acotarse por estado, y el estado pedido no se
+   * guarda en ninguna parte: quien decide si lo recuerda es el cliente.
    */
-  async index({ serialize }: HttpContext) {
+  async index({ request, serialize }: HttpContext) {
+    const { status } = await request.validateUsing(listTasksValidator)
+
     const tasks = await Task.query()
       .preload('assignee')
+      /**
+       * Sin filtro no es «todas»: son las que siguen vivas. Con filtro, solo el
+       * estado pedido, incluido `done`, que es la única forma de volver a ver
+       * lo que ya está terminado.
+       */
+      .whereIn('status', status ? [status] : [...UNFILTERED_TASK_STATUSES])
       /**
        * SQLite guarda las marcas de tiempo con resolución de segundo, así que
        * dos tareas creadas en el mismo segundo empatarían. El desempate por id

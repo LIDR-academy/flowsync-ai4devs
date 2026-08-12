@@ -181,8 +181,15 @@ export function logout(token: string): Promise<void> {
   )
 }
 
-export function listTasks(token: string): Promise<Task[]> {
-  return request<{ data: Task[] }>('/api/v1/tasks', { token }).then(
+/**
+ * Sin `status` se pide la vista por defecto —pendientes y en curso—, que es lo
+ * que devuelve la API cuando no se le manda el parámetro. El filtro no se
+ * guarda en ningún sitio: viaja en la petición y ahí se acaba.
+ */
+export function listTasks(token: string, status?: TaskStatus): Promise<Task[]> {
+  const query = status ? `?status=${encodeURIComponent(status)}` : ''
+
+  return request<{ data: Task[] }>(`/api/v1/tasks${query}`, { token }).then(
     (response) => response.data,
   )
 }
