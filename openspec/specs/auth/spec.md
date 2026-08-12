@@ -3,9 +3,7 @@
 ## Purpose
 
 Permitir que una persona cree su cuenta en FlowSync, entre con email y contraseña y mantenga la sesión abierta entre visitas, para que el resto del producto pueda saber quién está trabajando. Cubre el registro, el inicio y el cierre de sesión, la persistencia de la sesión en el navegador y la consulta del propio perfil.
-
 ## Requirements
-
 ### Requirement: Alta de una cuenta nueva
 
 El sistema SHALL permitir crear una cuenta con email y contraseña mediante `POST /api/v1/auth/signup`, y SHALL responder `200` con los datos públicos de la cuenta y un token de acceso ya utilizable, de forma que registrarse deje a la persona dentro sin un paso extra de inicio de sesión.
@@ -152,7 +150,7 @@ El sistema SHALL ofrecer en `/register` un formulario con nombre completo (marca
 #### Scenario: Alta correcta desde la pantalla
 
 - **WHEN** se rellenan email, contraseña y su repetición con valores válidos y se pulsa «Crear cuenta»
-- **THEN** la persona pasa directamente a su perfil, sin tener que iniciar sesión a continuación
+- **THEN** la persona pasa directamente a la lista de tareas del equipo, sin tener que iniciar sesión a continuación
 
 #### Scenario: Aviso mientras se envía el formulario
 
@@ -181,12 +179,12 @@ El sistema SHALL ofrecer en `/register` un formulario con nombre completo (marca
 
 ### Requirement: Pantalla de inicio de sesión
 
-El sistema SHALL ofrecer en `/login` un formulario de email y contraseña que, con credenciales correctas, SHALL llevar al perfil, y que SHALL explicar en un aviso visible por qué no se ha podido entrar.
+El sistema SHALL ofrecer en `/login` un formulario de email y contraseña que, con credenciales correctas, SHALL llevar a la lista de tareas, y que SHALL explicar en un aviso visible por qué no se ha podido entrar.
 
 #### Scenario: Entrada correcta
 
 - **WHEN** se introducen el email y la contraseña de una cuenta existente y se pulsa «Entrar»
-- **THEN** la persona pasa a su perfil
+- **THEN** la persona pasa a la lista de tareas del equipo
 
 #### Scenario: Credenciales incorrectas
 
@@ -238,18 +236,18 @@ El sistema SHALL impedir el acceso a las pantallas de la aplicación sin sesión
 
 #### Scenario: Persona anónima pide una pantalla protegida
 
-- **WHEN** alguien sin sesión abre `/profile`
+- **WHEN** alguien sin sesión abre `/tasks` o `/profile`
 - **THEN** acaba en la pantalla de inicio de sesión, y el botón «atrás» del navegador no le devuelve a la pantalla protegida
 
 #### Scenario: Persona con sesión pide una pantalla de acceso
 
 - **WHEN** alguien con sesión iniciada abre `/login` o `/register`
-- **THEN** acaba en su perfil, porque volver a entrar o registrarse no tiene sentido teniendo la sesión abierta
+- **THEN** acaba en la lista de tareas, porque volver a entrar o registrarse no tiene sentido teniendo la sesión abierta
 
 #### Scenario: Dirección desconocida
 
 - **WHEN** se abre cualquier dirección que no existe en la aplicación
-- **THEN** se redirige al perfil, y desde ahí quien no tenga sesión acaba en la pantalla de inicio de sesión
+- **THEN** se redirige a la lista de tareas, y desde ahí quien no tenga sesión acaba en la pantalla de inicio de sesión
 
 ### Requirement: Pantalla de perfil
 
@@ -272,7 +270,7 @@ El sistema SHALL ofrecer en el perfil una acción de cierre de sesión que SHALL
 #### Scenario: Cierre de sesión correcto
 
 - **WHEN** se pulsa «Cerrar sesión» en el perfil
-- **THEN** la persona vuelve a la pantalla de inicio de sesión, y ni recargar ni volver a abrir la aplicación la devuelve a su perfil sin escribir de nuevo las credenciales
+- **THEN** la persona vuelve a la pantalla de inicio de sesión, y ni recargar ni volver a abrir la aplicación la devuelve a la lista de tareas sin escribir de nuevo las credenciales
 
 #### Scenario: Aviso mientras se cierra la sesión
 
@@ -283,3 +281,4 @@ El sistema SHALL ofrecer en el perfil una acción de cierre de sesión que SHALL
 
 - **WHEN** se pulsa «Cerrar sesión» y el servidor está caído o rechaza la petición
 - **THEN** la sesión se cierra igualmente en el navegador y la persona acaba en la pantalla de inicio de sesión, sin ningún mensaje de error
+

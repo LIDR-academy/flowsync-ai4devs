@@ -1,4 +1,11 @@
-import type { AuthResult, LoginPayload, SignupPayload, User } from '@/lib/types'
+import type {
+  AuthResult,
+  LoginPayload,
+  SignupPayload,
+  Task,
+  TaskStatus,
+  User,
+} from '@/lib/types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333'
 
@@ -35,13 +42,16 @@ const FIELD_LABELS: Record<string, string> = {
   email: 'el email',
   password: 'la contraseña',
   passwordConfirmation: 'la confirmación de la contraseña',
+  title: 'el título',
+  status: 'el estado',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
 
 /**
  * Traduce un error de VineJS a una frase que el usuario pueda entender.
- * Cubre todas las reglas que usa `app/validators/user.ts` en el backend.
+ * Cubre todas las reglas que usan `app/validators/user.ts` y
+ * `app/validators/task.ts` en el backend.
  */
 function translate(error: BackendError): string {
   const { rule, field, meta } = error
@@ -56,11 +66,17 @@ function translate(error: BackendError): string {
     case 'email':
       return 'Introduce una dirección de email válida.'
     case 'required':
+      // El backend recorta el título antes de validarlo, así que uno de solo
+      // espacios llega aquí como si no se hubiera escrito nada.
       return `Falta rellenar ${label(field)}.`
     case 'minLength':
       return `${label(field)} debe tener al menos ${meta?.min} caracteres.`
     case 'maxLength':
-      return `${label(field)} no puede superar los ${meta?.max} caracteres.`
+      return field === 'title'
+        ? `El título se pasa de largo: como mucho ${meta?.max} caracteres.`
+        : `${label(field)} no puede superar los ${meta?.max} caracteres.`
+    case 'enum':
+      return `Ese valor no es válido para ${label(field)}.`
     default:
       return `Revisa ${label(field)}.`
   }
@@ -102,7 +118,7 @@ function toApiError(status: number, body: unknown): ApiError {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   token?: string | null
 }
@@ -163,4 +179,30 @@ export function logout(token: string): Promise<void> {
   return request('/api/v1/account/logout', { method: 'POST', token }).then(
     () => undefined,
   )
+}
+
+export function listTasks(token: string): Promise<Task[]> {
+  return request<{ data: Task[] }>('/api/v1/tasks', { token }).then(
+    (response) => response.data,
+  )
+}
+
+export function createTask(token: string, title: string): Promise<Task> {
+  return request<{ data: Task }>('/api/v1/tasks', {
+    method: 'POST',
+    body: { title },
+    token,
+  }).then((response) => response.data)
+}
+
+export function updateTaskStatus(
+  token: string,
+  taskId: number,
+  status: TaskStatus,
+): Promise<Task> {
+  return request<{ data: Task }>(`/api/v1/tasks/${taskId}/status`, {
+    method: 'PATCH',
+    body: { status },
+    token,
+  }).then((response) => response.data)
 }
