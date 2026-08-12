@@ -19,8 +19,10 @@ interface LoginResponse {
 async function extractErrorMessage(response: Response): Promise<string> {
   try {
     const body = await response.json();
-    const message = body?.errors?.[0]?.message;
-    return typeof message === "string" ? message : "No se pudo iniciar sesión";
+    const messages = (body?.errors as Array<{ message?: string }> | undefined)
+      ?.map((error) => error.message)
+      .filter((message): message is string => typeof message === "string");
+    return messages?.length ? messages.join("\n") : "No se pudo iniciar sesión";
   } catch {
     return "No se pudo iniciar sesión";
   }

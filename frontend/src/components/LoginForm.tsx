@@ -50,7 +50,7 @@ function LoginForm({ onSuccess }: LoginFormProps) {
         onChange={(event) => setPassword(event.target.value)}
       />
       {error && (
-        <p className="login-form-error" role="alert">
+        <p className="login-form-error" role="alert" style={{ whiteSpace: "pre-line" }}>
           {error}
         </p>
       )}

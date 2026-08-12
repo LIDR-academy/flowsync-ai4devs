@@ -18,7 +18,13 @@ function App() {
   }
 
   async function handleLogout() {
-    if (session) await logout(session.token);
+    if (session) {
+      try {
+        await logout(session.token);
+      } catch {
+        // El logout local debe completarse aunque falle la llamada al backend.
+      }
+    }
     clearSession();
     setSession(null);
   }
