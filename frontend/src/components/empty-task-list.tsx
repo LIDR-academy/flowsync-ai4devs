@@ -13,7 +13,8 @@ type EmptyTaskListProps = {
  * Una lista sin filas no siempre significa lo mismo, y quien mira tiene que
  * poder distinguirlo. Aquí se separan los dos vacíos que sí son vacíos:
  *
- * - sin filtro y sin nada que enseñar, que es el espacio recién estrenado;
+ * - sin filtro y sin nada en marcha, ya sea porque el espacio está recién
+ *   estrenado o porque el equipo lo ha terminado todo;
  * - con un filtro puesto que hoy no encaja con ninguna tarea.
  *
  * El tercer caso —haber pedido un estado que no existe— no pasa por aquí a

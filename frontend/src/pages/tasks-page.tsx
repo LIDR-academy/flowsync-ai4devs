@@ -59,11 +59,13 @@ export function TasksPage() {
    * el `filter` que quedó capturado al lanzarla: si mientras tanto se ha
    * cambiado de vista, la lista que hay en pantalla es ya la de otro filtro y
    * decidir con el viejo mete o saca filas que no tocan.
+   *
+   * Se asigna en el propio render y no en un efecto: los efectos corren después
+   * de pintar, y una respuesta que llegara en ese hueco leería todavía el
+   * filtro anterior. Es una ventana que hay que cerrar, no encoger.
    */
   const filterRef = useRef(filter)
-  useEffect(() => {
-    filterRef.current = filter
-  }, [filter])
+  filterRef.current = filter
 
   /** Se incrementa para repetir una carga que falló, sin cambiar de filtro. */
   const [retries, setRetries] = useState(0)
@@ -105,8 +107,13 @@ export function TasksPage() {
       })
       .catch((caught: unknown) => {
         if (cancelled) return
-        // La lista no se vacía al fallar: una lista vacía es una respuesta, y
-        // esto no lo es. Se deja lo último que sí se pudo leer.
+        /*
+         * Se retira la lista, que no es lo mismo que vaciarla: una lista vacía
+         * es una respuesta y esto no lo es, así que no se pinta ninguna. Dejar
+         * la anterior sería peor que no enseñar nada, porque el control ya
+         * muestra activo el filtro nuevo y esas filas son las del viejo.
+         */
+        setTasks(null)
         setError(
           caught instanceof ApiError
             ? caught.message
