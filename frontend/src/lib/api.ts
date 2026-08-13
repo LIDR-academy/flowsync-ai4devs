@@ -1,4 +1,13 @@
-import type { AuthResult, LoginPayload, SignupPayload, User } from '@/lib/types'
+import type {
+  AuthResult,
+  CreateTaskPayload,
+  LoginPayload,
+  SignupPayload,
+  Task,
+  TaskDetail,
+  TaskStatus,
+  User,
+} from '@/lib/types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333'
 
@@ -35,6 +44,10 @@ const FIELD_LABELS: Record<string, string> = {
   email: 'el email',
   password: 'la contraseña',
   passwordConfirmation: 'la confirmación de la contraseña',
+  title: 'el título',
+  status: 'el estado',
+  dueDate: 'la fecha de vencimiento',
+  today: 'el día de hoy',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
@@ -58,9 +71,31 @@ function translate(error: BackendError): string {
     case 'required':
       return `Falta rellenar ${label(field)}.`
     case 'minLength':
+      // Un mínimo de un carácter no es una longitud, es una obligación:
+      // «debe tener al menos 1 caracteres» sería feo y además no diría lo
+      // que de verdad pasa, que es que el campo se ha dejado en blanco.
+      if (meta?.min === 1) return `Falta rellenar ${label(field)}.`
       return `${label(field)} debe tener al menos ${meta?.min} caracteres.`
     case 'maxLength':
       return `${label(field)} no puede superar los ${meta?.max} caracteres.`
+    case 'date':
+      // El día de referencia lo genera el propio cliente, así que este error no
+      // debería verlo nadie; si aparece, lo que falla es el reloj del navegador.
+      return field === 'today'
+        ? 'No hemos podido determinar qué día es hoy. Recarga la página.'
+        : 'Esa fecha no existe. Revisa el día, el mes y el año.'
+    case 'enum': {
+      // Este mensaje tiene que sonar a «lo que has pedido no existe» y nunca a
+      // «no hay nada de eso»: confundir las dos cosas es exactamente el fallo
+      // silencioso que el filtro por estado tiene que evitar. El `default` de
+      // abajo («Revisa el estado.») no distinguiría ni una cosa ni la otra.
+      const choices = Array.isArray(meta?.choices) ? meta.choices : []
+      const validos = choices.length
+        ? ` Los válidos son: ${choices.join(', ')}.`
+        : ''
+
+      return `No existe ${label(field)} que has pedido.${validos}`
+    }
     default:
       return `Revisa ${label(field)}.`
   }
@@ -102,9 +137,27 @@ function toApiError(status: number, body: unknown): ApiError {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT'
   body?: unknown
   token?: string | null
+}
+
+/**
+ * El día de hoy de quien está mirando, en `AAAA-MM-DD`.
+ *
+ * Se construye a partir de los métodos locales de `Date` y **nunca** con
+ * `toISOString()`, que devuelve el día en UTC: de madrugada o al otro lado del
+ * meridiano ese sería otro día, y una tarea se vería vencida —o no— cuando no
+ * toca. Ese es exactamente el fallo que el día de referencia explícito existe
+ * para evitar, y sería absurdo reintroducirlo aquí.
+ *
+ * Vive en esta capa para que ninguna pantalla tenga que acordarse de mandarlo.
+ */
+function localToday(): string {
+  const now = new Date()
+  const pad = (value: number) => String(value).padStart(2, '0')
+
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 }
 
 async function request<T>(
@@ -163,4 +216,75 @@ export function logout(token: string): Promise<void> {
   return request('/api/v1/account/logout', { method: 'POST', token }).then(
     () => undefined,
   )
+}
+
+/**
+ * La lista del equipo: una sola, la misma para todos, ya ordenada por la API.
+ *
+ * `status` se declara `string` a secas y no `TaskStatus` a propósito: el valor
+ * puede venir de la URL, que la escribe cualquiera. Quien dictamina si es un
+ * estado válido es el backend, no el tipo — colar aquí un `as TaskStatus`
+ * sería fingir una certeza que no tenemos y cerrar el camino del 422.
+ *
+ * Sin `status` la ruta va pelada, que es la ausencia de filtro. Un `?status=`
+ * vacío no es lo mismo y por eso no se genera nunca.
+ */
+export function listTasks(token: string, status?: string): Promise<Task[]> {
+  const query = status ? `?${new URLSearchParams({ status })}` : ''
+
+  return request<{ data: Task[] }>(`/api/v1/tasks${query}`, { token }).then(
+    (response) => response.data,
+  )
+}
+
+export function createTask(
+  payload: CreateTaskPayload,
+  token: string,
+): Promise<Task> {
+  return request<{ data: Task }>('/api/v1/tasks', {
+    method: 'POST',
+    body: payload,
+    token,
+  }).then((response) => response.data)
+}
+
+/**
+ * Una tarea abierta, con su fecha y su condición de vencida ya resuelta contra
+ * el día de quien mira. Ese día se manda en cada consulta, y por eso la misma
+ * tarea sin tocarla aparece vencida al día siguiente.
+ */
+export function getTask(id: number, token: string): Promise<TaskDetail> {
+  const query = new URLSearchParams({ today: localToday() })
+
+  return request<{ data: TaskDetail }>(`/api/v1/tasks/${id}?${query}`, {
+    token,
+  }).then((response) => response.data)
+}
+
+/**
+ * Fija, cambia o retira la fecha de vencimiento. `null` es retirarla, y es una
+ * operación normal: no hay endpoint aparte para borrar.
+ */
+export function setTaskDueDate(
+  id: number,
+  dueDate: string | null,
+  token: string,
+): Promise<TaskDetail> {
+  return request<{ data: TaskDetail }>(`/api/v1/tasks/${id}/due-date`, {
+    method: 'PUT',
+    body: { dueDate, today: localToday() },
+    token,
+  }).then((response) => response.data)
+}
+
+export function updateTaskStatus(
+  id: number,
+  status: TaskStatus,
+  token: string,
+): Promise<Task> {
+  return request<{ data: Task }>(`/api/v1/tasks/${id}/status`, {
+    method: 'PATCH',
+    body: { status },
+    token,
+  }).then((response) => response.data)
 }

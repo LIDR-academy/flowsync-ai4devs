@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
+import { ArrowLeftIcon } from 'lucide-react'
 import { useAuth } from '@/auth/use-auth'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,7 +30,16 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="bg-muted/40 flex min-h-svh items-center justify-center p-6">
+    <div className="bg-muted/40 flex min-h-svh flex-col items-center justify-center gap-4 p-6">
+      <div className="w-full max-w-md">
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/tasks">
+            <ArrowLeftIcon />
+            Volver a las tareas
+          </Link>
+        </Button>
+      </div>
+
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center gap-4">
