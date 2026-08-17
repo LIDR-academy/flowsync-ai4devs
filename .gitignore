@@ -24,3 +24,7 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+# Claude Code (local/personal, no compartir)
+.claude/settings.local.json
+.claude/RESUME.md
