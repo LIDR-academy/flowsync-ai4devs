@@ -46,11 +46,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    if (token) await authApi.logout(token)
-    localStorage.removeItem(TOKEN_STORAGE_KEY)
-    setToken(null)
-    setUser(null)
-    setStatus('signed-out')
+    try {
+      if (token) await authApi.logout(token)
+    } finally {
+      localStorage.removeItem(TOKEN_STORAGE_KEY)
+      setToken(null)
+      setUser(null)
+      setStatus('signed-out')
+    }
   }
 
   return (

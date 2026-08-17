@@ -11,7 +11,13 @@ export default function Dashboard() {
       <p>
         Signed in as <code>{user.email}</code>
       </p>
-      <button type="button" className="counter" onClick={() => logout()}>
+      <button
+        type="button"
+        className="counter"
+        onClick={() => {
+          logout().catch(() => {})
+        }}
+      >
         Log out
       </button>
     </div>
