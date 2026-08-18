@@ -51,7 +51,6 @@ export default class Task extends TaskSchema {
    */
   isOverdueOn(referenceDay: string): boolean {
     if (this.dueDate === null) return false
-    if (this.status === 'done') return false
 
     return this.dueDate < referenceDay
   }
