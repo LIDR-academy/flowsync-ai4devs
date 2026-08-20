@@ -1,11 +1,24 @@
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/auth/use-auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function ProfilePage() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshProfile } = useAuth()
+  const [leaving, setLeaving] = useState(false)
+
+  // La vista lee su dato de GET /account/profile, no del payload del login:
+  // así refleja el perfil actual y detecta una sesión revocada al entrar.
+  useEffect(() => {
+    void refreshProfile()
+  }, [refreshProfile])
 
   if (!user) return null
+
+  async function handleLogout() {
+    setLeaving(true)
+    await logout()
+  }
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
@@ -24,8 +37,13 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <Button type="button" variant="outline" onClick={() => void logout()}>
-            Cerrar sesión
+          <Button
+            type="button"
+            variant="outline"
+            disabled={leaving}
+            onClick={() => void handleLogout()}
+          >
+            {leaving ? 'Cerrando sesión…' : 'Cerrar sesión'}
           </Button>
         </CardContent>
       </Card>

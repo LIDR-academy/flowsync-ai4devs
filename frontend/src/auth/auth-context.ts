@@ -9,6 +9,7 @@ export interface AuthContextValue {
   login: (payload: LoginPayload) => Promise<void>
   register: (payload: SignupPayload) => Promise<void>
   logout: () => Promise<void>
+  refreshProfile: () => Promise<void>
 }
 
 /**

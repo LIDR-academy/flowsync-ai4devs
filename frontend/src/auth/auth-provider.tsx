@@ -53,22 +53,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('authenticated')
   }, [])
 
+  const forgetSession = useCallback(() => {
+    api.clearToken()
+    setUser(null)
+    setStatus('anonymous')
+  }, [])
+
   /**
-   * El token local se borra pase lo que pase. Si la revocación en servidor
-   * falla, dejar al usuario "dentro" sería peor que perder esa llamada.
+   * El token local se borra pase lo que pase. Que la revocación en servidor
+   * falle (token ya inválido, backend caído, sin red) no puede dejar al
+   * usuario "dentro", ni propagar un rechazo que nadie captura.
    */
   const logout = useCallback(async () => {
     try {
       await api.logout()
+    } catch {
+      // Sin acción: lo que importa es que la sesión local desaparezca.
     } finally {
-      api.clearToken()
-      setUser(null)
-      setStatus('anonymous')
+      forgetSession()
     }
-  }, [])
+  }, [forgetSession])
+
+  /**
+   * Relee el perfil desde el backend. Un 401 aquí significa que la sesión
+   * murió mientras la app seguía abierta, así que se cierra en el sitio.
+   */
+  const refreshProfile = useCallback(async () => {
+    try {
+      setUser(await api.getProfile())
+    } catch (error) {
+      if (error instanceof api.ApiError && error.status === 401) forgetSession()
+    }
+  }, [forgetSession])
 
   return (
-    <AuthContext.Provider value={{ status, user, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ status, user, login, register, logout, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   )
