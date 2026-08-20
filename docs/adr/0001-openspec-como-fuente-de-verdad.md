@@ -81,10 +81,18 @@ En concreto:
 
 ## Estado
 
-Aceptada — 2026-08-20.
+**Reemplazada** por el [ADR 0002 — Los tests de integración son la única fuente de verdad
+ejecutable](./0002-tests-como-fuente-de-verdad-ejecutable.md), el 2027-08-20.
 
-Registra una práctica que ya estaba en vigor: los tres changes archivados son del 2026-08-13. Este ADR
-la escribe y le pone límites, no la estrena.
+Lo que sigue es el estado con el que se aceptó, y se conserva tal cual:
+
+> Aceptada — 2026-08-20.
+>
+> Registra una práctica que ya estaba en vigor: los tres changes archivados son del 2026-08-13. Este
+> ADR la escribe y le pone límites, no la estrena.
+
+El contexto y la decisión de más arriba no se tocan: describen lo que se creía y lo que se acordó
+entonces. Las consecuencias que este ADR anotó como coste son, en buena parte, las razones del 0002.
 
 ## Consecuencias
 
