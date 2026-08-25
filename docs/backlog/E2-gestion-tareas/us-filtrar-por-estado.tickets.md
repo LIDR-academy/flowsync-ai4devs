@@ -14,7 +14,7 @@ Permitir pedir la lista de tareas restringida a un estado.
 
 **Definition of Done**
 - [ ] Sin filtro, devuelve todas las tareas, igual que antes
-- [ ] Con un estado inválido, rechaza la petición y explica cuáles son válidos
+- [ ] Con un estado inválido, rechaza la petición y explica cuáles son válidos. Cubre CA-6
 - [ ] Filtrar no modifica ninguna tarea, cubre CA-4
 - [ ] La respuesta mantiene la misma forma que la lista sin filtrar
 
@@ -71,7 +71,7 @@ Se deja el ticket creado y explícitamente bloqueado, en vez de omitirlo, porque
 **Tipo**: Test · **Talla**: S · **Depende de**: FS-142.4
 
 **Definition of Done**
-- [ ] Un caso de prueba por cada criterio, de CA-1 a CA-5
+- [ ] Un caso de prueba por cada criterio, de CA-1 a CA-6
 - [ ] Distingue los dos estados vacíos: sin tareas y sin resultados para el filtro
 - [ ] Verifica que filtrar no altera ninguna tarea
 - [ ] Los casos que dependen de la decisión de persistencia quedan declarados como pendientes

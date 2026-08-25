@@ -70,6 +70,15 @@ depende_de: [FS-102, FS-105]
 
 CA-5 es el criterio que más se olvida y el que peor se siente si falta. Sin él, la tarea se desvanece de la pantalla al tocarla y parece que se borró.
 
+### CA-6 · Pedir un estado que no existe avisa del error
+
+**Dado** que se solicita la lista filtrando por un estado que no está entre los válidos
+**Cuando** el sistema procesa la petición
+**Entonces** avisa del error indicando cuáles son los estados válidos
+**Y** no devuelve una lista vacía en silencio.
+
+CA-6 distingue dos situaciones que se ven igual y no lo son: **no hay resultados** para un filtro legítimo, que es CA-3, y **el filtro pedido no existe**, que es un error. Devolver lista vacía en ambos casos oculta el fallo y hace que un enlace mal formado parezca un tablero vacío.
+
 ## Casos borde
 
 | Caso | Comportamiento esperado |
@@ -78,6 +87,7 @@ CA-5 es el criterio que más se olvida y el que peor se siente si falta. Sin él
 | Se recarga la página con un filtro aplicado | **A decidir**. Ver más abajo |
 | Se comparte el enlace de la lista filtrada | **A decidir**. Ver más abajo |
 | Se añade un cuarto estado en el futuro | El filtro debe reflejarlo sin cambios en esta historia. Depende de D-01 |
+| Llega un estado inexistente por URL manipulada o enlace viejo | Cubierto por CA-6: avisa, no finge lista vacía |
 
 ## Decisiones pendientes que bloquean criterios
 
