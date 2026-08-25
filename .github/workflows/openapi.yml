@@ -1,0 +1,52 @@
+# Comprueba que `docs/api/openapi.json` sigue siendo lo que el router produce.
+#
+# No genera nada ni corrige nada: `openapi:check` solo compara y termina con
+# código distinto de cero si el documento versionado se ha quedado atrás. Quien
+# lo actualiza es una persona, con `npm run openapi:generate`.
+name: openapi
+
+on:
+  # Cada cambio propuesto, sin filtrar por rama ni por ruta: un cambio en las
+  # rutas puede llegar desde cualquier sitio y un filtro dejaría pasar
+  # justamente el caso que esto vigila.
+  pull_request:
+  push:
+    branches: [main]
+
+# Lo único que hace el trabajo es leer el repositorio y ejecutar un script. No
+# comenta, no publica y no escribe nada de vuelta, así que no necesita más.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: El documento OpenAPI está al día
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias del backend
+        run: npm ci
+
+      # El comando arranca la aplicación para leer el router, y `start/env.ts`
+      # valida las variables de entorno al arrancar. `.env` no está versionado,
+      # así que hay que componerlo: es el mismo paso que el setup local.
+      # La clave es de usar y tirar, para este job: aquí no se cifra nada.
+      - name: Preparar el entorno mínimo
+        run: |
+          cp .env.example .env
+          node ace generate:key
+
+      - name: Comparar el documento versionado con el regenerado
+        run: npm run openapi:check

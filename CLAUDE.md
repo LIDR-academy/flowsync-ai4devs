@@ -28,7 +28,7 @@ npm run openapi:generate                        # escribe docs/api/openapi.json
 npm run openapi:check                           # compara el documento versionado; sale != 0 si difiere
 ```
 
-El documento OpenAPI vive versionado en `docs/api/openapi.json`. `openapi:generate` lo construye desde el router —la misma llamada que sirve `GET /api.json`— y lo escribe; `openapi:check` lo regenera en un directorio temporal, lo compara contra el versionado y **solo compara**: nunca reescribe el fichero. Si no coinciden, enumera las diferencias con su ruta dentro del documento, deja el regenerado en el temporal y termina con código 1. Los dos comandos viven en `backend/commands/`, sobre `app/services/openapi_document.ts`.
+El documento OpenAPI vive versionado en `docs/api/openapi.json`. `openapi:generate` lo construye desde el router —la misma llamada que sirve `GET /api.json`— y lo escribe; `openapi:check` lo regenera en un directorio temporal, lo compara contra el versionado y **solo compara**: nunca reescribe el fichero. Si no coinciden, enumera las diferencias con su ruta dentro del documento, deja el regenerado en el temporal y termina con código 1. Los dos comandos viven en `backend/commands/`, sobre `app/services/openapi_document.ts`. `openapi:check` corre además en CI (`.github/workflows/openapi.yml`) sobre cada PR y sobre cada push a `main`.
 
 Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy solo hay tests **functional de `auth`** (`tests/functional/auth/`): registro, login, sesión e iniciales. **`tests/unit/` no existe**, y la capability `tasks` no tiene ni un test.
 
