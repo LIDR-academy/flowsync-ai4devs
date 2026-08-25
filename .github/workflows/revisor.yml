@@ -1,0 +1,73 @@
+# Revisión de código con Claude sobre cada pull request.
+#
+# Los hallazgos se publican como comentarios en el propio PR —inline sobre la
+# línea cuando aplica, y un comentario de conversación para lo general—, no en
+# el registro de ejecución, que nadie mira.
+#
+# Antes de que esto funcione hacen falta pasos manuales que no viven en el
+# repositorio: están en `docs/ci-revisor.md`, incluido qué pasa con los PR
+# que llegan desde un fork.
+name: revisor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# `contents: read` para el checkout y `pull-requests: write` para publicar los
+# comentarios. Nada más: el revisor no commitea, no abre ramas y no toca
+# issues. No lleva `id-token: write` porque la credencial es un secreto del
+# repositorio y no un token OIDC de workload identity federation.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Revisión de Claude
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Solo hace falta el árbol del PR; la acción compara contra la base
+          # con la API, no con el historial local.
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Revisa este pull request. La rama del PR ya está en el directorio
+            de trabajo. Empieza por `CLAUDE.md`, que fija las convenciones del
+            proyecto, y contrasta contra `openspec/specs/` cuando el cambio
+            toque una capability: la spec manda sobre lo que diga el código.
+
+            Busca, en este orden:
+            - Errores de corrección: casos que el cambio rompe o deja sin cubrir.
+            - Contradicciones con la spec viva o con el README de la capability.
+            - Contrato de la API sin actualizar: si el cambio toca rutas,
+              controladores, validadores o transformers, `docs/api/openapi.json`
+              y el diff de `backend/.adonisjs/` tienen que ir en el mismo commit.
+            - Convenciones del repo: transformers en vez de modelos crudos,
+              `serialize()`, imports por subpath, `vine.create`.
+
+            Publica los hallazgos como comentarios del PR, no como mensajes:
+            - `mcp__github_inline_comment__create_inline_comment` (con
+              `confirmed: true`) para lo que señale una línea concreta.
+            - `gh pr comment` para el resumen y para lo que no tenga una línea.
+
+            Sé concreto: cada hallazgo, con el fichero y por qué es un problema.
+            Si no encuentras nada que merezca un cambio, dilo en un solo
+            comentario breve en vez de inventar observaciones de relleno.
+
+          # `--max-turns` acota el trabajo de una revisión; `timeout-minutes`
+          # arriba es el tope de reloj del job. Son dos límites distintos y
+          # hacen falta los dos: el primero acota el coste, el segundo evita
+          # que un job colgado ocupe un runner.
+          claude_args: |
+            --max-turns 25
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
