@@ -11,6 +11,7 @@
 ```
 docs/
   estado-actual.md          Mapa del repo antes de decidir nada
+  hallazgos.md              Hallazgos técnicos verificados, con evidencia
   prd/
     alcance-mvp.md          Discovery: el alcance defendible del MVP
     flowsync-mvp.md         PRD: qué construimos y por qué

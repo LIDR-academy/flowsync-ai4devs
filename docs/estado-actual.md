@@ -143,6 +143,10 @@ Cuatro cosas que el mapa revela y que condicionan el PRD:
 
 **4. El stack va por delante de la documentación conocida.** AdonisJS 7, Lucid 22, VineJS 4, TypeScript 6, React 19, Vite 8, react-router 8. Varias APIs difieren de versiones anteriores, así que conviene comprobar los `.d.ts` reales antes de asumir una firma.
 
+## Hallazgos derivados
+
+Los problemas técnicos concretos que salieron de este mapa y del trabajo posterior están recogidos en [`hallazgos.md`](hallazgos.md), cada uno con la forma en que se verificó. Los dos de severidad alta afectan directamente al Módulo 3: los tests comparten base de datos con desarrollo, y no existe ni una prueba automatizada.
+
 ## Qué NO decide este documento
 
 Nada. Es un mapa, no una propuesta.
