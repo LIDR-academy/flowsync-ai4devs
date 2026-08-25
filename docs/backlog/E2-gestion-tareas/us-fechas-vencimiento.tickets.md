@@ -68,6 +68,22 @@ Cubrir CA-5, que cruza esta historia con la de cambio de estado.
 - [ ] Cubre CA-5
 - [ ] Al pasar a "hecha", la marca de vencida desaparece sin recargar
 
+## FS-118.6 · Cobertura de los criterios de aceptación
+
+**Tipo**: Test · **Talla**: M · **Depende de**: FS-118.5
+
+Ticket explícito de verificación. Comprueba que los seis criterios de la historia se cumplen de punta a punta, no que el código compile.
+
+**Definition of Done**
+- [ ] Un caso de prueba por cada criterio, de CA-1 a CA-6
+- [ ] Cubre además los casos borde decididos: fecha pasada al crear, formato inválido
+- [ ] Los casos que dependen de D-04 quedan declarados como pendientes, no omitidos en silencio
+- [ ] Las pruebas fallan si se rompe la regla de dominio de FS-118.2
+
+**Por qué es un ticket y no una casilla dentro de otros.** Repartir la verificación entre las DoD de los tickets de implementación permite marcarla sin mirar. Un ticket propio se puede dejar sin hacer y se nota en el tablero.
+
+Requiere infraestructura de pruebas, que hoy no existe: el backend tiene Japa configurado pero cero ficheros de test, y el frontend no tiene runner. Ese montaje es parte de este ticket.
+
 ## Grafo de dependencias
 
 ```mermaid
@@ -78,6 +94,7 @@ graph LR
   FS118_3 --> FS118_4[FS-118.4 Interfaz]
   FS118_4 --> FS118_5[FS-118.5 Cerrar saca de vencida]
   FS105[FS-105 Cambio de estado] --> FS118_5
+  FS118_5 --> FS118_6[FS-118.6 Cobertura de los CA]
   D04{{D-04 Zona horaria}} -.bloquea.-> FS118_2
 ```
 

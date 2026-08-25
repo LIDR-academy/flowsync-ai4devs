@@ -66,6 +66,16 @@ Se deja el ticket creado y explícitamente bloqueado, en vez de omitirlo, porque
 
 **Definition of Done**: pendiente de la decisión.
 
+## FS-142.6 · Cobertura de los criterios de aceptación
+
+**Tipo**: Test · **Talla**: S · **Depende de**: FS-142.4
+
+**Definition of Done**
+- [ ] Un caso de prueba por cada criterio, de CA-1 a CA-5
+- [ ] Distingue los dos estados vacíos: sin tareas y sin resultados para el filtro
+- [ ] Verifica que filtrar no altera ninguna tarea
+- [ ] Los casos que dependen de la decisión de persistencia quedan declarados como pendientes
+
 ## Grafo de dependencias
 
 ```mermaid
@@ -76,6 +86,7 @@ graph LR
   FS142_2 --> FS142_4[FS-142.4 Aviso al salir del filtro]
   FS142_2 --> FS142_5[FS-142.5 Persistencia]
   FS105[FS-105 Cambio de estado] --> FS142_4
+  FS142_4 --> FS142_6[FS-142.6 Cobertura de los CA]
   D_URL{{Decisión: filtro en URL}} -.bloquea.-> FS142_5
 ```
 

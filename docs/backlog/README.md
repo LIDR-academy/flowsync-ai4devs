@@ -1,5 +1,7 @@
 # Backlog de FlowSync
 
+> Cadena completa: `estado-actual.md` -> `prd/alcance-mvp.md` -> `prd/flowsync-mvp.md` -> `backlog/`.
+>
 > El backlog vive **aquí primero**. Jira es la capa de seguimiento, no la fuente de verdad del comportamiento del sistema.
 >
 > Si Jira y estos ficheros divergen, gana el fichero hasta que una decisión humana lo cambie y lo versione.
@@ -8,6 +10,7 @@
 
 ```
 docs/
+  estado-actual.md          Mapa del repo antes de decidir nada
   prd/
     alcance-mvp.md          Discovery: el alcance defendible del MVP
     flowsync-mvp.md         PRD: qué construimos y por qué
