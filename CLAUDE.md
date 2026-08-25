@@ -131,6 +131,8 @@ Organización de `src/`:
 La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defecto `http://localhost:3333`.
 
 ## Reglas de proceso
+
+Cómo se revisa —qué es grave, qué no pasa de sugerencia, dónde no reportar— está en [`REVIEW.md`](REVIEW.md), no aquí.
 - La rama es por unidad de trabajo, no por petición. Antes de tocar código, mira en qué rama estás: si ya es una rama de trabajo —cualquiera que no sea `main` ni una `sN/*`—, sigue en ella en vez de crear otra. Solo desde `main` o desde una `sN/*` se crea una nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main` ni en una `sN/*`.
 - El commit sí es por petición: al cerrar cada una, usar la skill `/commit`.
 - Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día. El documento se regenera con `npm run openapi:generate` y se commitea `docs/api/openapi.json` junto al diff regenerado de `.adonisjs/`; el README es `docs/capabilities/<nombre>/README.md`. `npm run openapi:check` dice si el documento versionado se ha quedado atrás.
