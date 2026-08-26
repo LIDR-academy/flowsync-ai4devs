@@ -63,6 +63,9 @@ export const configureSuite: Config['configureSuite'] = (suite) => {
    * que decide `config/database.ts`.
    */
   suite.onGroup((group) => group.each.setup(() => testUtils.db().truncate()))
+  // Hoy todos los casos viven en grupos, así que esta segunda línea no llega a
+  // disparar. Se deja porque un test declarado fuera de un grupo se escaparía
+  // del truncado sin que nada avisara.
   suite.onTest((test) => test.setup(() => testUtils.db().truncate()))
 
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {

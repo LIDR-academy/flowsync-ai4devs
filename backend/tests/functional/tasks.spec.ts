@@ -221,6 +221,16 @@ test.group('tasks · Una sola lista, la misma para todos', () => {
     assert.lengthOf(tareas(laDeAda), 2)
   })
 
+  test('consultar la lista no la modifica', async ({ client, assert }) => {
+    const ada = await cuenta('ada@flowsync.test')
+    await client.post('/api/v1/tasks').loginAs(ada).json({ title: 'Estable' })
+
+    const primera = await client.get('/api/v1/tasks').loginAs(ada)
+    const segunda = await client.get('/api/v1/tasks').loginAs(ada)
+
+    assert.deepEqual(tareas(primera), tareas(segunda))
+  })
+
   test('cambiar el estado de una tarea ajena se aplica igual', async ({ client, assert }) => {
     const ada = await cuenta('ada@flowsync.test')
     const grace = await cuenta('grace@flowsync.test', 'Grace Hopper')
@@ -249,8 +259,11 @@ test.group('tasks · Una sola lista, la misma para todos', () => {
     )
 
     assert.isNull(creada.assignee.fullName)
-    assert.isString(creada.assignee.initials)
+    // El valor concreto: `isString` pasaba con la cadena vacía, y con la parte
+    // local del correo también.
+    assert.equal(creada.assignee.initials, 'AF')
     assert.notInclude(JSON.stringify(creada.assignee), anonima.email)
+    assert.notInclude(JSON.stringify(creada.assignee), 'anonima')
   })
 })
 

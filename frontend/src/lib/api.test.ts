@@ -158,6 +158,12 @@ describe('Desglose por campo', () => {
   })
 })
 
+/**
+ * Las tres siguientes son pruebas de **implementación**, no de requisito: ni la
+ * spec de `auth` ni la de `tasks` deciden qué pasa con dos errores del mismo
+ * campo, con una regla desconocida o con un 500 que responde HTML. Se marcan
+ * como tales para no hacerlas pasar por contrato.
+ */
 describe('Errores que no vienen de la validación', () => {
   it('un fallo de red se distingue de uno de credenciales y lo dice', async () => {
     stubFetch(vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))

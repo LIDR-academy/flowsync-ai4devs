@@ -133,6 +133,8 @@ El token vive en `localStorage` bajo la clave `flowsync.token`, y se rehidrata c
 
 **No hay ni una sola prueba automatizada en el proyecto.** Es el hueco de calidad más grande del repo actual.
 
+> **Nota posterior.** Lo anterior describe el repo tal como estaba en el Módulo 2. Lo resolvió el cambio `add-test-foundation` del Módulo 3: ver H-01 y H-02 en `hallazgos.md`.
+
 ## Hallazgos relevantes para decidir producto
 
 Cuatro cosas que el mapa revela y que condicionan el PRD:

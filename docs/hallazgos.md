@@ -15,13 +15,15 @@
 | H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Media | Abierto |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | Documentado y sorteado |
 | H-04 | `fullName` es `nullable`, no `optional` | Media | Documentado y sorteado |
-| H-05 | La traducción de errores compara cadenas exactas | Media | Vigilado por pruebas |
+| H-05 | La traducción de errores depende de los nombres de regla del backend | Media | Vigilado por pruebas |
 | H-06 | El token vive en `localStorage` | Media | Deuda aceptada |
 | H-07 | El hook de formateo depende de `jq`, que no está instalado | Baja | Abierto |
 | H-08 | `AGENTS.md` es un symlink que Windows no materializa | Baja | Sin impacto hoy |
 | H-09 | `database/schema.ts` se regenera sin formato y rompe el lint | Baja | Reincidente |
 | H-10 | Los tipos de issue de Jira en `LID` están en dos idiomas | Baja | Sorteado |
+| H-13 | Una sesión que caduca con la lista abierta deja al usuario sin salida | Media | Abierto |
 | H-12 | El registro tipado de Tuyau solo modela la respuesta de éxito | Baja | Sorteado |
+| H-14 | `updatedAt` vale distinto según el endpoint que lo devuelve | Baja | Abierto |
 
 ---
 
@@ -138,7 +140,9 @@ POST /api/v1/account/logout
 
 **Consecuencia**: cualquier cliente que use un desenvolvedor genérico obtiene `undefined` en silencio. No lanza, no avisa.
 
-**Cómo está sorteado**: `frontend/src/lib/api.ts` separa `send()` de `request()`, y logout usa el primero.
+**Cómo está sorteado**: `frontend/src/lib/api.ts` no tiene desenvolvedor genérico. Cada función decide qué hace con el cuerpo, y `logout` descarta el resultado con `.then(() => undefined)`.
+
+> **Corrección (2026-08-26).** Esta entrada decía que `api.ts` «separa `send()` de `request()`, y logout usa el primero». Esa función nunca ha existido en ninguna rama. Lo detectó la revisión adversarial del PR #15.
 
 ---
 
@@ -159,21 +163,36 @@ POST /api/v1/auth/signup  {"email":"malformado","password":"123"}
 
 ---
 
-## H-05 · La traducción de errores compara cadenas exactas
+## H-05 · La traducción de errores depende de los nombres de regla del backend
 
-**Severidad: media.** Abierto.
+**Severidad: media.** Parcialmente vigilado.
 
-`frontend/src/lib/api.ts` traduce los mensajes del backend, que llegan en inglés, mediante un diccionario indexado por el **texto literal** del mensaje:
+> **Corrección (2026-08-26).** Esta entrada afirmaba que `api.ts` traducía mediante un diccionario indexado por el **texto literal** del mensaje, con el ejemplo `'The email has already been taken': ...`. Ese código no existe ni ha existido:
+>
+> ```
+> $ for r in main s1/start s1/end s2/start s3/start; do
+>     git show upstream/$r:frontend/src/lib/api.ts | grep -c "has already been taken"; done
+> 0 0 0 0 0
+> ```
+>
+> `api.ts:49` ya mapeaba por `switch (rule)` más `field` desde la primera rama, que es justo lo que esta entrada proponía como solución. Lo detectó la revisión adversarial del PR #15. Lo que sigue describe el riesgo que sí existe.
 
-```ts
-'The email has already been taken': 'Ya existe una cuenta con este email.'
-```
+`frontend/src/lib/api.ts` traduce comparando el campo `rule` que emite el backend contra un `switch` de literales: `database.unique`, `sameAs`, `email`, `required`, `enum`, `minLength`, `maxLength`. Esos nombres los producen `@vinejs/vine` y `@adonisjs/lucid`, no nosotros.
 
-**Cómo se verificó**: revisión adversarial del Módulo 1, que contrastó las claves contra los strings reales de `@vinejs/vine` y `@adonisjs/lucid` instalados. Todas coinciden hoy, carácter por carácter.
+**Consecuencia**: si una actualización de esas dependencias renombra una regla, la traducción cae al `default` y el usuario ve «Revisa el campo» en lugar del mensaje útil. No lanza, no avisa.
 
-**El problema es de diseño, no de datos**. Cualquier cambio de redacción en una dependencia rompe la traducción **en silencio**: el usuario vuelve a ver inglés y ningún test lo detecta.
+**Qué está vigilado y qué no**, tras `add-test-foundation`:
 
-**Qué hacer**: mapear por `rule` y `field`, que son estables, en vez de por el texto del mensaje. Es refactor, no corrección, por eso sigue abierto.
+| | Estado |
+|---|---|
+| Que el diccionario del frontend no cambie por accidente | Cubierto. `src/lib/api.test.ts` falla si se toca un mensaje |
+| Que los nombres de regla que emite el backend sigan siendo esos | Cubierto desde el 2026-08-26. Las pruebas funcionales de `auth` asertan `rule` en cada rechazo |
+
+Las dos mitades juntas cierran el fallo silencioso: si VineJS renombra `minLength`, rompe la suite del backend; si alguien toca la traducción, rompe la del frontend.
+
+**Cómo se verificó**: renombrando `sameAs` en `api.ts` (rompe el frontend, 1 de 17) y asertando `rule` contra respuestas reales del backend en `tests/functional/auth.spec.ts`.
+
+**Lo que sigue sin vigilar**: los nombres de regla de `tasks` que el frontend traduce (`enum`) no se asertan en la suite del backend. Es un hueco pequeño y conocido.
 
 ---
 
@@ -283,3 +302,41 @@ Cada vez que una prueba se sale de los tipos se ve que lo está haciendo, y el n
 
 **Qué haría falta para resolverlo de verdad**: que el generador tipara también las respuestas de error de cada ruta.
 Está fuera de nuestro alcance, es del framework.
+
+---
+
+## H-13 · Una sesión que caduca con la lista abierta deja al usuario sin salida
+
+**Severidad: media.** Abierto.
+
+Si la credencial deja de valer mientras la pantalla de tareas está abierta, `frontend/src/pages/tasks-page.tsx` pinta «Tu sesión ha caducado. Vuelve a iniciar sesión.» en un aviso que sustituye a toda la tarjeta.
+Pero ese aviso no ofrece ninguna navegación, y `auth-provider` solo limpia el token al arrancar, no ante un 401 posterior.
+El estado de sesión sigue siendo `authenticated`, así que `public-only-route.tsx` rebota `/login` de vuelta a `/tasks`.
+Solo recargar lo desatasca.
+
+**Cómo se verificó**: lectura del código, señalado por la revisión adversarial del PR #15.
+
+**Consecuencia**: el producto le dice al usuario exactamente qué hacer y a la vez le impide hacerlo.
+
+**Qué hacer**: que un `ApiError` con `status === 401` posterior al arranque dispare el cierre de sesión, o como mínimo que el aviso ofrezca salir.
+Es un cambio de comportamiento de producto, así que va en su propio cambio, no en el de pruebas.
+
+---
+
+## H-14 · `updatedAt` vale distinto según el endpoint que lo devuelve
+
+**Severidad: baja.** Abierto.
+
+La respuesta de `PATCH /api/v1/tasks/:id` devuelve el objeto en memoria, con milisegundos.
+El `GET` siguiente devuelve lo persistido, truncado al segundo.
+
+```
+PATCH -> "updatedAt":"2026-08-26T06:09:01.596+00:00"
+GET   -> "updatedAt":"2026-08-26T06:09:01.000+00:00"
+```
+
+**Cómo se verificó**: dos peticiones con `curl` sobre la misma tarea, sin nada en medio. Revisión adversarial del PR #15.
+
+**Consecuencia**: hoy ninguna, porque la interfaz no pinta fechas de tarea. Dolería en cuanto algo compare marcas de tiempo o cachee por ellas.
+
+**Qué hacer**: recargar el modelo antes de serializar en la escritura, o truncar al segundo al serializar. Ninguna prueba lo mira todavía.

@@ -87,6 +87,14 @@ Lo que sí está cubierto es su consecuencia observable: el conjunto de estados 
 - **PA-7**, qué transiciones de estado son legales. Hoy se admiten todas, y la prueba «los tres identificadores admitidos se aceptan» consagra ese hecho a propósito. Cuando PA-7 se decida, esa prueba tendrá que cambiar.
 - **PA-9**, dónde está la frontera de «título demasiado largo». La prueba usa `TITLE_MAX_LENGTH` en vez del número, de modo que sigue al guardia técnico y no fija la regla de producto.
 
+**Lo que la revisión adversarial del PR #15 encontró sin cubrir y sin declarar, y se corrigió el 2026-08-26.** Se añadieron a la suite: el conjunto cerrado de campos del perfil, los datos públicos en la respuesta de login, los dos escenarios de iniciales, y «consultar no modifica». Quedan declarados aquí los que siguen fuera:
+
+| Escenario | Spec | Por qué |
+|---|---|---|
+| «Sin fechas en la lista» | `tasks` | Es una ausencia, no un comportamiento. Su consecuencia observable sí está: el transformer expone un conjunto cerrado de campos |
+| «Sin señales de presencia» | `tasks` | Igual que el anterior |
+| Los nombres de regla que traduce el frontend para `tasks` (`enum`) | H-05 | Los de `auth` sí se asertan. Hueco pequeño y conocido |
+
 **Lo que sería consagrar un defecto.** **H-11**, el email distingue mayúsculas y minúsculas.
 La spec de `auth` calla sobre ello a propósito: escribir una prueba que fije la conducta actual convertiría el defecto en contrato.
 Se arregla en su propio cambio, y ahí nace su prueba.
