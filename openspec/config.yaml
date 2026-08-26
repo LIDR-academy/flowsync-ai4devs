@@ -1,0 +1,97 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  ## FlowSync
+
+  Gestión de tareas para un equipo remoto pequeño. Monorepo sin workspaces ni
+  package.json raíz: backend/ y frontend/ son dos proyectos npm independientes y
+  todos los comandos se ejecutan desde dentro de uno u otro.
+
+  - backend/  AdonisJS 7 + Lucid 22 + SQLite, escucha en http://localhost:3333
+  - frontend/ React 19 + Vite 8 + Tailwind 4 + shadcn/ui, en http://localhost:5173
+
+  TypeScript de punta a punta, ESM en ambos lados.
+
+  Hoy solo existe el vertical de autenticación: registro, login, perfil y cierre
+  de sesión. No hay ninguna noción de tarea, equipo, tablero ni actividad.
+
+  ## Convenciones del backend, verificadas contra el código
+
+  - database/schema.ts está AUTOGENERADO desde las migraciones. No se edita a
+    mano. Se regenera con `node ace migration:run`. Los modelos no declaran
+    columnas: extienden la clase generada vía compose().
+  - El esquema se cambia SOLO con una migración nueva en database/migrations/.
+  - backend/.adonisjs/ es codegen COMMITEADO, no ignorado. Se regenera al
+    arrancar el servidor o al correr los tests.
+  - Toda respuesta pasa por ctx.serialize(), que envuelve el payload bajo la
+    clave `data`. Excepción conocida: POST /api/v1/account/logout devuelve el
+    objeto plano sin envolver.
+  - Nunca se devuelve un modelo Lucid al cliente: siempre a través de un
+    transformer de app/transformers/.
+  - Validación con VineJS 4 en app/validators/, usando vine.create() y no
+    vine.compile(), consumida con request.validateUsing().
+  - Imports por subpath declarados en package.json (#models/*, #validators/*,
+    #transformers/*, #controllers/*, #generated/*...). Nunca rutas relativas.
+  - Auth por access tokens de base de datos. El guard por defecto es `api`. Las
+    rutas protegidas van en un grupo con .use(middleware.auth()).
+  - Todas las rutas cuelgan de /api/v1.
+
+  ## Convenciones del frontend, verificadas contra el código
+
+  - lib/api.ts es el ÚNICO punto de contacto con el backend: desenvuelve el
+    `data`, adjunta el Authorization: Bearer y traduce los errores del backend,
+    que llegan en inglés, a castellano con desglose por campo. Ninguna llamada
+    nueva se hace desde un componente.
+  - El lint es oxlint, NO eslint.
+  - El typecheck vive dentro de `npm run build`.
+  - Tailwind v4 sin tailwind.config.js: los tokens viven en src/index.css.
+  - Los componentes de src/components/ui/ los genera shadcn y NO se editan a
+    mano. Se traen con `npx shadcn@latest add <componente>`.
+  - Alias @/* hacia src/*, declarado en tsconfig.app.json y en vite.config.ts.
+  - El token de sesión vive en localStorage bajo la clave flowsync.token. Es
+    deuda conocida y declarada, no un descuido.
+
+  ## Estado de la verificación
+
+  No hay NINGUNA prueba automatizada en el proyecto. El backend tiene Japa
+  configurado con dos suites declaradas y cero ficheros de test; el frontend no
+  tiene runner instalado.
+
+  Aviso para cuando se monte: config.yaml de la base de datos no tiene override
+  por entorno y .env.test solo cambia SESSION_DRIVER, así que las suites
+  funcionales escribirían sobre el mismo fichero SQLite que el servidor de
+  desarrollo. Hay que aislarlo antes de escribir el primer test.
+
+  ## Versiones por delante de la documentación conocida
+
+  AdonisJS 7, Lucid 22, VineJS 4, Auth 10, TypeScript 6, React 19, Vite 8,
+  react-router 8, oxlint. Varias APIs difieren de versiones anteriores. Antes de
+  asumir una firma por memoria, comprobar los .d.ts reales en node_modules.
+
+rules:
+  proposal:
+    - Trazar cada historia a los requisitos del PRD en docs/prd/flowsync-mvp.md
+    - Incluir siempre una sección de puntos abiertos con lo que quedó sin decidir
+    - Declarar explícitamente lo que queda fuera del cambio
+  spec:
+    - Describir solo comportamiento observable desde fuera
+    - Nada de nombres de clase, rutas de fichero ni detalles de implementación
+    - Backend observable = petición y respuesta HTTP. Frontend observable = lo
+      que la persona ve y puede hacer en pantalla
+    - Si el PRD no decide un borde, marcarlo como pendiente. Nunca inventarlo
+  design:
+    - Registrar las alternativas descartadas, no solo la decisión tomada
+  tasks:
+    - Cada tarea nombra la capa que toca y no diseña la implementación fina
+    - Ninguna tarea inventa requisitos de producto: los hereda de la historia
+
+operations:
+  apply:
+    guidance:
+      - No añadir dependencias nuevas sin aprobación humana explícita
+      - No editar los componentes de frontend/src/components/ui/
+      - No crear rama ni abrir PR salvo que se pida
