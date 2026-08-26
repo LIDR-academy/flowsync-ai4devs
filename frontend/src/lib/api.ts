@@ -118,6 +118,27 @@ function toApiError(status: number, body: unknown): ApiError {
   )
 }
 
+/**
+ * Aviso de que el sistema ha rechazado la credencial (design.md D4 de
+ * `fix-defectos-abiertos`).
+ *
+ * Vive aquí porque este fichero es el único punto de contacto con el backend,
+ * así que es el único sitio por el que pasan **todas** las respuestas. Dejar
+ * que cada pantalla capturase su propio 401 es lo que producía el callejón sin
+ * salida: la lista de tareas pintaba «vuelve a iniciar sesión» y nadie tocaba
+ * el estado de la sesión, con lo que el guard rebotaba el login de vuelta.
+ */
+type UnauthorizedHandler = (error: ApiError) => void
+
+const unauthorizedHandlers = new Set<UnauthorizedHandler>()
+
+export function onUnauthorized(handler: UnauthorizedHandler): () => void {
+  unauthorizedHandlers.add(handler)
+  return () => {
+    unauthorizedHandlers.delete(handler)
+  }
+}
+
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
@@ -150,7 +171,13 @@ async function request<T>(
   const payload = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw toApiError(response.status, payload)
+    const error = toApiError(response.status, payload)
+    if (error.status === 401) {
+      // Solo el 401. Un servidor caído responde 500 o no responde, y esos casos
+      // no deben cerrar la sesión de nadie.
+      unauthorizedHandlers.forEach((handler) => handler(error))
+    }
+    throw error
   }
 
   return payload as T

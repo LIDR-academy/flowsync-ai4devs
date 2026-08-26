@@ -29,6 +29,13 @@ export default class TasksController {
       assigneeId: auth.getUserOrFail().id,
     })
 
+    /**
+     * Se relee lo persistido antes de serializar (design.md D5). El objeto en
+     * memoria trae milisegundos y la base guarda con precisión de segundo, así
+     * que sin esto la respuesta de escritura y la de la lectura siguiente
+     * dirían valores distintos del mismo campo.
+     */
+    await task.refresh()
     await task.load('assignee')
 
     return serialize(TaskTransformer.transform(task))
@@ -57,6 +64,8 @@ export default class TasksController {
     task.status = status
     await task.save()
 
+    // Mismo motivo que en `store`: la escritura devuelve lo persistido.
+    await task.refresh()
     await task.load('assignee')
 
     return serialize(TaskTransformer.transform(task))

@@ -12,7 +12,7 @@
 |---|---|---|---|
 | H-01 | Los tests comparten base de datos con desarrollo | Alta | **Resuelto (2026-08-25)** |
 | H-02 | Cero pruebas automatizadas en todo el proyecto | Alta | **Resuelto (2026-08-25)** |
-| H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Media | Abierto |
+| H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Media | **Resuelto (2026-08-26)** |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | Documentado y sorteado |
 | H-04 | `fullName` es `nullable`, no `optional` | Media | Documentado y sorteado |
 | H-05 | La traducción de errores depende de los nombres de regla del backend | Media | Vigilado por pruebas |
@@ -21,9 +21,9 @@
 | H-08 | `AGENTS.md` es un symlink que Windows no materializa | Baja | Sin impacto hoy |
 | H-09 | `database/schema.ts` se regenera sin formato y rompe el lint | Baja | Reincidente |
 | H-10 | Los tipos de issue de Jira en `LID` están en dos idiomas | Baja | Sorteado |
-| H-13 | Una sesión que caduca con la lista abierta deja al usuario sin salida | Media | Abierto |
+| H-13 | Una sesión que caduca con la lista abierta deja al usuario sin salida | Media | **Resuelto (2026-08-26)** |
 | H-12 | El registro tipado de Tuyau solo modela la respuesta de éxito | Baja | Sorteado |
-| H-14 | `updatedAt` vale distinto según el endpoint que lo devuelve | Baja | Abierto |
+| H-14 | `updatedAt` vale distinto según el endpoint que lo devuelve | Baja | **Resuelto (2026-08-26)** |
 
 ---
 
@@ -122,6 +122,17 @@ También hace inconsistente el inicio de sesión desde el punto de vista de quie
 **Qué hacer**: es decisión de producto antes que técnica. Lo habitual es normalizar el email a minúsculas al darse de alta y al entrar. Si se toma esa decisión, hay que contemplar las cuentas ya creadas.
 
 **Nota sobre la spec viva.** `openspec/specs/auth/spec.md` **no afirma nada en ninguna dirección** sobre este comportamiento, deliberadamente. Describir lo que hace hoy consagraría un defecto como contrato.
+
+**Resuelto el 2026-08-26** por el cambio `fix-defectos-abiertos`, que es el que toma la decisión de producto que faltaba: el email identifica a la persona con independencia de cómo escriba las mayúsculas.
+La spec viva de `auth` pasa de callar a decidirlo, con dos escenarios nuevos.
+
+La normalización se declara en el validador **antes** de la regla de unicidad, no en un hook del modelo: al revés, la unicidad consultaría el valor sin normalizar, daría por libre un email que ya existe, y el índice de la base reventaría después con un 500 en lugar de un «ese email ya está registrado».
+
+Solo se baja a minúsculas. Las transformaciones por proveedor que arrastra `normalizeEmail` (quitar los puntos de Gmail, quitar lo que va tras el `+`) se apagan explícitamente: cambian la identidad de la cuenta, y hay quien usa `+etiqueta` a propósito.
+
+Las cuentas ya guardadas se normalizan con una migración. Se comprobó antes que no hubiera dos que solo se diferenciaran en mayúsculas.
+
+**Cómo se verificó**: cuatro pruebas funcionales, y quitar la normalización tumba cuatro casos.
 
 ---
 
@@ -321,6 +332,13 @@ Solo recargar lo desatasca.
 **Qué hacer**: que un `ApiError` con `status === 401` posterior al arranque dispare el cierre de sesión, o como mínimo que el aviso ofrezca salir.
 Es un cambio de comportamiento de producto, así que va en su propio cambio, no en el de pruebas.
 
+**Resuelto el 2026-08-26** por el cambio `fix-defectos-abiertos`, por el primer camino y no por el segundo.
+`lib/api.ts` expone un punto de suscripción y el proveedor de sesión se engancha ahí, de modo que cualquier 401 en cualquier operación descarta la sesión y deja escrito el motivo.
+Poner un botón en el aviso de la lista habría arreglado la pantalla que ya conocíamos y dejado el defecto en las que vinieran.
+
+**Cómo se verificó**: en navegador real. Con la lista abierta, se revocó la credencial contra el backend por fuera de la aplicación y se pulsó un cambio de estado. La aplicación pasó a `/login` **sin recargar**, mostrando «Tu sesión ha caducado», y con el token ya borrado.
+Que un fallo que no es de credencial (500, corte de red, 422) no cierre la sesión lo cubre una prueba de Vitest.
+
 ---
 
 ## H-14 · `updatedAt` vale distinto según el endpoint que lo devuelve
@@ -340,3 +358,8 @@ GET   -> "updatedAt":"2026-08-26T06:09:01.000+00:00"
 **Consecuencia**: hoy ninguna, porque la interfaz no pinta fechas de tarea. Dolería en cuanto algo compare marcas de tiempo o cachee por ellas.
 
 **Qué hacer**: recargar el modelo antes de serializar en la escritura, o truncar al segundo al serializar. Ninguna prueba lo mira todavía.
+
+**Resuelto el 2026-08-26** por el cambio `fix-defectos-abiertos`, releyendo lo persistido antes de serializar, tanto al crear como al actualizar.
+Truncar al serializar se descartó: escondía el desajuste en la capa de presentación y dejaba el objeto en memoria diciendo una cosa y la base otra.
+
+**Cómo se verificó**: dos pruebas funcionales comparan campo por campo la tarea que devuelve la escritura con la que devuelve la lectura siguiente. Quitar el arreglo las tumba a las dos.

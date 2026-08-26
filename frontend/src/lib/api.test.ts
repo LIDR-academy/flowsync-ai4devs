@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, createTask, getTasks, login, updateTask } from '@/lib/api'
+import {
+  ApiError,
+  createTask,
+  getTasks,
+  login,
+  onUnauthorized,
+  updateTask,
+} from '@/lib/api'
 
 /**
  * `lib/api.ts` es el único punto de contacto con el backend, y donde vive la
@@ -209,5 +216,50 @@ describe('Errores que no vienen de la validación', () => {
     expect(error).toBeInstanceOf(ApiError)
     expect(error.status).toBe(500)
     expect(error.message).toContain('Algo ha ido mal en el servidor')
+  })
+})
+
+describe('Aviso de credencial rechazada', () => {
+  it('avisa cuando el sistema rechaza la credencial', async () => {
+    stubFetch(responde(401, { errors: [{ message: 'Unauthorized' }] }))
+    const avisos: ApiError[] = []
+    const cancelar = onUnauthorized((error) => avisos.push(error))
+
+    await getTasks('caducado').catch(() => undefined)
+    cancelar()
+
+    expect(avisos).toHaveLength(1)
+    expect(avisos[0].status).toBe(401)
+  })
+
+  it('no avisa por un error que no es de credencial', async () => {
+    const avisos: ApiError[] = []
+    const cancelar = onUnauthorized((error) => avisos.push(error))
+
+    stubFetch(responde(500, null))
+    await getTasks('t').catch(() => undefined)
+
+    stubFetch(vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+    await getTasks('t').catch(() => undefined)
+
+    stubFetch(
+      responde(422, {
+        errors: [{ message: 'x', rule: 'required', field: 'title' }],
+      }),
+    )
+    await createTask('t', { title: '' }).catch(() => undefined)
+
+    cancelar()
+    expect(avisos).toHaveLength(0)
+  })
+
+  it('deja de avisar una vez cancelada la suscripción', async () => {
+    stubFetch(responde(401, { errors: [{ message: 'Unauthorized' }] }))
+    const avisos: ApiError[] = []
+    onUnauthorized((error) => avisos.push(error))()
+
+    await getTasks('caducado').catch(() => undefined)
+
+    expect(avisos).toHaveLength(0)
   })
 })

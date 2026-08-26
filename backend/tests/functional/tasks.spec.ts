@@ -267,6 +267,41 @@ test.group('tasks · Una sola lista, la misma para todos', () => {
   })
 })
 
+test.group('tasks · Escribir y leer devuelven el mismo dato', () => {
+  test('lo que devuelve crear coincide campo por campo con la lista', async ({
+    client,
+    assert,
+  }) => {
+    const ada = await cuenta('ada@flowsync.test')
+
+    const creada = tarea(
+      await client.post('/api/v1/tasks').loginAs(ada).json({ title: 'Recién creada' })
+    )
+    const enLista = tareas(await client.get('/api/v1/tasks').loginAs(ada))[0]
+
+    // Campo por campo: el desajuste que esto protege estaba solo en las marcas
+    // de tiempo, y comparar el objeto entero es lo que lo destapa.
+    assert.deepEqual(creada, enLista)
+  })
+
+  test('lo que devuelve actualizar coincide campo por campo con la lista', async ({
+    client,
+    assert,
+  }) => {
+    const ada = await cuenta('ada@flowsync.test')
+    const creada = tarea(
+      await client.post('/api/v1/tasks').loginAs(ada).json({ title: 'Para cambiar' })
+    )
+
+    const actualizada = tarea(
+      await client.patch(`/api/v1/tasks/${creada.id}`).loginAs(ada).json({ status: 'in_progress' })
+    )
+    const enLista = tareas(await client.get('/api/v1/tasks').loginAs(ada))[0]
+
+    assert.deepEqual(actualizada, enLista)
+  })
+})
+
 test.group('tasks · La lista exige haber entrado', () => {
   test('las tres rutas deniegan el acceso sin sesión', async ({ client }) => {
     const lista = await client.get('/api/v1/tasks')

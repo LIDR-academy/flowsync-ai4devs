@@ -181,6 +181,56 @@ test.group('auth · Iniciales derivadas del nombre', () => {
   })
 })
 
+test.group('auth · El email no distingue mayúsculas', () => {
+  test('un alta repetida con otras mayúsculas se rechaza como duplicada', async ({
+    client,
+    assert,
+  }) => {
+    await client.post('/api/v1/auth/signup').json(cuenta)
+
+    const repetido = await client
+      .post('/api/v1/auth/signup')
+      .json({ ...cuenta, email: 'Ada@FlowSync.Test' })
+
+    // Rechazo de validación, no error de servidor: si la normalización
+    // ocurriera después de comprobar la unicidad, esto sería un 500 contra el
+    // índice de la base.
+    repetido.assertStatus(422)
+    assert.equal(errores(repetido)[0].field, 'email')
+    assert.lengthOf(await User.query().where('email', cuenta.email), 1)
+  })
+
+  test('se entra con el email escrito de otra forma', async ({ client, assert }) => {
+    await client.post('/api/v1/auth/signup').json(cuenta)
+
+    const acceso = await client
+      .post('/api/v1/auth/login')
+      .json({ email: 'ADA@FLOWSYNC.TEST', password: cuenta.password })
+
+    acceso.assertStatus(200)
+    assert.equal(acceso.body().data.user.email, cuenta.email)
+  })
+
+  test('la dirección se guarda en minúsculas, venga como venga', async ({ client, assert }) => {
+    const alta = await client
+      .post('/api/v1/auth/signup')
+      .json({ ...cuenta, email: 'AdA@FlowSync.Test' })
+
+    assert.equal(alta.body().data.user.email, 'ada@flowsync.test')
+  })
+
+  test('no se tocan los puntos ni la etiqueta tras el «+»', async ({ client, assert }) => {
+    // Quitarlos cambiaría la identidad de la cuenta: hay quien usa `+etiqueta`
+    // a propósito para separar su correo (design.md D2).
+    const conEtiqueta = await client
+      .post('/api/v1/auth/signup')
+      .json({ ...cuenta, email: 'Ada.Lovelace+FlowSync@Gmail.com' })
+
+    conEtiqueta.assertStatus(200)
+    assert.equal(conEtiqueta.body().data.user.email, 'ada.lovelace+flowsync@gmail.com')
+  })
+})
+
 test.group('auth · Un fallo de acceso no revela si la cuenta existe', () => {
   test('contraseña incorrecta y cuenta inexistente dan el mismo resultado', async ({
     client,
