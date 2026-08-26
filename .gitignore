@@ -24,3 +24,6 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+# Planes de sesión: material de apoyo personal, no del proyecto
+docs/plans/

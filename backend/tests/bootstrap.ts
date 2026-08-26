@@ -41,7 +41,12 @@ export const plugins: Config['plugins'] = [
  * The teardown functions are executed after all the tests
  */
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [],
+  /**
+   * La suite migra desde cero y deshace al terminar, de modo que no arrastra
+   * estado entre ejecuciones. Escribe sobre el fichero de test, nunca sobre el
+   * de desarrollo: eso lo decide `config/database.ts` según el entorno.
+   */
+  setup: [() => testUtils.db().migrate()],
   teardown: [],
 }
 
@@ -50,6 +55,19 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
  * Learn more - https://japa.dev/docs/test-suites#lifecycle-hooks
  */
 export const configureSuite: Config['configureSuite'] = (suite) => {
+  /**
+   * Deja la base limpia entre casos, para que ninguno dependa de lo que dejó el
+   * anterior. Se engancha aquí y no en cada fichero de prueba para que no se
+   * pueda olvidar. Es la segunda línea de defensa: la primera, y la que de
+   * verdad protege los datos de desarrollo, es el fichero separado por entorno
+   * que decide `config/database.ts`.
+   */
+  suite.onGroup((group) => group.each.setup(() => testUtils.db().truncate()))
+  // Hoy todos los casos viven en grupos, así que esta segunda línea no llega a
+  // disparar. Se deja porque un test declarado fuera de un grupo se escaparía
+  // del truncado sin que nada avisara.
+  suite.onTest((test) => test.setup(() => testUtils.db().truncate()))
+
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
     return suite.setup(() => testUtils.httpServer().start())
   }

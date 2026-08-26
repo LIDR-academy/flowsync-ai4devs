@@ -33,5 +33,19 @@ router
       .prefix('account')
       .as('profile')
       .use(middleware.auth())
+
+    /**
+     * Superficie cerrada a propósito: listar, crear y actualizar. No hay
+     * lectura individual, ni borrado, ni endpoint de equipo.
+     */
+    router
+      .group(() => {
+        router.get('/', [controllers.Tasks, 'index'])
+        router.post('/', [controllers.Tasks, 'store'])
+        router.patch(':id', [controllers.Tasks, 'update'])
+      })
+      .prefix('tasks')
+      .as('tasks')
+      .use(middleware.auth())
   })
   .prefix('/api/v1')

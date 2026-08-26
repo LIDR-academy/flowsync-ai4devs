@@ -38,6 +38,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   )
 
+  // Una credencial rechazada en cualquier momento cierra la sesión, no solo la
+  // del arranque. Sin esto, perder la sesión con una pantalla privada abierta
+  // dejaba a la persona leyendo «vuelve a iniciar sesión» mientras el guard le
+  // impedía llegar al login, porque el estado seguía siendo `authenticated`.
+  useEffect(() => {
+    return api.onUnauthorized((error) => {
+      clearSession()
+      setSessionError(error.message)
+    })
+  }, [clearSession])
+
   // Rehidrata la sesión al cargar: el token de localStorage solo vale si el
   // backend sigue reconociéndolo.
   useEffect(() => {

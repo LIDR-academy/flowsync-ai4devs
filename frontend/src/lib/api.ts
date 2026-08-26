@@ -1,4 +1,12 @@
-import type { AuthResult, LoginPayload, SignupPayload, User } from '@/lib/types'
+import type {
+  AuthResult,
+  CreateTaskPayload,
+  LoginPayload,
+  SignupPayload,
+  Task,
+  UpdateTaskPayload,
+  User,
+} from '@/lib/types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333'
 
@@ -35,6 +43,8 @@ const FIELD_LABELS: Record<string, string> = {
   email: 'el email',
   password: 'la contraseña',
   passwordConfirmation: 'la confirmación de la contraseña',
+  title: 'el título',
+  status: 'el estado',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
@@ -56,7 +66,14 @@ function translate(error: BackendError): string {
     case 'email':
       return 'Introduce una dirección de email válida.'
     case 'required':
-      return `Falta rellenar ${label(field)}.`
+      // El backend recorta los extremos antes de validar, así que un título de
+      // solo espacios llega aquí como `required`. Decir "falta rellenar" ante
+      // un campo que la persona sí escribió sería mentirle.
+      return field === 'title'
+        ? 'El título no puede estar vacío.'
+        : `Falta rellenar ${label(field)}.`
+    case 'enum':
+      return `${label(field)} no es válido.`
     case 'minLength':
       return `${label(field)} debe tener al menos ${meta?.min} caracteres.`
     case 'maxLength':
@@ -101,15 +118,49 @@ function toApiError(status: number, body: unknown): ApiError {
   )
 }
 
+/**
+ * Aviso de que el sistema ha rechazado la credencial (design.md D4 de
+ * `fix-defectos-abiertos`).
+ *
+ * Vive aquí porque este fichero es el único punto de contacto con el backend,
+ * así que es el único sitio por el que pasan **todas** las respuestas. Dejar
+ * que cada pantalla capturase su propio 401 es lo que producía el callejón sin
+ * salida: la lista de tareas pintaba «vuelve a iniciar sesión» y nadie tocaba
+ * el estado de la sesión, con lo que el guard rebotaba el login de vuelta.
+ */
+type UnauthorizedHandler = (error: ApiError) => void
+
+const unauthorizedHandlers = new Set<UnauthorizedHandler>()
+
+export function onUnauthorized(handler: UnauthorizedHandler): () => void {
+  unauthorizedHandlers.add(handler)
+  return () => {
+    unauthorizedHandlers.delete(handler)
+  }
+}
+
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   token?: string | null
+  /**
+   * Silencia el aviso de credencial rechazada para esta llamada.
+   *
+   * Lo usa el cierre de sesión: si el token ya estaba revocado en el servidor,
+   * salir a propósito aterrizaría en el login con un aviso de sesión caducada
+   * que no viene a cuento. La persona ya sabe que ha salido.
+   */
+  silenciarRechazo?: boolean
 }
 
 async function request<T>(
   path: string,
-  { method = 'GET', body, token }: RequestOptions = {},
+  {
+    method = 'GET',
+    body,
+    token,
+    silenciarRechazo = false,
+  }: RequestOptions = {},
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -133,7 +184,13 @@ async function request<T>(
   const payload = await response.json().catch(() => null)
 
   if (!response.ok) {
-    throw toApiError(response.status, payload)
+    const error = toApiError(response.status, payload)
+    if (error.status === 401 && !silenciarRechazo) {
+      // Solo el 401. Un servidor caído responde 500 o no responde, y esos casos
+      // no deben cerrar la sesión de nadie.
+      unauthorizedHandlers.forEach((handler) => handler(error))
+    }
+    throw error
   }
 
   return payload as T
@@ -160,7 +217,39 @@ export function getProfile(token: string): Promise<User> {
 }
 
 export function logout(token: string): Promise<void> {
-  return request('/api/v1/account/logout', { method: 'POST', token }).then(
-    () => undefined,
+  return request('/api/v1/account/logout', {
+    method: 'POST',
+    token,
+    silenciarRechazo: true,
+  }).then(() => undefined)
+}
+
+/** La lista es única para el espacio: no admite filtro ni orden. */
+export function getTasks(token: string): Promise<Task[]> {
+  return request<{ data: Task[] }>('/api/v1/tasks', { token }).then(
+    (response) => response.data,
   )
+}
+
+export function createTask(
+  token: string,
+  payload: CreateTaskPayload,
+): Promise<Task> {
+  return request<{ data: Task }>('/api/v1/tasks', {
+    method: 'POST',
+    body: payload,
+    token,
+  }).then((response) => response.data)
+}
+
+export function updateTask(
+  token: string,
+  id: number,
+  payload: UpdateTaskPayload,
+): Promise<Task> {
+  return request<{ data: Task }>(`/api/v1/tasks/${id}`, {
+    method: 'PATCH',
+    body: payload,
+    token,
+  }).then((response) => response.data)
 }
