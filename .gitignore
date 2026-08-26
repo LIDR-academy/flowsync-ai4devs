@@ -24,3 +24,6 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+# Planes de sesion: material de trabajo propio, no del proyecto
+docs/plans/
