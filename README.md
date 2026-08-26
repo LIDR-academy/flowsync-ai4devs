@@ -1,6 +1,6 @@
 # FlowSync
 
-Proyecto de práctica del curso: gestión de tareas en equipo. API en AdonisJS 7 (`backend/`) + frontend en React 19 + Vite (`frontend/`).
+Proyecto de práctica del curso: gestión de tareas en equipo. API en Spring Boot 4.1 / Java 21 (`backend-spring/`) + frontend en React 19 + Vite (`frontend/`).
 
 ## Empezar
 
@@ -12,18 +12,19 @@ git checkout s1/start
 
 > Si el `clone` falla, avisa a tu TA.
 
-## Backend (`backend/`)
+## Backend (`backend-spring/`)
+
+Requiere JDK 21 instalado (`java -version`); no hace falta Maven global, el
+proyecto trae su propio wrapper.
 
 ```bash
-cd backend
-npm install
-cp .env.example .env
-node ace generate:key
-node ace migration:run
-npm run dev
+cd backend-spring
+./mvnw spring-boot:run
 ```
 
-Arranca en `http://localhost:3333`.
+Arranca en `http://localhost:8080`. El esquema lo crea Flyway automáticamente
+al arrancar sobre una base H2 embebida (persistida en `./data`, ignorada por
+git); no requiere ningún paso de setup adicional.
 
 ## Frontend (`frontend/`)
 
