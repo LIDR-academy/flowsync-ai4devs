@@ -48,7 +48,7 @@ jobs:
           # Credencial de suscripción, generada con `claude setup-token`. Para
           # usar una clave de API de la consola en su lugar, cambia esta línea
           # por `anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}`.
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
           prompt: |
             REPO: ${{ github.repository }}
