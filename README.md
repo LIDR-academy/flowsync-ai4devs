@@ -49,6 +49,7 @@ El frontend **no tiene runner de tests** en esta rama.
 | [`docs/adr/`](docs/adr/) | Las decisiones técnicas que costó tomar, con sus alternativas descartadas |
 | [`docs/hallazgos.md`](docs/hallazgos.md) | Los problemas encontrados trabajando, con cómo se verificó cada uno |
 | [`docs/reporte-modulo-4.md`](docs/reporte-modulo-4.md) | Qué destapó la verificación, y qué se hizo con ello |
+| [`docs/artefactos/`](docs/artefactos/) | Los reportes de cada módulo en versión navegable |
 | [`docs/backlog/`](docs/backlog/) | Historias de usuario y criterios de aceptación |
 | [`docs/prd/`](docs/prd/) | Alcance del MVP y requisitos |
 

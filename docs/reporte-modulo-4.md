@@ -4,7 +4,7 @@
 >
 > Rama `s4/start` · 2026-08-26
 >
-> Versión navegable: se enlaza desde el índice del curso.
+> Versión navegable: [`artefactos/reporte-modulo-4.html`](artefactos/reporte-modulo-4.html), también publicada en https://claude.ai/code/artifact/d13b00f5-f166-4a63-8049-24efc22b5ded
 
 ## El titular
 
