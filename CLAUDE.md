@@ -26,7 +26,7 @@ npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay 35 pruebas funcionales en `tests/functional/`, derivadas de las specs vivas de `openspec/specs/`. El directorio `tests/unit` sigue sin existir.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay 37 pruebas funcionales en `tests/functional/`, derivadas de las specs vivas de `openspec/specs/`. El directorio `tests/unit` sigue sin existir.
 
 ```bash
 node ace test unit                    # una suite
@@ -54,7 +54,7 @@ npm run lint      # oxlint (NO eslint)
 npm run format    # prettier --write .
 ```
 
-El runner de tests es **Vitest** (`npm test`, script `vitest run`). Lee `vite.config.ts`, así que el alias `@/*` funciona sin configurarlo aparte. Las pruebas viven junto al fichero que cubren (`src/lib/api.test.ts`, 20 casos).
+El runner de tests es **Vitest** (`npm test`, script `vitest run`). Lee `vite.config.ts`, así que el alias `@/*` funciona sin configurarlo aparte. Las pruebas viven junto al fichero que cubren (`src/lib/api.test.ts`, 21 casos).
 
 ## Arquitectura del backend
 
