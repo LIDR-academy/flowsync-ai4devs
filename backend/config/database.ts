@@ -1,6 +1,20 @@
 import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
 
+/**
+ * Los tests usan su propio fichero.
+ *
+ * Sin esto, las suites funcionales escribirían sobre la misma base que el
+ * servidor de desarrollo: un test contaminaría la siguiente ejecución, y un
+ * `migration:fresh` borraría los datos con los que alguien estuviera probando
+ * a mano. Falla de forma intermitente, que es lo más caro de depurar.
+ *
+ * Se resuelve aquí y no con hooks de truncado en cada fichero de prueba a
+ * propósito: los hooks funcionan, pero dejan el aislamiento dependiendo de que
+ * nadie los olvide. Aquí es imposible olvidarlo.
+ */
+const databaseFile = app.inTest ? 'db-test.sqlite3' : 'db.sqlite3'
+
 const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
@@ -15,7 +29,7 @@ const dbConfig = defineConfig({
       client: 'better-sqlite3',
 
       connection: {
-        filename: app.tmpPath('db.sqlite3'),
+        filename: app.tmpPath(databaseFile),
       },
 
       /**

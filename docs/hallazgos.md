@@ -10,17 +10,18 @@
 
 | # | Hallazgo | Severidad | Estado |
 |---|---|---|---|
-| H-01 | Los tests comparten base de datos con desarrollo | Alta | Abierto |
-| H-02 | Cero pruebas automatizadas en todo el proyecto | Alta | Abierto |
+| H-01 | Los tests comparten base de datos con desarrollo | Alta | **Resuelto (2026-08-25)** |
+| H-02 | Cero pruebas automatizadas en todo el proyecto | Alta | **Resuelto (2026-08-25)** |
 | H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Media | Abierto |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | Documentado y sorteado |
 | H-04 | `fullName` es `nullable`, no `optional` | Media | Documentado y sorteado |
-| H-05 | La traducción de errores compara cadenas exactas | Media | Abierto |
+| H-05 | La traducción de errores compara cadenas exactas | Media | Vigilado por pruebas |
 | H-06 | El token vive en `localStorage` | Media | Deuda aceptada |
 | H-07 | El hook de formateo depende de `jq`, que no está instalado | Baja | Abierto |
 | H-08 | `AGENTS.md` es un symlink que Windows no materializa | Baja | Sin impacto hoy |
 | H-09 | `database/schema.ts` se regenera sin formato y rompe el lint | Baja | Reincidente |
 | H-10 | Los tipos de issue de Jira en `LID` están en dos idiomas | Baja | Sorteado |
+| H-12 | El registro tipado de Tuyau solo modela la respuesta de éxito | Baja | Sorteado |
 
 ---
 
@@ -49,6 +50,19 @@ Lo peor es que falla de forma **intermitente**, que es la categoría de fallo m�
 
 Conviene resolverlo **antes** de escribir el primer test, no después.
 
+**Resuelto el 2026-08-25** por el cambio `add-test-foundation`, y en efecto antes del primer test.
+
+Se tomó el camino 2, el fichero separado por entorno, y no el 1.
+La razón está en `design.md` D1: los hooks funcionan, pero dejan el aislamiento dependiendo de que cada fichero de prueba recuerde ponerlos.
+Un test nuevo que olvidara el hook borraría los datos de desarrollo, y ese fallo aparece en el peor momento.
+Con el fichero separado, olvidarlo es imposible.
+
+Los hooks se usan igualmente, pero para lo que sirven bien: dejar limpio entre casos dentro de la misma ejecución.
+Se enganchan una sola vez en `tests/bootstrap.ts` vía `suite.onGroup`, no fichero a fichero.
+
+**Cómo se verificó**: se anotó la fecha de modificación de `backend/tmp/db.sqlite3`, se ejecutó la suite completa dos veces seguidas y se volvió a leer.
+Idéntica. La base de test vive aparte, en `tmp/db-test.sqlite3`, y no está versionada.
+
 ---
 
 ## H-02 · Cero pruebas automatizadas en todo el proyecto
@@ -65,6 +79,20 @@ Conviene resolverlo **antes** de escribir el primer test, no después.
 **Matiz que juega a favor**: `tests/bootstrap.ts` ya viene con todo enganchado, `assert`, `apiClient` con el registro tipado de Tuyau, `dbAssertions`, `authApiClient` y `sessionApiClient`. Para el backend el trabajo real es escribir tests, no configurar, salvo lo de H-01.
 
 En el frontend hay que montarlo de cero. Es la razón de que `FS-118.6` esté estimado en talla M y `FS-142.6` en S: el primero incluye el montaje.
+
+**Resuelto el 2026-08-25** por el cambio `add-test-foundation`.
+
+| | Estado hoy |
+|---|---|
+| Backend | 25 pruebas funcionales en `tests/functional/`, derivadas de las specs vivas de `auth` y `tasks` |
+| Frontend | Vitest instalado, script `npm test`, 17 pruebas sobre `src/lib/api.ts` |
+
+El runner del frontend es **Vitest** (`design.md` D5): comparte configuración y transformación con Vite, que el proyecto ya usa, así que resuelve el alias `@/*` sin configurarlo aparte y no introduce una segunda cadena de compilación.
+Es la única dependencia nueva del cambio.
+
+Lo que **no** cubre, declarado a propósito para que el hueco sea conocido: ver la sección «Escenarios sin cubrir» de `openspec/changes/archive/2026-08-25-add-test-foundation/tasks.md`.
+
+**Cómo se verificó**: `node ace test` en el backend y `npm test` en el frontend, ambos en verde, más `lint`, `typecheck` y `build` en los dos proyectos.
 
 ---
 
@@ -231,3 +259,27 @@ Ojo también con `backend/.adonisjs/`, que es codegen commiteado y se ensucia al
 **Relacionado**: el proyecto **se llama** FlowSync pero su clave es `LID`. Nombre y clave son campos independientes en Jira. En el tablero del instructor pasa lo mismo con otros valores: se llama FLOW y su prefijo real es `SCRUM-`.
 
 Y `FS-nnn` nunca es clave de Jira: es convención interna que vive en el título y las etiquetas.
+
+---
+
+## H-12 · El registro tipado de Tuyau solo modela la respuesta de éxito
+
+**Severidad: baja.** Sorteado, no resuelto.
+
+`backend/.adonisjs/client/registry/` genera los tipos de request y response de cada ruta, y `tests/bootstrap.ts` los engancha al `apiClient` de Japa.
+Es una ventaja real mientras se prueba el camino feliz: el payload y el cuerpo de la respuesta vienen tipados.
+
+El problema aparece al probar un rechazo.
+El registro tipa solo la respuesta de éxito, así que `respuesta.body().errors` no existe para TypeScript, y enviar a propósito un dato que el validador debe negar tampoco compila.
+Exactamente las pruebas que más valor tienen son las que pelean con los tipos.
+
+**Cómo se verificó**: `npm run typecheck` sobre la primera versión de las dos suites devolvió 31 errores, todos de esta naturaleza: `Property 'errors' does not exist on type ...` y `Type '"archivada"' is not assignable to type '"pending" | "in_progress" | "done"'`.
+Las pruebas pasaban en ejecución; era solo el tipado.
+
+Hay además un segundo efecto: cuando dos métodos comparten ruta, como `GET` y `POST` sobre `/api/v1/tasks`, el cuerpo se infiere como la unión de ambas respuestas y no se puede leer sin estrechar.
+
+**Cómo se sorteó**: `backend/tests/helpers/api.ts` concentra la salida del contrato tipado en cuatro funciones con nombre, `errores`, `tarea`, `tareas` e `invalido`, en vez de esparcir castings por las suites.
+Cada vez que una prueba se sale de los tipos se ve que lo está haciendo, y el nombre dice por qué.
+
+**Qué haría falta para resolverlo de verdad**: que el generador tipara también las respuestas de error de cada ruta.
+Está fuera de nuestro alcance, es del framework.

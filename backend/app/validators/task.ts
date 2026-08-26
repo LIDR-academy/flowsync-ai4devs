@@ -12,7 +12,7 @@ import { TASK_STATUSES } from '#models/task_status'
  * Lo que sí es requisito y no depende de este número: superarlo avisa, nunca
  * guarda una versión recortada.
  */
-const TITLE_MAX_LENGTH = 200
+export const TITLE_MAX_LENGTH = 200
 
 /**
  * El recorte de extremos ocurre antes de validar (design.md D5), de modo que un
