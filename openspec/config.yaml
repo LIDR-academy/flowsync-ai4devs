@@ -77,7 +77,7 @@ rules:
     - Trazar cada historia a los requisitos del PRD en docs/prd/flowsync-mvp.md
     - Incluir siempre una sección de puntos abiertos con lo que quedó sin decidir
     - Declarar explícitamente lo que queda fuera del cambio
-  spec:
+  specs:
     - Describir solo comportamiento observable desde fuera
     - Nada de nombres de clase, rutas de fichero ni detalles de implementación
     - Backend observable = petición y respuesta HTTP. Frontend observable = lo
@@ -87,7 +87,7 @@ rules:
     - Registrar las alternativas descartadas, no solo la decisión tomada
   tasks:
     - Cada tarea nombra la capa que toca y no diseña la implementación fina
-    - Ninguna tarea inventa requisitos de producto: los hereda de la historia
+    - Ninguna tarea inventa requisitos de producto. Los hereda de la historia
 
 operations:
   apply:
