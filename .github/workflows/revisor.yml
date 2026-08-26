@@ -57,9 +57,11 @@ jobs:
             Eres el revisor de este cambio propuesto. La rama del PR ya está
             clonada en el directorio de trabajo.
 
-            1. Lee `.claude/agents/adversarial-reviewer.md`: es tu calibración,
-               dice qué buscar y cómo priorizar los hallazgos. Lee también
-               `CLAUDE.md` para las convenciones del proyecto.
+            1. Lee `REVIEW.md`, en la raíz: es tu calibración y manda sobre
+               cualquier criterio propio que traigas. Dice qué es grave aquí,
+               cuántas sugerencias menores caben, dónde no se reporta y qué
+               tienes que citar para afirmar algo. Lee también `CLAUDE.md` para
+               las convenciones del proyecto.
             2. Mira el diff con `gh pr diff` y abre con Read los ficheros que
                toca — el diff solo enseña las líneas cambiadas, no el código
                alrededor del que dependen.
