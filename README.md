@@ -48,6 +48,7 @@ El frontend **no tiene runner de tests** en esta rama.
 | [`docs/trazabilidad.md`](docs/trazabilidad.md) | Qué criterio de aceptación tiene prueba y cuál no |
 | [`docs/adr/`](docs/adr/) | Las decisiones técnicas que costó tomar, con sus alternativas descartadas |
 | [`docs/hallazgos.md`](docs/hallazgos.md) | Los problemas encontrados trabajando, con cómo se verificó cada uno |
+| [`docs/reporte-modulo-4.md`](docs/reporte-modulo-4.md) | Qué destapó la verificación, y qué se hizo con ello |
 | [`docs/backlog/`](docs/backlog/) | Historias de usuario y criterios de aceptación |
 | [`docs/prd/`](docs/prd/) | Alcance del MVP y requisitos |
 
@@ -61,7 +62,7 @@ Escrito aquí porque un README que promete lo que no hay es peor que no tener RE
 
 **Escrito en el backlog y no implementado:** borrar tarea, editar el título, reasignar responsable y lista viva sin recargar.
 
-**Cobertura:** las 24 pruebas cubren `auth` y una parte del responsable de la tarea. Los 124 escenarios de la spec de `tasks` están mayoritariamente sin verificar. El detalle, con lo que falta y por qué, en [`docs/trazabilidad.md`](docs/trazabilidad.md).
+**Cobertura:** 36 pruebas. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado y lo que se expone del responsable. 108 de los 124 escenarios de la spec de `tasks` siguen sin verificar, enumerados por prioridad en [`docs/trazabilidad.md`](docs/trazabilidad.md).
 
 ## Cómo se trabaja aquí
 
