@@ -1,0 +1,63 @@
+# Comprueba que `docs/api/openapi.json` sigue siendo el documento que genera el
+# código. No lo regenera ni lo corrige: si se ha quedado atrás, el trabajo falla
+# y es quien abre el cambio quien decide qué actualizar.
+name: OpenAPI
+
+on:
+  # Cada cambio propuesto...
+  pull_request:
+  # ...y cada push a la rama principal, que es donde el contrato debe estar al
+  # día aunque algo se haya colado sin pasar por un PR.
+  push:
+    branches: [main]
+
+# Lo único que hace es leer el código para clonarlo. No comenta en el PR, no
+# escribe en el repositorio, no publica paquetes y no pide un token de OIDC.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: El documento versionado está al día
+    runs-on: ubuntu-latest
+
+    # Instalar dependencias y arrancar la aplicación para leer el router tarda
+    # menos de un minuto. Diez es margen de sobra: pasado eso, algo está colgado
+    # y vale más cortar que dejar un runner esperando.
+    timeout-minutes: 10
+
+    # `openapi:check` arranca la aplicación, y `start/env.ts` valida estas
+    # variables antes de dejarla arrancar. Ninguna es un secreto: el comando no
+    # cifra nada, no abre el puerto y no toca la base de datos — solo recorre el
+    # router. La `APP_KEY` está aquí porque el arranque la exige, no porque se
+    # use para algo.
+    env:
+      NODE_ENV: test
+      PORT: 3333
+      HOST: localhost
+      LOG_LEVEL: info
+      APP_KEY: ci-openapi-check-no-es-un-secreto
+      APP_URL: http://localhost:3333
+      SESSION_DRIVER: memory
+
+    # El repo no tiene workspaces: todo se ejecuta desde `backend/`.
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar las dependencias del backend
+        run: npm ci
+
+      - name: Comprobar el documento OpenAPI
+        run: npm run openapi:check
