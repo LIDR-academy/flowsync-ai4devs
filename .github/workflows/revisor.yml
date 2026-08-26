@@ -1,0 +1,100 @@
+# Lanza un revisor de código sobre cada cambio propuesto y publica lo que
+# encuentre como comentarios en el propio PR.
+#
+# Los pasos manuales que faltan para que esto funcione de verdad —la app de
+# GitHub y el secreto con la credencial— están en `docs/ci-revisor.md`, junto
+# con qué modelo usa y cómo cambiarlo.
+name: Revisor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Solo lo que necesita: leer el código para clonarlo y escribir en el PR para
+# comentar. `id-token: write` es lo que usa la acción para autenticarse como la
+# app de GitHub de Claude; sin él no arranca.
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+# Un push detrás de otro no deja dos revisiones corriendo a la vez: la anterior
+# se cancela. Revisar un diff que ya no existe cuesta lo mismo que revisar uno
+# que sí.
+concurrency:
+  group: revisor-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Revisión del cambio propuesto
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # En un repositorio público, GitHub no le pasa los secretos a un run que
+    # dispara un PR desde un fork. Sin credencial el trabajo solo puede fallar,
+    # así que ni se lanza. Explicado en `docs/ci-revisor.md`.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Revisar el cambio
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Credencial de suscripción, generada con `claude setup-token`. Para
+          # usar una clave de API de la consola en su lugar, cambia esta línea
+          # por `anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}`.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR: ${{ github.event.pull_request.number }}
+
+            Eres el revisor de este cambio propuesto. La rama del PR ya está
+            clonada en el directorio de trabajo.
+
+            1. Lee `.claude/agents/adversarial-reviewer.md`: es tu calibración,
+               dice qué buscar y cómo priorizar los hallazgos. Lee también
+               `CLAUDE.md` para las convenciones del proyecto.
+            2. Mira el diff con `gh pr diff` y abre con Read los ficheros que
+               toca — el diff solo enseña las líneas cambiadas, no el código
+               alrededor del que dependen.
+            3. Contrasta cada hallazgo contra los scenarios de `openspec/specs/`,
+               que es la spec viva de este proyecto.
+
+            Publica los hallazgos en el PR, no en el registro de ejecución:
+
+            - `mcp__github_inline_comment__create_inline_comment` (con
+              `confirmed: true`) para cada hallazgo concreto, anclado a su
+              fichero y a su línea.
+            - `gh pr comment` para un único comentario de resumen: qué has
+              revisado, qué has decidido no mirar y por qué. Si no encuentras
+              nada, dilo ahí.
+
+            Lo que dejes solo como mensaje tuyo no lo lee nadie: el registro de
+            ejecución se archiva y el PR se queda.
+
+            No redirijas la salida de ningún comando a un fichero: nada de
+            `> salida.txt`, de `| tee` ni de escribir un fichero para leerlo
+            después. Lee la salida directa del comando. Cada ida y vuelta de
+            esas te cuesta un turno, y tienes 40.
+
+          # `--model sonnet` con `--effort medium`: revisar un diff es leer y
+          # comparar, no diseñar. `--max-turns 40` es el tope de trabajo; el
+          # `timeout-minutes` de arriba es el tope de reloj.
+          #
+          # Read/Grep/Glob no son opcionales: sin ellas el revisor no puede
+          # abrir ni su fichero de calibración ni un solo fichero del cambio, y
+          # cada intento denegado le gasta un turno. Las dos herramientas de
+          # comentario son las que hacen que la revisión acabe en el PR — la
+          # acción solo levanta el servidor MCP de comentarios en línea si
+          # `--allowedTools` lo nombra.
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
