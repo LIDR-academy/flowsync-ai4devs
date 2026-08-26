@@ -51,6 +51,10 @@ export default class Task extends TaskSchema {
    */
   isOverdueOn(referenceDay: string): boolean {
     if (this.dueDate === null) return false
+    // La tercera condición. Faltaba, y el comentario de arriba ya la prometía:
+    // una tarea hecha con la fecha pasada llegaba marcada como vencida, y la
+    // pantalla la anunciaba en rojo debajo de una cabecera que decía «Hecho».
+    if (this.status === 'done') return false
 
     return this.dueDate < referenceDay
   }

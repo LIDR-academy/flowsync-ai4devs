@@ -345,11 +345,13 @@ El sistema SHALL permitir que una tarea tenga una fecha de vencimiento expresada
 
 ### Requirement: Fijar, cambiar y retirar la fecha de vencimiento
 
-El sistema SHALL permitir establecer la fecha de vencimiento de una tarea existente, cambiarla por otra y retirarla, mediante `PUT /api/v1/tasks/:id/due-date` con `{"dueDate": "AAAA-MM-DD"}` o `{"dueDate": null}`, respondiendo `200` con la tarea ya actualizada. Retirar la fecha SHALL ser una operación admitida y NO SHALL tratarse como un error.
+El sistema SHALL permitir establecer la fecha de vencimiento de una tarea existente, cambiarla por otra y retirarla, mediante `PUT /api/v1/tasks/:id/due-date` con `{"today": "AAAA-MM-DD", "dueDate": "AAAA-MM-DD"}` o `{"today": "AAAA-MM-DD", "dueDate": null}`, respondiendo `200` con la tarea ya actualizada. Retirar la fecha SHALL ser una operación admitida y NO SHALL tratarse como un error.
+
+> **Enmienda del 2026-08-26.** Este requisito describía el cuerpo sin `today`, y contradecía a «El día de referencia lo pone quien mira», que exige ese día en toda petición que informe del vencimiento. Como la respuesta lleva `isOverdue`, el código solo podía cumplir uno de los dos. Se enmienda el contrato y no el código: un `422` ruidoso vale más que el reloj del servidor dando la lectura equivocada a quien mire desde otro huso. Registrado como H-20.
 
 #### Scenario: Poner una fecha a una tarea que no tenía
 
-- **WHEN** se envía `PUT /api/v1/tasks/:id/due-date` con `{"dueDate": "2026-09-30"}` sobre una tarea sin fecha
+- **WHEN** se envía `PUT /api/v1/tasks/:id/due-date` con `{"today": "2026-08-26", "dueDate": "2026-09-30"}` sobre una tarea sin fecha
 - **THEN** la respuesta es `200` con la tarea ya con esa fecha, y las siguientes consultas la devuelven con ella
 
 #### Scenario: Cambiar la fecha por otra
@@ -359,7 +361,7 @@ El sistema SHALL permitir establecer la fecha de vencimiento de una tarea existe
 
 #### Scenario: Quitar la fecha
 
-- **WHEN** se envía `{"dueDate": null}` sobre una tarea con fecha
+- **WHEN** se envía `{"today": "2026-08-26", "dueDate": null}` sobre una tarea con fecha
 - **THEN** la respuesta es `200`, la tarea queda sin fecha y deja de estar vencida si lo estaba
 
 #### Scenario: Una fecha ya pasada se acepta

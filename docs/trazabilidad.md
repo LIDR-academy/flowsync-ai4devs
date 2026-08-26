@@ -11,11 +11,13 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 45 | — | — | 20 | parcial, ver §2 |
-| `tasks` | 32 | 124 | 12 | 118 | **0** | **0 %** |
+| `tasks` | 32 | 124 | 12 | 118 | 16 | parcial, ver §3 |
 
-**El hallazgo que ordena todo lo demás: el dominio del producto no tiene ni una sola prueba.** Las 20 que existen son de `auth`, que es el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verifica ninguno de forma automática.
+**Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
 
-La suite está en verde. Eso no dice nada sobre `tasks`.
+La suite estaba en verde, y escondía tres defectos que la revisión adversarial destapó: la regla de vencimiento incumplía una de sus tres condiciones, un estado inventado en el filtro respondía `200` con lista vacía, y la lista filtraba el email de cada responsable. Los tres están corregidos y cubiertos, y son las 16 pruebas nuevas de esta tabla.
+
+Sigue habiendo mucho hueco. Lo que cambia es que ahora está enumerado.
 
 ---
 
@@ -65,39 +67,41 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 32 requisitos, 124 escenarios, 0 pruebas
+## 3 · `tasks` · 32 requisitos, 124 escenarios, 16 pruebas
 
-Las cinco columnas de la derecha están vacías en las 32 filas. Para que la tabla sea legible, se agrupa por lo que hay que hacer, y se ordena por lo que más cuesta si se rompe en silencio.
+Se agrupa por lo que hay que hacer y se ordena por lo que más cuesta si se rompe en silencio.
 
-### 3.1 · Reglas de dominio sin verificar (prioridad alta)
+### 3.1 · Reglas de dominio
 
-Se rompen sin que nada avise y sin que se note en pantalla hasta que es tarde.
+Se rompen sin que nada avise y sin que se note en pantalla hasta que es tarde. Es donde estaban los tres defectos.
 
 | Requisito de la spec | Criterios | Código | Prueba |
 |---|---|---|---|
-| Cuándo una tarea está vencida | `us-fechas-vencimiento` CA-8 a CA-12 | `models/task.ts`, `task_detail_transformer.ts` | **ninguna** |
-| El día de referencia lo pone quien mira | `us-fechas-vencimiento` CA-13, CA-14 | `models/task.ts` | **ninguna** |
+| Cuándo una tarea está vencida | `us-fechas-vencimiento` CA-8 a CA-12 | `models/task.ts` | `vencimiento.spec.ts` · las tres condiciones, y el borde estricto |
+| El día de referencia lo pone quien mira | `us-fechas-vencimiento` CA-13, CA-14 | `models/task.ts` | `vencimiento.spec.ts` · obligatorio y validado |
+| Un estado que no existe se rechaza, no se responde vacío | `us-filtrar-por-estado` CA-9 | `validators/task.ts` | `filtro.spec.ts` · se distingue de no encontrar nada |
+| Acotar la lista por estado | `us-filtrar-por-estado` CA-1 a CA-4 | `tasks_controller.ts` | `filtro.spec.ts` · cada estado devuelve el suyo |
+| Lo que cada tarea muestra de su responsable | `us-lista-compartida` CA-5, CA-6 | `task_assignee_transformer.ts` | `assignee.spec.ts` · conjunto cerrado de campos |
 | Tres estados fijos | `us-cambiar-estado` CA-1 | `validators/task.ts` | **ninguna** |
-| Un estado que no existe se rechaza, no se responde vacío | `us-filtrar-por-estado` CA-9 | `tasks_controller.ts` | **ninguna** |
-| Aviso ante una fecha que no vale | `us-fechas-vencimiento` CA-15 a CA-18 | `validators/task.ts` | **ninguna** |
+| Aviso ante una fecha que no vale | `us-fechas-vencimiento` CA-15 a CA-18 | `validators/task.ts` | parcial · solo el día de referencia |
 | Ninguna tarea sin título | `us-titulo-obligatorio` CA-1 a CA-3 | `validators/task.ts` | **ninguna** |
 | Aviso ante un título demasiado largo | `us-editar-titulo` CA-6, CA-7 | `validators/task.ts` | **ninguna** |
 
-La regla de vencimiento es la única regla de negocio no trivial del MVP, tiene dos condiciones que se combinan (`fecha pasada` **Y** `no hecha`), depende del día de quien mira, y no la comprueba nada.
+La regla de vencimiento es la única regla de negocio no trivial del MVP. Tenía tres condiciones y el código comprobaba dos: una tarea hecha con la fecha pasada llegaba marcada como vencida. El comentario encima del método ya prometía las tres.
 
 ### 3.2 · Contrato de la API sin verificar (prioridad alta)
 
 | Requisito de la spec | Ruta | Prueba |
 |---|---|---|
 | Creación de una tarea con solo el título | `POST /api/v1/tasks` | **ninguna** |
-| Una sola lista compartida del espacio | `GET /api/v1/tasks` | **ninguna** |
-| Consulta de una tarea suelta | `GET /api/v1/tasks/:id` | **ninguna** |
-| Cambio de estado de cualquier tarea | `PATCH /api/v1/tasks/:id/status` | **ninguna** |
-| Fijar, cambiar y retirar la fecha de vencimiento | `PUT /api/v1/tasks/:id/due-date` | **ninguna** |
-| Acotar la lista por estado | `GET /api/v1/tasks?status=` | **ninguna** |
+| Una sola lista compartida del espacio | `GET /api/v1/tasks` | `filtro.spec.ts` · sin filtro no es «todas» |
+| Consulta de una tarea suelta | `GET /api/v1/tasks/:id` | `vencimiento.spec.ts` |
+| Cambio de estado de cualquier tarea | `PATCH /api/v1/tasks/:id/status` | parcial · solo dentro del vencimiento |
+| Fijar, cambiar y retirar la fecha de vencimiento | `PUT /api/v1/tasks/:id/due-date` | `vencimiento.spec.ts` · aplazar |
+| Acotar la lista por estado | `GET /api/v1/tasks?status=` | `filtro.spec.ts` |
 | Las tareas exigen sesión | las cinco rutas | **ninguna** |
-| Lo que cada tarea muestra de su responsable | `task_assignee_transformer.ts` | **ninguna** |
-| La lista no lleva el vencimiento | `task_transformer.ts` | **ninguna** |
+| Lo que cada tarea muestra de su responsable | `task_assignee_transformer.ts` | `assignee.spec.ts` |
+| La lista no lleva el vencimiento | `task_transformer.ts` | `vencimiento.spec.ts` |
 
 «Las tareas exigen sesión» sin prueba merece un párrafo aparte: es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
 
@@ -132,10 +136,11 @@ Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD;
 
 Por orden de lo que más protege:
 
-1. Las siete reglas de dominio de §3.1. Son las que se rompen en silencio.
-2. El contrato de la API de §3.2, empezando por «las tareas exigen sesión».
-3. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
-4. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
-5. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
+1. Lo que queda sin cubrir de §3.1: los tres estados fijos, el título obligatorio y el título excesivo.
+2. «Las tareas exigen sesión», de §3.2. Es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
+3. La creación de tarea, que hoy no tiene ninguna prueba propia.
+4. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
+5. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
+6. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
 
 Lo que **no** se propone: perseguir un porcentaje de cobertura. La métrica de esta matriz es qué escenario de la spec está cubierto, no qué línea se ejecuta.

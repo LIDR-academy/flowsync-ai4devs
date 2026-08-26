@@ -36,7 +36,11 @@ node ace test --groups=... --tags=... --failed --watch
 node ace make:test --suite=functional # scaffolding de un fichero de test
 ```
 
-Ojo con la BD en tests: `config/database.ts` define una única conexión SQLite apuntando a `app.tmpPath('db.sqlite3')` sin override por entorno, así que las suites functional pegan contra el **mismo fichero** que el servidor de desarrollo. `.env.test` solo cambia `SESSION_DRIVER=memory`. Si añades tests que escriben, aísla con los hooks de `testUtils.db()` (truncate / transacción global) o el estado se filtra entre runs.
+La BD de tests está aislada por construcción (ADR-0001): `config/database.ts` elige el fichero según el entorno, y `bin/test.ts` fuerza `NODE_ENV=test` de forma incondicional, así que la suite no puede escribir sobre `tmp/db.sqlite3`. Se comprobó antes de arreglarlo que sí podía: un fichero de prueba sin hook dejaba filas en la base de desarrollo con la suite en verde.
+
+Los ficheros de prueba siguen declarando `group.each.setup(() => testUtils.db().withGlobalTransaction())`, que es lo que aísla un caso de otro dentro de la misma ejecución. Mantenlo al escribir uno nuevo.
+
+Dos cosas del arnés que ahorran tiempo: el registro tipado de Tuyau tipa solo la respuesta de **éxito** de cada ruta, así que para leer un error o enviar un payload que el validador debe negar están los helpers de `tests/helpers/api.ts` (`errores`, `tarea`, `tareas`, `invalido`); y `assert.hasAllKeys` no existe en este plugin, es `assert.sameMembers` sobre `Object.keys`.
 
 Otros comandos útiles: `node ace list:routes`, `node ace make:controller|model|migration|validator|transformer|service`, `node ace migration:fresh`, `node ace repl`.
 
@@ -50,7 +54,7 @@ npm run lint      # oxlint (NO eslint)
 npm run format    # prettier --write .
 ```
 
-No hay runner de tests instalado en el frontend.
+El frontend **no tiene runner de tests** en esta rama.
 
 ## Arquitectura del backend
 
@@ -98,6 +102,13 @@ Rutas actuales (`start/routes.ts`), todas bajo `/api/v1`:
 | POST | `/api/v1/auth/login` | `AccessTokensController.store` | no |
 | GET | `/api/v1/account/profile` | `ProfileController.show` | sí |
 | POST | `/api/v1/account/logout` | `AccessTokensController.destroy` | sí |
+| GET | `/api/v1/tasks` | `TasksController.index` | sí |
+| POST | `/api/v1/tasks` | `TasksController.store` | sí |
+| GET | `/api/v1/tasks/:id` | `TasksController.show` | sí |
+| PATCH | `/api/v1/tasks/:id/status` | `TaskStatusesController.update` | sí |
+| PUT | `/api/v1/tasks/:id/due-date` | `TaskDueDatesController.update` | sí |
+
+El contrato completo, con cuerpos y respuestas, en `docs/api/openapi.yaml`. `scripts/verificar-docs.mjs` falla si esa tabla y el contrato dejan de corresponder con `start/routes.ts`.
 
 ### Validación
 

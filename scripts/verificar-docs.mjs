@@ -135,6 +135,42 @@ comprobar('Los estados del contrato son los del dominio', () => {
   return estados.join(', ')
 })
 
+comprobar('La regla de vencimiento comprueba sus tres condiciones', () => {
+  const modelo = leer('backend/app/models/task.ts')
+  const metodo = modelo.match(/isOverdueOn\(referenceDay: string\): boolean \{([\s\S]*?)\n {2}\}/)
+  if (!metodo) throw new Error('no se encuentra isOverdueOn en el modelo')
+
+  const cuerpo = metodo[1]
+  const condiciones = [
+    ['tiene fecha', /dueDate === null/],
+    ['no esta hecha', /status === 'done'/],
+    ['la fecha ha pasado', /dueDate\s*<\s*referenceDay/],
+  ]
+
+  const ausentes = condiciones.filter(([, patron]) => !patron.test(cuerpo)).map(([n]) => n)
+  if (ausentes.length) throw new Error(`condicion(es) que faltan: ${ausentes.join(', ')}`)
+
+  // El `<` estricto: vencer hoy todavia no es estar vencida. Un `<=` no rompe
+  // nada ruidosamente y no lo ve ni el lint ni el tipo.
+  if (/dueDate\s*<=\s*referenceDay/.test(cuerpo)) {
+    throw new Error('la comparacion es <=, y debe ser estricta')
+  }
+  return 'tres condiciones y comparacion estricta'
+})
+
+comprobar('El filtro de la lista solo admite estados del dominio', () => {
+  const validador = leer('backend/app/validators/task.ts')
+  const lista = validador.match(/listTasksValidator = vine\.create\(\{([\s\S]*?)\}\)/)
+  if (!lista) throw new Error('no se encuentra listTasksValidator')
+
+  if (!/vine\.enum\(TASK_STATUSES\)/.test(lista[1])) {
+    throw new Error(
+      'status no esta acotado al enum: un estado inventado saldria como lista vacia con 200'
+    )
+  }
+  return 'vine.enum(TASK_STATUSES)'
+})
+
 comprobar('El responsable no expone la cuenta', () => {
   const transformer = leer('backend/app/transformers/task_assignee_transformer.ts')
   const campos = transformer.match(/this\.pick\(this\.resource, \[([^\]]+)\]\)/)
@@ -164,18 +200,28 @@ comprobar('Las pruebas no pueden escribir sobre la base de desarrollo', () => {
   return 'db-test.sqlite3 en test, db.sqlite3 fuera'
 })
 
-comprobar('Los documentos vivos existen', () => {
-  const obligatorios = [
+comprobar('Los documentos que el README enlaza existen', () => {
+  // Se derivan de los enlaces del README y no de una lista escrita a mano:
+  // una lista a mano no falla cuando el README enlaza algo que no esta.
+  const readme = leer('README.md')
+  const enlaces = [...readme.matchAll(/\]\((?!https?:)([^)#]+)\)/g)]
+    .map((m) => m[1])
+    .filter((ruta) => !ruta.startsWith('.'))
+
+  const ausentes = [...new Set(enlaces)].filter((ruta) => !existsSync(join(RAIZ, ruta)))
+  if (ausentes.length) throw new Error(`enlaces rotos: ${ausentes.join(', ')}`)
+
+  const imprescindibles = [
     'docs/arquitectura.md',
     'docs/trazabilidad.md',
     'docs/api/openapi.yaml',
-    'docs/adr/0001-aislamiento-de-la-base-de-datos-en-pruebas.md',
     'openspec/specs/auth/spec.md',
     'openspec/specs/tasks/spec.md',
   ]
-  const ausentes = obligatorios.filter((r) => !existsSync(join(RAIZ, r)))
-  if (ausentes.length) throw new Error(`faltan: ${ausentes.join(', ')}`)
-  return `${obligatorios.length} documentos`
+  const faltan = imprescindibles.filter((ruta) => !existsSync(join(RAIZ, ruta)))
+  if (faltan.length) throw new Error(`faltan: ${faltan.join(', ')}`)
+
+  return `${new Set(enlaces).size} enlaces del README`
 })
 
 for (const { nombre, ok, detalle } of comprobaciones) {
