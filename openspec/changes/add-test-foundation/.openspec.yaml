@@ -1,0 +1,9 @@
+schema: spec-driven
+created: 2026-08-25
+
+# Este cambio no altera ningún comportamiento observable del producto: monta
+# infraestructura de verificación y aísla la base de datos de los tests. Las
+# specs describen comportamiento, así que si el comportamiento no cambia,
+# ninguna spec debe cambiar. No se inventa un requisito para satisfacer la
+# validación.
+skip_specs: true
