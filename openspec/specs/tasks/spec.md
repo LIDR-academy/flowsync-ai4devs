@@ -1,8 +1,9 @@
-## Purpose
+# tasks Specification
 
+## Purpose
 El trabajo del equipo como entidad compartida: anotar una tarea en segundos, verla en una lista única e idéntica para todos, y mantener al día en qué anda cada uno sin interrumpir a nadie.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Anotar trabajo escribiendo solo el título
 
@@ -109,6 +110,22 @@ El sistema SHALL permitir cambiar el estado de una tarea desde la propia lista, 
 - **AND** al terminar la tarea está en exactamente uno de ellos
 
 > **Pendiente PA-7.** Ningún requisito declara qué transiciones son legales ni si se puede volver desde «Hecho». Mientras no se decida, todas las transiciones se admiten, lo que hace muy barato marcar algo como hecho por error.
+
+### Requirement: Actuar sobre una tarea que no existe se rechaza con claridad
+
+El sistema SHALL rechazar cualquier intento de cambiar el estado de una tarea que no existe, y su respuesta NO SHALL exponer detalles internos del sistema como trazas de ejecución, rutas de fichero ni fragmentos de código.
+
+#### Scenario: La tarea no existe
+
+- **WHEN** se intenta cambiar el estado de una tarea que no existe
+- **THEN** la petición se rechaza indicando que no se ha encontrado
+- **AND** la respuesta tiene la misma forma que el resto de errores del sistema
+
+#### Scenario: El identificador ni siquiera es válido
+
+- **WHEN** se intenta cambiar el estado indicando un identificador que no tiene forma de identificador
+- **THEN** la petición se rechaza igual que si la tarea no existiera
+- **AND** no se revela nada sobre cómo está construido el sistema por dentro
 
 ### Requirement: Cualquiera puede cambiar el estado de cualquier tarea
 

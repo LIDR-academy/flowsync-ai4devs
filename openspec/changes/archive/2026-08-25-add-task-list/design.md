@@ -105,6 +105,24 @@ El orden resultante será el que decida la persistencia, y eso **no es una decis
 
 **Alternativa descartada:** elegir un orden razonable, por ejemplo por fecha de creación descendente. Sería inventar una decisión de producto que nadie tomó, y quedaría consagrada sin que nadie la revisara.
 
+### D11 · Borrar una cuenta arrastra sus tareas
+
+La referencia al responsable se declara con borrado en cascada. Si algún día se elimina una cuenta, sus tareas desaparecen con ella.
+
+**Alternativa descartada:** dejar la tarea huérfana con responsable nulo. El dominio exige que toda tarea tenga responsable —E3-1 promete que cada fila dice quién la lleva— así que una tarea sin dueño rompería el contrato de la lista.
+
+Hoy es inalcanzable: `auth` no ofrece borrar cuentas. Queda declarado para que, cuando esa capacidad exista, la decisión se revise en lugar de descubrirse.
+
+### D12 · Un identificador que no corresponde a ninguna tarea se responde, no se lanza
+
+Actualizar resuelve un identificador que llega del cliente. Es la primera ruta del proyecto que lo hace.
+
+Usar `findOrFail` habría lanzado un error del ORM que el manejador de excepciones renderiza, fuera de producción, con traza completa, rutas absolutas del servidor y fragmentos de `node_modules`. Se responde en su lugar con la misma forma que el resto de errores del sistema.
+
+**Alternativa descartada:** una clase de excepción propia. Se probó, y el manejador la renderizaba igualmente con traza: el problema no era el tipo del error, sino que se lanzara.
+
+Esta decisión y su requisito en la spec **salieron de la verificación posterior a la implementación**, no del diseño inicial. El contrato tenía un hueco: ningún requisito cubría qué pasa si la tarea no existe.
+
 ## Risks / Trade-offs
 
 **La actualización optimista puede mostrar un estado falso durante un instante (D8)** → La reversión al fallar es requisito de la spec, no una mejora opcional, y el fallo se explica en pantalla.
