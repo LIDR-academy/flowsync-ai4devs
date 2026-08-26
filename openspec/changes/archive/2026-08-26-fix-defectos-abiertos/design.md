@@ -30,7 +30,11 @@ La normalización se declara en el validador, antes de la regla de unicidad.
 
 **Alternativa descartada:** un hook `beforeSave` en el modelo. Es tentador porque centraliza, pero rompe: la regla de unicidad consultaría el valor sin normalizar, daría por libre un email que en realidad ya existe, y el índice único de la base reventaría después con un error de servidor. El usuario vería un 500 en lugar de «ese email ya está registrado».
 
-**Alternativa descartada:** normalizar en cada controlador. Funciona hoy con dos controladores y falla el día que aparezca el tercero y alguien lo olvide. El mismo criterio que D1 del cambio anterior: mejor imposible que disciplinado.
+**Alternativa descartada:** normalizar en cada controlador. Funciona hoy con dos controladores y falla el día que aparezca el tercero y alguien lo olvide.
+
+> **Corrección posterior (revisión adversarial).** Este apartado invocaba «mejor imposible que disciplinado», y el validador por sí solo **no** hace imposible el duplicado: cualquier escritura que no pase por él (un seeder, un comando de ace) lo reabre, porque el índice de la tabla compara byte a byte. Se añadió un índice único sobre `lower(email)` como segunda línea de defensa, verificado insertando un duplicado directamente en la base. Con el alfabeto latino acentuado ese índice no llega, porque `lower()` de SQLite es ASCII; ahí sigue protegiendo solo el validador. La garantía es fuerte, no absoluta, y conviene decirlo así.
+
+> **Corrección posterior.** El texto daba a entender que el 500 contra el índice dejaba de ser posible. Deja de serlo en secuencia. Dos altas **simultáneas** con el mismo email siguen produciendo un 500, porque la regla `unique` consulta y escribe en dos momentos distintos. No lo introduce este cambio y no lo resuelve.
 
 ### D2 · Solo se baja a minúsculas, sin trucos por proveedor
 
@@ -46,7 +50,9 @@ Sin ella, quien se registró como `Ada@…` deja de poder entrar en cuanto el lo
 
 **Alternativa descartada:** hacer la búsqueda insensible a mayúsculas y dejar los datos como están. Deja el problema vivo en la base, hace que cada consulta futura tenga que acordarse, y no impide seguir creando duplicados desde otra vía.
 
-La migración es reversible en su forma, no en su contenido: se puede deshacer la columna, pero no recuperar las mayúsculas originales. Es aceptable, porque el valor original no significa nada.
+La migración no crea, borra ni altera ninguna columna: actualiza filas. Su `down()` no hace nada, y no puede hacer nada: las mayúsculas originales no se guardan en ningún sitio. Es aceptable, porque ningún comportamiento dependía de ellas.
+
+> **Corrección posterior (revisión adversarial).** La primera versión normalizaba con `lower()` de SQL, que solo baja el ASCII. Una cuenta como `JOSÉ@…` quedaba como `josÉ@…`, un valor que la aplicación no genera nunca y con el que esa cuenta no podía volver a entrar. La migración normaliza ahora en JavaScript con **la misma función exportada que usa el validador**, para que ambas no puedan discrepar.
 
 ### D4 · Un 401 en cualquier momento cierra la sesión
 
@@ -64,7 +70,9 @@ Tras guardar, el modelo se relee antes de serializar.
 
 **Alternativa descartada:** truncar la marca de tiempo al serializar. Esconde el desajuste en la capa de presentación en vez de quitarlo, y deja el objeto en memoria diciendo una cosa y la base otra.
 
-El coste es una consulta más por escritura. A este tamaño no se nota, y a cambio la respuesta de escritura y la de lectura son el mismo dato.
+El coste es una consulta por escritura, que sustituye a la carga del responsable en lugar de sumarse a ella: se relee y se precarga en la misma. A cambio, la respuesta de escritura y la de lectura son el mismo dato.
+
+> **Corrección posterior (revisión adversarial).** La primera versión usaba `refresh()` seguido de `load('assignee')`, que son dos consultas y no una como decía este apartado. Se sustituyó por una única consulta con `preload`.
 
 ## Risks / Trade-offs
 

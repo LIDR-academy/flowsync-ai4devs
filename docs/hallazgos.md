@@ -4,7 +4,7 @@
 >
 > No son decisiones de producto: esas viven en `docs/prd/flowsync-mvp.md`, sección 10, como `D-nn`. Aquí van los hallazgos técnicos y de proceso que van a doler si nadie los conoce de antemano.
 >
-> Rama de referencia: `s3/start`. Última revisión: 2026-08-25.
+> Rama de referencia: `s3/start`. Última revisión: 2026-08-26.
 
 ## Índice por severidad
 
@@ -12,7 +12,7 @@
 |---|---|---|---|
 | H-01 | Los tests comparten base de datos con desarrollo | Alta | **Resuelto (2026-08-25)** |
 | H-02 | Cero pruebas automatizadas en todo el proyecto | Alta | **Resuelto (2026-08-25)** |
-| H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Media | **Resuelto (2026-08-26)** |
+| H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Alta | **Resuelto (2026-08-26)** |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | Documentado y sorteado |
 | H-04 | `fullName` es `nullable`, no `optional` | Media | Documentado y sorteado |
 | H-05 | La traducción de errores depende de los nombres de regla del backend | Media | Vigilado por pruebas |
@@ -100,7 +100,7 @@ Lo que **no** cubre, declarado a propósito para que el hueco sea conocido: ver 
 
 ## H-11 · El email distingue mayúsculas y minúsculas
 
-**Severidad: media.** Abierto. Detectado al escribir la spec viva de `auth` en el Módulo 3.
+**Severidad: alta. Resuelto el 2026-08-26.** Detectado al escribir la spec viva de `auth` en el Módulo 3.
 
 La regla de unicidad del email compara la cadena tal cual, así que **la misma persona puede registrarse dos veces cambiando la caja**.
 
@@ -318,7 +318,7 @@ Está fuera de nuestro alcance, es del framework.
 
 ## H-13 · Una sesión que caduca con la lista abierta deja al usuario sin salida
 
-**Severidad: media.** Abierto.
+**Severidad: media. Resuelto el 2026-08-26.**
 
 Si la credencial deja de valer mientras la pantalla de tareas está abierta, `frontend/src/pages/tasks-page.tsx` pinta «Tu sesión ha caducado. Vuelve a iniciar sesión.» en un aviso que sustituye a toda la tarjeta.
 Pero ese aviso no ofrece ninguna navegación, y `auth-provider` solo limpia el token al arrancar, no ante un 401 posterior.
@@ -343,7 +343,7 @@ Que un fallo que no es de credencial (500, corte de red, 422) no cierre la sesi�
 
 ## H-14 · `updatedAt` vale distinto según el endpoint que lo devuelve
 
-**Severidad: baja.** Abierto.
+**Severidad: baja. Resuelto el 2026-08-26.**
 
 La respuesta de `PATCH /api/v1/tasks/:id` devuelve el objeto en memoria, con milisegundos.
 El `GET` siguiente devuelve lo persistido, truncado al segundo.

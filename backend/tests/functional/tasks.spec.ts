@@ -267,7 +267,25 @@ test.group('tasks · Una sola lista, la misma para todos', () => {
   })
 })
 
+/**
+ * Comparar escritura contra lectura no basta: los dos lados salen del mismo
+ * transformer, así que borrar un campo los deja iguales y las pruebas pasan.
+ * Este conjunto es lo que hace que borrarlo se note.
+ */
+const CAMPOS_DE_TAREA = ['id', 'title', 'status', 'createdAt', 'updatedAt', 'assignee']
+
 test.group('tasks · Escribir y leer devuelven el mismo dato', () => {
+  test('cada tarea expone exactamente los campos acordados', async ({ client, assert }) => {
+    const ada = await cuenta('ada@flowsync.test')
+    const creada = await client
+      .post('/api/v1/tasks')
+      .loginAs(ada)
+      .json({ title: 'Conjunto cerrado' })
+
+    assert.sameMembers(Object.keys(tarea(creada)), CAMPOS_DE_TAREA)
+    assert.sameMembers(Object.keys(tarea(creada).assignee), ['id', 'fullName', 'initials'])
+  })
+
   test('lo que devuelve crear coincide campo por campo con la lista', async ({
     client,
     assert,

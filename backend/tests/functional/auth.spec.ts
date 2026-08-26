@@ -48,7 +48,8 @@ test.group('auth · Alta de cuenta', () => {
     conNulo.assertStatus(200)
     assert.isNull(conNulo.body().data.user.fullName)
 
-    const { fullName: _omitido, ...sinCampo } = cuenta
+    const { fullName: sinUsar, ...sinCampo } = cuenta
+    void sinUsar
     const omitido = await client
       .post('/api/v1/auth/signup')
       .json(invalido({ ...sinCampo, email: 'otra@flowsync.test' }))
@@ -217,6 +218,36 @@ test.group('auth · El email no distingue mayúsculas', () => {
       .json({ ...cuenta, email: 'AdA@FlowSync.Test' })
 
     assert.equal(alta.body().data.user.email, 'ada@flowsync.test')
+  })
+
+  test('ninguna familia de proveedor sufre transformaciones extra', async ({ client, assert }) => {
+    // `normalizeEmail` trata aparte a Gmail, Outlook, Yahoo, iCloud y Yandex, y
+    // cada familia tiene su propia transformación destructiva activada por
+    // defecto. Cubrir solo Gmail dejaba las otras cuatro sin vigilar, y es en
+    // Yandex donde estaba el defecto: convertía yandex.com y ya.ru a yandex.ru,
+    // reabriendo este mismo hallazgo por otra puerta.
+    // Cada caso usa la transformación destructiva **propia de esa familia**:
+    // Gmail quita puntos y convierte googlemail.com, Yahoo separa con guion y
+    // no con «+», y Yandex unifica todos sus dominios en yandex.ru. Un caso con
+    // la sintaxis equivocada pasa siempre y no vigila nada.
+    const casos = [
+      ['Ada.L+tag@Gmail.com', 'ada.l+tag@gmail.com'],
+      ['Ada.L+tag@GoogleMail.com', 'ada.l+tag@googlemail.com'],
+      ['Ada.L+tag@Outlook.com', 'ada.l+tag@outlook.com'],
+      ['Ada.L-tag@Yahoo.com', 'ada.l-tag@yahoo.com'],
+      ['Ada.L+tag@iCloud.com', 'ada.l+tag@icloud.com'],
+      ['Ada.L+tag@Yandex.COM', 'ada.l+tag@yandex.com'],
+      ['Ada.L@Ya.ru', 'ada.l@ya.ru'],
+    ]
+
+    for (const [enviado, esperado] of casos) {
+      const alta = await client.post('/api/v1/auth/signup').json({ ...cuenta, email: enviado })
+
+      alta.assertStatus(200)
+      assert.equal(alta.body().data.user.email, esperado)
+      // Y en la base, no solo en la respuesta.
+      await assert.exists({ table: 'users', email: esperado })
+    }
   })
 
   test('no se tocan los puntos ni la etiqueta tras el «+»', async ({ client, assert }) => {

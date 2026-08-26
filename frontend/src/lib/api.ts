@@ -143,11 +143,24 @@ type RequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   token?: string | null
+  /**
+   * Silencia el aviso de credencial rechazada para esta llamada.
+   *
+   * Lo usa el cierre de sesión: si el token ya estaba revocado en el servidor,
+   * salir a propósito aterrizaría en el login con un aviso de sesión caducada
+   * que no viene a cuento. La persona ya sabe que ha salido.
+   */
+  silenciarRechazo?: boolean
 }
 
 async function request<T>(
   path: string,
-  { method = 'GET', body, token }: RequestOptions = {},
+  {
+    method = 'GET',
+    body,
+    token,
+    silenciarRechazo = false,
+  }: RequestOptions = {},
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -172,7 +185,7 @@ async function request<T>(
 
   if (!response.ok) {
     const error = toApiError(response.status, payload)
-    if (error.status === 401) {
+    if (error.status === 401 && !silenciarRechazo) {
       // Solo el 401. Un servidor caído responde 500 o no responde, y esos casos
       // no deben cerrar la sesión de nadie.
       unauthorizedHandlers.forEach((handler) => handler(error))
@@ -204,9 +217,11 @@ export function getProfile(token: string): Promise<User> {
 }
 
 export function logout(token: string): Promise<void> {
-  return request('/api/v1/account/logout', { method: 'POST', token }).then(
-    () => undefined,
-  )
+  return request('/api/v1/account/logout', {
+    method: 'POST',
+    token,
+    silenciarRechazo: true,
+  }).then(() => undefined)
 }
 
 /** La lista es única para el espacio: no admite filtro ni orden. */

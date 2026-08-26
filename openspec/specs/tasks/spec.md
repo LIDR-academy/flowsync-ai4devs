@@ -7,7 +7,7 @@ El trabajo del equipo como entidad compartida: anotar una tarea en segundos, ver
 
 ### Requirement: Anotar trabajo escribiendo solo el título
 
-El sistema SHALL permitir crear una tarea indicando únicamente su título, y NO SHALL pedir, ofrecer ni sugerir ningún otro dato durante la creación.
+El sistema SHALL permitir crear una tarea indicando únicamente su título, y NO SHALL pedir, ofrecer ni sugerir ningún otro dato durante la creación. La representación que devuelve la creación SHALL ser idéntica a la que devuelve la lectura siguiente.
 
 #### Scenario: Un título basta
 
@@ -26,6 +26,12 @@ El sistema SHALL permitir crear una tarea indicando únicamente su título, y NO
 - **WHEN** una persona termina de crear una tarea
 - **THEN** la ve ya en la lista
 - **AND** no necesita recargar ni ir a ninguna otra parte
+
+#### Scenario: Lo que devuelve crear es lo que devuelve leer
+
+- **WHEN** se crea una tarea y a continuación se consulta la lista
+- **THEN** la tarea que devolvió la creación y la que aparece en la lista son idénticas campo por campo
+
 
 ### Requirement: Ninguna tarea existe sin título
 
@@ -113,11 +119,6 @@ El sistema SHALL permitir cambiar el estado de una tarea desde la propia lista, 
 
 - **WHEN** se cambia el estado de una tarea y a continuación se consulta la lista
 - **THEN** la tarea que devolvió la escritura y la que aparece en la lista son idénticas campo por campo
-
-#### Scenario: Lo que devuelve crear es lo que devuelve leer
-
-- **WHEN** se crea una tarea y a continuación se consulta la lista
-- **THEN** la tarea que devolvió la creación y la que aparece en la lista son idénticas campo por campo
 
 ### Requirement: Actuar sobre una tarea que no existe se rechaza con claridad
 

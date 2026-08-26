@@ -32,6 +32,20 @@ Derivan de los escenarios añadidos y modificados en los deltas de este cambio.
 
 ## 5. Cierre
 
-- [ ] 5.1 Ejecutar las dos suites completas, más `lint`, `typecheck` y `build` en ambos proyectos
-- [ ] 5.2 Actualizar `docs/hallazgos.md`: H-11, H-13 y H-14 dejan de estar abiertos, con la fecha y cómo se resolvieron
-- [ ] 5.3 Verificar que el diff no toca nada fuera del alcance de este cambio, y que no añade dependencias
+- [x] 5.1 Ejecutar las dos suites completas, más `lint`, `typecheck` y `build` en ambos proyectos
+- [x] 5.2 Actualizar `docs/hallazgos.md`: H-11, H-13 y H-14 dejan de estar abiertos, con la fecha y cómo se resolvieron
+- [x] 5.3 Verificar que el diff no toca nada fuera del alcance de este cambio, y que no añade dependencias
+
+## 6. Correcciones de la revisión adversarial
+
+El grupo 5 se archivó sin ejecutar, y era justo el que existía para pillar lo de abajo. Queda constancia.
+
+- [x] 6.1 `yandex_convert_yandexru` seguía activo por no estar en la lista, y convertía `yandex.com` y `ya.ru` a `yandex.ru`: reabría H-11 por otra puerta. Apagado, y cubierto por prueba
+- [x] 6.2 La migración normalizaba con `lower()` de SQL, que solo baja ASCII: dejaba `josÉ@…`, un valor que la aplicación nunca genera. Normaliza en JavaScript con la función que exporta el validador
+- [x] 6.3 El 401 de la propia llamada de cierre de sesión disparaba el aviso, así que salir a propósito aterrizaba en el acceso con «tu sesión ha caducado». Silenciado para esa llamada, y cubierto por prueba
+- [x] 6.4 La pantalla de la lista seguía sin salida para los errores que **no** son 401. Añadidos reintentar y cerrar sesión
+- [x] 6.5 Índice único sobre `lower(email)`: el validador solo no hacía imposible el duplicado, y el apartado que lo afirmaba queda corregido
+- [x] 6.6 Escritura y lectura se comparaban entre sí saliendo del mismo transformer, así que borrar un campo las dejaba iguales. Añadido el conjunto cerrado de campos de tarea
+- [x] 6.7 Los casos por proveedor usaban la sintaxis equivocada y no vigilaban nada. Corregidos: las siete transformaciones destructivas tumban ahora una prueba cada una
+- [x] 6.8 `npm run lint` del backend fallaba y se había reportado como limpio. Arreglado
+- [x] 6.9 `.claude/launch.json` estaba fuera del alcance declarado. Retirado

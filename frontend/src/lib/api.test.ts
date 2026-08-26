@@ -4,6 +4,7 @@ import {
   createTask,
   getTasks,
   login,
+  logout,
   onUnauthorized,
   updateTask,
 } from '@/lib/api'
@@ -250,6 +251,19 @@ describe('Aviso de credencial rechazada', () => {
     await createTask('t', { title: '' }).catch(() => undefined)
 
     cancelar()
+    expect(avisos).toHaveLength(0)
+  })
+
+  it('cerrar sesión con el token ya revocado no avisa', async () => {
+    // Salir a propósito no puede aterrizar en el login con un aviso de sesión
+    // caducada: la persona ya sabe que ha salido.
+    stubFetch(responde(401, { errors: [{ message: 'Unauthorized' }] }))
+    const avisos: ApiError[] = []
+    const cancelar = onUnauthorized((error) => avisos.push(error))
+
+    await logout('token-ya-revocado').catch(() => undefined)
+    cancelar()
+
     expect(avisos).toHaveLength(0)
   })
 

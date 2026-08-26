@@ -7,6 +7,7 @@ import { FullScreenLoader } from '@/components/full-screen-loader'
 import { NewTaskForm } from '@/components/new-task-form'
 import { TaskRow } from '@/components/task-row'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -19,7 +20,7 @@ import { ApiError } from '@/lib/api'
 import type { Task, TaskStatus } from '@/lib/types'
 
 export function TasksPage() {
-  const { token, user } = useAuth()
+  const { token, user, logout } = useAuth()
   const [tasks, setTasks] = useState<Task[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -116,12 +117,26 @@ export function TasksPage() {
   )
 
   if (loadError) {
+    // Un 401 ya no llega aquí: cierra la sesión y lleva al acceso. Lo que sí
+    // llega es el resto (servidor caído, error propio), y esa pantalla también
+    // necesita salida: sin ella se queda en un aviso del que solo se sale
+    // recargando, que es la misma forma de callejón que H-13.
     return (
       <div className="bg-muted/40 flex min-h-svh items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircleIcon />
-          <AlertDescription>{loadError}</AlertDescription>
-        </Alert>
+        <div className="flex w-full max-w-md flex-col gap-4">
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertDescription>{loadError}</AlertDescription>
+          </Alert>
+          <div className="flex justify-center gap-2">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Reintentar
+            </Button>
+            <Button variant="ghost" onClick={() => void logout()}>
+              Cerrar sesión
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }

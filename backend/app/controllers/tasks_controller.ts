@@ -4,6 +4,11 @@ import { createTaskValidator, updateTaskValidator } from '#validators/task'
 import TaskTransformer from '#transformers/task_transformer'
 import type { HttpContext } from '@adonisjs/core/http'
 
+/** Lo persistido, con el responsable, en una sola consulta. */
+function releer(id: number) {
+  return Task.query().where('id', id).preload('assignee').firstOrFail()
+}
+
 export default class TasksController {
   /**
    * La lista es única para todo el espacio y su contenido no depende de quién
@@ -34,11 +39,11 @@ export default class TasksController {
      * memoria trae milisegundos y la base guarda con precisión de segundo, así
      * que sin esto la respuesta de escritura y la de la lectura siguiente
      * dirían valores distintos del mismo campo.
+     *
+     * Se relee y se trae el responsable en la misma consulta, no con
+     * `refresh()` más `load()`, que son dos.
      */
-    await task.refresh()
-    await task.load('assignee')
-
-    return serialize(TaskTransformer.transform(task))
+    return serialize(TaskTransformer.transform(await releer(task.id)))
   }
 
   /**
@@ -65,9 +70,6 @@ export default class TasksController {
     await task.save()
 
     // Mismo motivo que en `store`: la escritura devuelve lo persistido.
-    await task.refresh()
-    await task.load('assignee')
-
-    return serialize(TaskTransformer.transform(task))
+    return serialize(TaskTransformer.transform(await releer(task.id)))
   }
 }
