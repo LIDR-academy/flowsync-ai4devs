@@ -56,6 +56,23 @@ El `assignee` sale siempre por
 [`TaskAssigneeTransformer`](../../../backend/app/transformers/task_assignee_transformer.ts), que lo
 recorta a `id`, `fullName` e `initials` — nunca el email.
 
+### El contrato, servido
+
+Las cinco operaciones están anotadas con los decoradores de `@foadonis/openapi` sobre los propios
+controladores, así que el documento servido en **`/api.json`** (y la interfaz en `/api`) lleva el
+parámetro `status` con sus tres valores, el `today` obligatorio, los cuerpos de las escrituras y los
+códigos `200`/`201`/`401`/`404`/`422` de cada operación, cada uno con la forma de lo que devuelve.
+
+Las formas que se repiten viven en
+[`backend/app/openapi/schemas.ts`](../../../backend/app/openapi/schemas.ts) y se publican en
+`components.schemas`, de manera que se describen una vez y cada respuesta las referencia con `$ref`.
+`Task` y `TaskDetail` son dos componentes separados por el mismo motivo por el que hay dos
+transformers: así el documento **no puede** enseñar el vencimiento en la lista.
+
+Ese fichero es documentación, no validación: describe lo que los controladores ya hacen. Si cambia un
+transformer o un validador, se actualiza en el mismo commit. El documento se construye en cada
+petición y no hay fichero que generar; lo que se commitea es el diff de `.adonisjs/`.
+
 ## Reglas de negocio: dónde vive cada una
 
 Esta tabla no enuncia las reglas; dice **dónde se cumplen** y **qué requisito las manda**. Para saber
@@ -78,7 +95,7 @@ qué exige cada una, se abre el enlace de la derecha.
 | El día de referencia lo pone quien mira | `taskReferenceDayValidator`, obligatorio y sin valor por defecto | [El día de referencia lo pone quien mira](../../../openspec/specs/tasks/spec.md#requirement-el-día-de-referencia-lo-pone-quien-mira) |
 | La lista no lleva vencimiento | Dos transformers separados, no uno con campos opcionales | [La lista no lleva el vencimiento](../../../openspec/specs/tasks/spec.md#requirement-la-lista-no-lleva-el-vencimiento) |
 | Acotar por estado | `listTasksValidator` y la rama de `TasksController.index` | [Acotar la lista por estado](../../../openspec/specs/tasks/spec.md#requirement-acotar-la-lista-por-estado) |
-| Filtro válido sin resultados ≠ filtro inválido | `422` en el validador, lista vacía en el controlador: dos caminos que no se cruzan | [Un estado que no existe se rechaza, no se responde vacío](../../../openspec/specs/tasks/spec.md#requirement-un-estado-que-no-existe-se-rechaza-no-se-responde-vacío) |
+| Filtro válido sin resultados ≠ filtro inválido | **Sin cumplir hoy.** `listTasksValidator` declara `status: vine.string().optional()`, no un `vine.enum`, así que un estado inventado no se rechaza: llega al `where` y sale como lista vacía, que es justo lo que el requisito prohíbe. El comentario de `TasksController.index` afirma lo contrario | [Un estado que no existe se rechaza, no se responde vacío](../../../openspec/specs/tasks/spec.md#requirement-un-estado-que-no-existe-se-rechaza-no-se-responde-vacío) |
 
 En el frontend, la capability vive en [`pages/tasks-page.tsx`](../../../frontend/src/pages/tasks-page.tsx),
 [`pages/task-page.tsx`](../../../frontend/src/pages/task-page.tsx),

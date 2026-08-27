@@ -10,5 +10,18 @@ export default defineConfig({
       // el código expone hoy.
       version: '1.0.0',
     },
+    components: {
+      securitySchemes: {
+        // El nombre `bearer` no es libre: es el que usa el decorador
+        // `@ApiBearerAuth()` con el que se anotan los controladores, y sin este
+        // esquema declarado esas referencias quedarían colgando.
+        bearer: {
+          type: 'http',
+          scheme: 'bearer',
+          description:
+            'Access token opaco emitido por `POST /api/v1/auth/login`, en la cabecera `Authorization: Bearer <token>`.',
+        },
+      },
+    },
   },
 })
