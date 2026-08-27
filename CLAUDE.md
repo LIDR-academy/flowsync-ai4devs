@@ -21,6 +21,8 @@ cp .env.example .env && node ace generate:key   # solo la primera vez
 node ace migration:run                          # crea tmp/db.sqlite3 y regenera database/schema.ts
 npm run dev                                     # node ace serve --hmr
 npm test                                        # node ace test
+npm run openapi:generate                        # escribe el documento OpenAPI en docs/api/openapi.json
+npm run openapi:check                           # compara el versionado con el regenerado; sale 1 si difieren
 npm run lint                                    # eslint
 npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
