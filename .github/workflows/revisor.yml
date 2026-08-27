@@ -1,0 +1,80 @@
+name: revisor
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+# Sin permisos por defecto: cada trabajo pide los suyos y nada más.
+permissions: {}
+
+jobs:
+  review:
+    name: revisión adversarial
+    runs-on: ubuntu-latest
+
+    # Reloj de pared: si el revisor se atasca, se corta aquí.
+    timeout-minutes: 10
+
+    permissions:
+      # Leer el código del repositorio (checkout y los ficheros que abra).
+      contents: read
+      # Publicar los hallazgos: comentarios en línea y el resumen del PR.
+      pull-requests: write
+      # Lo exige el camino de autenticación por GitHub App de la acción, que es
+      # el que usa cuando no se le pasa un `github_token` propio.
+      id-token: write
+
+    # Un PR desde un fork no ve los secretos del repositorio, así que el revisor
+    # se quedaría sin credencial y el trabajo fallaría sin decir por qué. Mejor
+    # no arrancarlo. Ver docs/ci-revisor.md.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          # Camino de suscripción: token generado en local con
+          # `claude setup-token`. Para la clave de API de la consola hay que
+          # cambiar TAMBIÉN de entrada (`anthropic_api_key`) y de secreto
+          # (`ANTHROPIC_API_KEY`): no son intercambiables. Ver docs/ci-revisor.md.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Comentario de seguimiento en el PR con el progreso de la revisión.
+          track_progress: true
+
+          prompt: |
+            Eres el revisor adversarial de este repositorio. Revisa el pull
+            request ${{ github.event.pull_request.number }} de
+            ${{ github.repository }}.
+
+            Antes de nada, lee tu fichero de calibración:
+            `.claude/agents/adversarial-reviewer.md`. Ahí está tu criterio y el
+            formato de los hallazgos. Lee también `CLAUDE.md` para las
+            convenciones del proyecto, y contrasta contra los scenarios de
+            `openspec/specs/` cuando el cambio toque una capability.
+
+            Publica lo que encuentres EN EL PULL REQUEST, no solo en el registro
+            de ejecución:
+
+            - Un comentario en línea por hallazgo, anclado al fichero y a la
+              línea concretos, con la evidencia y el scenario o la convención
+              que se rompe.
+            - Un único comentario de resumen al final, con los hallazgos
+              priorizados (crítico / alto / medio). Si no encuentras nada,
+              dilo en ese resumen.
+
+            No edites ficheros ni propongas commits: esto es una revisión.
+
+            No redirijas la salida de ningún comando a un fichero (`>`, `>>`,
+            `tee`, `--output`). No tienes herramienta de escritura, así que el
+            intento se deniega y te cuesta un turno sin darte nada. Lee la
+            salida directa del comando.
+
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
