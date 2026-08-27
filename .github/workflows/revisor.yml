@@ -42,6 +42,13 @@ jobs:
           # (`ANTHROPIC_API_KEY`): no son intercambiables. Ver docs/ci-revisor.md.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          # Sin esto la acción acuña su propio token de GitHub por OIDC, vía App,
+          # y la App se NIEGA a actuar sobre un workflow que todavía no está en la
+          # rama por defecto: se salta la revisión y deja el trabajo en verde sin
+          # haber revisado nada. Pasándole el token del propio trabajo, ese
+          # intercambio no ocurre. (`id-token: write` deja de hacer falta.)
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
           # Comentario de seguimiento en el PR con el progreso de la revisión.
           track_progress: true
 
