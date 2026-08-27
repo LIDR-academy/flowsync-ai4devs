@@ -2,9 +2,12 @@
 
 [`.github/workflows/revisor.yml`](../.github/workflows/revisor.yml) lanza la
 [acción oficial de Claude Code para GitHub Actions](https://github.com/anthropics/claude-code-action)
-sobre cada pull request. El revisor lee su calibración de
-[`.claude/agents/adversarial-reviewer.md`](../.claude/agents/adversarial-reviewer.md) y publica los
+sobre cada pull request. El revisor lee su calibración de [`REVIEW.md`](../REVIEW.md) y publica los
 hallazgos como comentarios en el propio PR.
+
+> **Ojo con `REVIEW.md` en un PR.** La acción restaura `.claude/` y `CLAUDE.md` desde la rama base,
+> pero `REVIEW.md` no está en esa lista: el revisor lee la versión que trae el pull request. Un
+> cambio a `REVIEW.md` se aplica a su propia revisión, así que revisa a mano los PRs que lo toquen.
 
 **Tal y como está commiteado, el trabajo no funciona todavía.** Le falta lo que no se puede meter en
 un fichero: el secreto. Esto es lo que queda por hacer a mano.

@@ -50,11 +50,13 @@ jobs:
             request ${{ github.event.pull_request.number }} de
             ${{ github.repository }}.
 
-            Antes de nada, lee tu fichero de calibración:
-            `.claude/agents/adversarial-reviewer.md`. Ahí está tu criterio y el
-            formato de los hallazgos. Lee también `CLAUDE.md` para las
-            convenciones del proyecto, y contrasta contra los scenarios de
-            `openspec/specs/` cuando el cambio toque una capability.
+            Antes de nada, lee `REVIEW.md` en la raíz del repositorio. Es tu
+            calibración y es de obligado cumplimiento: define qué cuenta como
+            hallazgo grave en este proyecto, el tope de sugerencias menores,
+            dónde no debes reportar y la regla de citar `fichero:línea` en vez
+            de deducir el comportamiento del nombre. Lee también `CLAUDE.md`
+            para las convenciones del proyecto, y contrasta contra los scenarios
+            de `openspec/specs/` cuando el cambio toque una capability.
 
             Publica lo que encuentres EN EL PULL REQUEST, no solo en el registro
             de ejecución:
