@@ -24,10 +24,10 @@ Nada de esto se puede commitear; hay que hacerlo a mano en GitHub y en local.
 4. **Comprobarlo en un PR de verdad.** El primer PR es la única prueba real: aquí no se puede
    verificar que la acción arranca, solo que el YAML es válido.
 
-Opcional, y recomendable si el revisor se pone pesado: **escribir un `REVIEW.md`** en la raíz con qué
-cuenta como hallazgo grave en este proyecto, qué no pasa de sugerencia y dónde no reportar. Hoy el
-prompt apunta a [`.claude/agents/adversarial-reviewer.md`](../.claude/agents/adversarial-reviewer.md)
-como calibración, que son seis líneas. Si se añade un `REVIEW.md`, hay que apuntar el prompt a él.
+La calibración del revisor es [`REVIEW.md`](../REVIEW.md), en la raíz: qué cuenta como hallazgo grave
+aquí, el tope de sugerencias menores, dónde no reportar y la regla de citar `fichero:línea`. El prompt
+del workflow la declara vinculante, así que **ajustar el tono del revisor se hace ahí, no en el YAML**:
+si comenta de más, sobra o falta algo en `REVIEW.md`.
 
 ## La credencial: dos caminos que no se cruzan
 

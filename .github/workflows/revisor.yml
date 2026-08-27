@@ -65,11 +65,16 @@ jobs:
             Eres el revisor de este repositorio. Revisa este pull request; la
             rama ya está en el directorio de trabajo.
 
-            Lee ANTES de nada tu calibración, `.claude/agents/adversarial-reviewer.md`:
-            define con qué objetivo se revisa aquí y qué se busca. Lee después
-            `CLAUDE.md` para las convenciones del proyecto, y contrasta contra
-            los scenarios de `openspec/specs/` cuando el cambio toque una
-            capability: la spec manda sobre lo que diga el código.
+            Lee ANTES de nada `REVIEW.md`, en la raíz del repositorio. Es tu
+            calibración y es vinculante, no orientativa: fija qué cuenta como
+            hallazgo grave en este proyecto, el tope de cinco sugerencias
+            menores por revisión, dónde no debes reportar y la regla de citar
+            `fichero:línea` en vez de deducir el comportamiento del nombre.
+
+            Lee después `CLAUDE.md` para las convenciones del proyecto, y
+            contrasta contra los scenarios de `openspec/specs/` cuando el
+            cambio toque una capability: la spec manda sobre lo que diga el
+            código.
 
             Publica los hallazgos EN EL PULL REQUEST, no como mensajes que se
             queden en el registro de ejecución:
@@ -80,9 +85,6 @@ jobs:
             - `gh pr comment` para un único comentario de resumen con los
               hallazgos priorizados (crítico / alto / medio) y para lo que no
               tenga una línea concreta. Si no encuentras nada, dilo ahí.
-
-            Cita siempre `fichero.ts:línea` con lo que has leído: el nombre de
-            una función dice la intención, no el comportamiento.
 
             No edites ficheros ni propongas commits: esto es una revisión.
 
