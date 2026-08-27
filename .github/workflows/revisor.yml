@@ -1,0 +1,103 @@
+# Revisión de código con Claude sobre cada cambio propuesto.
+#
+# Los hallazgos se publican como comentarios en el propio pull request —en
+# línea sobre el fichero y la línea cuando aplica, y un comentario de resumen
+# para lo general—, no en el registro de ejecución, que nadie abre.
+#
+# Antes de que esto funcione hace falta dar de alta un secreto y algún paso más
+# que no vive en el repositorio: está todo en `docs/ci-revisor.md`, incluido en
+# qué se va el dinero y qué pasa con los PR que llegan desde un fork.
+name: revisor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# `contents: read` para el checkout y los ficheros que abra el revisor;
+# `pull-requests: write` para publicar los comentarios. Nada más: no commitea,
+# no abre ramas, no toca issues ni releases. Sin `id-token: write` porque abajo
+# se le pasa un `github_token` propio y la acción no tiene que acuñar el suyo
+# por OIDC.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: revisión de Claude
+    runs-on: ubuntu-latest
+
+    # Reloj de pared del trabajo. Es un límite distinto de `--max-turns`, y
+    # hacen falta los dos: uno acota el gasto de la revisión, el otro impide
+    # que un trabajo colgado ocupe un runner indefinidamente.
+    timeout-minutes: 10
+
+    # Un PR desde un fork no ve los secretos del repositorio: el revisor se
+    # quedaría sin credencial y el trabajo fallaría sin explicar por qué. Se
+    # salta limpiamente. Ver docs/ci-revisor.md.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Solo hace falta el árbol del PR: la comparación contra la base la
+          # hace la acción por la API, no con el historial local.
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          # Camino de suscripción (Pro/Max): token generado en local con
+          # `claude setup-token`. Si se usa la clave de API de la consola hay
+          # que cambiar TAMBIÉN de entrada —`anthropic_api_key`— y de secreto
+          # —`ANTHROPIC_API_KEY`—: no son intercambiables. Ver docs/ci-revisor.md.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # El token del propio trabajo, para que la acción no tenga que acuñar
+          # uno por OIDC vía App de GitHub. Con esto `id-token: write` no hace
+          # falta y los comentarios los publica este trabajo con los permisos
+          # declarados arriba.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Eres el revisor de este repositorio. Revisa este pull request; la
+            rama ya está en el directorio de trabajo.
+
+            Lee ANTES de nada `REVIEW.md`, en la raíz del repositorio. Es tu
+            calibración y es vinculante, no orientativa: fija qué cuenta como
+            hallazgo grave en este proyecto, el tope de cinco sugerencias
+            menores por revisión, dónde no debes reportar y la regla de citar
+            `fichero:línea` en vez de deducir el comportamiento del nombre.
+
+            Lee después `CLAUDE.md` para las convenciones del proyecto, y
+            contrasta contra los scenarios de `openspec/specs/` cuando el
+            cambio toque una capability: la spec manda sobre lo que diga el
+            código.
+
+            Publica los hallazgos EN EL PULL REQUEST, no como mensajes que se
+            queden en el registro de ejecución:
+
+            - `mcp__github_inline_comment__create_inline_comment` (con
+              `confirmed: true`) para cada hallazgo que señale una línea
+              concreta, anclado a su fichero y su línea.
+            - `gh pr comment` para un único comentario de resumen con los
+              hallazgos priorizados (crítico / alto / medio) y para lo que no
+              tenga una línea concreta. Si no encuentras nada, dilo ahí.
+
+            No edites ficheros ni propongas commits: esto es una revisión.
+
+            No redirijas la salida de ningún comando a un fichero (`>`, `>>`,
+            `tee`, `--output`). No tienes herramienta de escritura, así que el
+            intento se deniega, no te devuelve nada y te cuesta un turno de los
+            40 que tienes. Lee la salida directa del comando.
+
+          # `Read`, `Grep` y `Glob` no son opcionales: sin ellas el revisor no
+          # puede abrir ni su calibración ni un solo fichero del cambio, y cada
+          # intento denegado le gasta un turno sin darle nada a cambio.
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
