@@ -1,0 +1,63 @@
+name: openapi
+
+on:
+  # Cada cambio propuesto.
+  pull_request:
+  # Y cada push a la rama principal, para que un merge no la deje atrasada.
+  push:
+    branches:
+      - main
+
+# Sin permisos por defecto: cada trabajo pide los suyos y nada más.
+permissions: {}
+
+jobs:
+  check:
+    name: docs/api/openapi.json al día
+    runs-on: ubuntu-latest
+
+    # Instalar dependencias y construir el documento es cuestión de un par de
+    # minutos. Diez es margen de sobra, y corta en seco cualquier cuelgue.
+    timeout-minutes: 10
+
+    # Lo único que necesita es leer el código para el checkout. No comenta en el
+    # PR, no escribe en el repositorio, no publica nada.
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # El trabajo no vuelve a hablar con git después del checkout, así que
+          # el token no tiene por qué quedarse en `.git/config`.
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          # El repositorio no fija versión de Node —ni `engines` ni `.nvmrc`—;
+          # 24 es la de desarrollo y cumple el mínimo de AdonisJS 7 (>=20.6).
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Preparar el entorno
+        # `openapi:check` arranca la aplicación, y arrancarla valida el esquema
+        # de `start/env.ts`: sin `.env` no llega ni a construir el documento.
+        # No toca la base de datos, así que no hacen falta ni SQLite ni
+        # migraciones.
+        run: |
+          cp .env.example .env
+          node ace generate:key
+
+      - name: Comprobar el documento OpenAPI
+        # Solo compara. Si el documento versionado se ha quedado atrás, sale con
+        # código 1 y dice qué parte del contrato ha cambiado; no lo arregla ni
+        # commitea nada.
+        run: npm run openapi:check

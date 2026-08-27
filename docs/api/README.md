@@ -15,4 +15,6 @@ npm run openapi:check      # falla si el fichero versionado no coincide con el c
 partes del documento sobran, faltan o han cambiado, y termina con código de salida 1.
 
 Si tocas rutas, controladores, validadores o transformers, regenera y commitea el resultado en el
-mismo commit (ver las reglas de proceso de [`CLAUDE.md`](../../CLAUDE.md)).
+mismo commit (ver las reglas de proceso de [`CLAUDE.md`](../../CLAUDE.md)). El trabajo de CI
+[`openapi-check.yml`](../../.github/workflows/openapi-check.yml) corre `openapi:check` en cada pull
+request y en cada push a `main`, así que si se te olvida, el PR se pone en rojo.
