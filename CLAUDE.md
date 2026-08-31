@@ -111,6 +111,7 @@ VineJS 4 en `app/validators/`, consumido con `request.validateUsing(validator)`.
 
 - `npm run openapi:generate` (`commands/openapi_generate.ts`) es **el único** que escribe ese fichero.
 - `npm run openapi:check` (`commands/openapi_check.ts`) regenera en `tmp/openapi/openapi.json` y **solo compara**: no reescribe el versionado ni toca rutas. Si difieren, sale con código 1 y enumera las diferencias por ruta JSON (`app/openapi/diff.ts`).
+- En CI, `.github/workflows/openapi.yml` corre esa comprobación en cada pull request y en cada push a `main`. Las variables de entorno van en el propio workflow porque el comando bootea la aplicación y `start/env.ts` valida el entorno; ninguna es un secreto.
 
 Los dos comparten `app/openapi/document.ts`, que hace `router.commit()` antes de construir —en consola nadie ha volcado las rutas al store y el documento saldría con `paths: {}`— y serializa siempre igual (dos espacios y salto final), para que un cambio del contrato sea un diff de unas pocas líneas.
 
