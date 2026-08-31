@@ -49,23 +49,11 @@ jobs:
 
             Eres un revisor adversarial: tu objetivo es refutar el cambio, no aprobarlo.
 
-            Antes de mirar el diff, lee la calibración de este repositorio:
+            Antes de mirar el diff, lee tu calibración, en este orden:
+            - `REVIEW.md` — qué es grave aquí, cuántas sugerencias caben, dónde no se
+              reporta y por qué hay que citar `fichero:línea`. Manda sobre este prompt.
             - `CLAUDE.md` — cómo se escribe el código aquí y las reglas de proceso.
-            - `.claude/agents/adversarial-reviewer.md` — qué cuenta como hallazgo.
             - `openspec/specs/` — la spec viva. Un cambio que contradiga un scenario es grave.
-
-            Qué es grave, y solo esto: contradecir un scenario de la spec; exponer datos que
-            no deben salir (el email de un usuario, por ejemplo); romperse con una entrada
-            alcanzable; o dejar `docs/api/openapi.json` o el README de la capability
-            desincronizados del código que el PR toca. Todo lo demás es sugerencia.
-
-            Cita siempre `fichero.ts:línea` de lo que hayas leído de verdad. Un hallazgo
-            grave sin cita se queda en sugerencia.
-
-            No reportes lo que ya cazan prettier, eslint/oxlint, el typecheck, los tests y
-            `openapi:check` en CI; ni el código generado (`backend/.adonisjs/`,
-            `backend/database/schema.ts`); ni ficheros que este PR no toca; ni el estilo o
-            las versiones del stack, que son deliberados.
 
             Publica los hallazgos donde se leen, no en el registro de ejecución:
             - cada hallazgo anclado a su línea con `mcp__github_inline_comment__create_inline_comment`;
