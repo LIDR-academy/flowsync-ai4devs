@@ -1,0 +1,86 @@
+# Un revisor de código sobre cada pull request. Publica los hallazgos en el
+# propio PR —anclados a la línea— y no solo en el registro de ejecución: un
+# hallazgo que hay que ir a buscar al log no lo lee nadie.
+#
+# Este trabajo NO funciona hasta que alguien dé de alta el secreto de la
+# credencial y la app de GitHub. Los pasos manuales, los dos caminos de
+# credencial y en qué se va el dinero están en `docs/ci-revisor.md`.
+name: revisor
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+# Lo mínimo que necesita: leerse el repositorio, escribir comentarios en el PR
+# y pedir el token OIDC con el que la acción se autentica como la app de
+# GitHub de Claude (sin `id-token: write` falla la autenticación).
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  review:
+    name: revisión de Claude
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Un pull request desde un fork no ve los secretos del repositorio, así que
+    # la credencial llegaría vacía y el trabajo moriría en la primera llamada.
+    # Este repositorio recibe PR de forks de alumnos: para esos, el trabajo se
+    # salta limpiamente en vez de fallar en rojo. Ver `docs/ci-revisor.md`.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          # Camino de suscripción (`claude setup-token`). El camino de clave de
+          # API usa OTRA entrada y OTRO secreto: `anthropic_api_key` con
+          # `${{ secrets.ANTHROPIC_API_KEY }}`. No son intercambiables.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            REPOSITORIO: ${{ github.repository }}
+            PULL REQUEST: ${{ github.event.pull_request.number }}
+
+            Eres un revisor adversarial: tu objetivo es refutar el cambio, no aprobarlo.
+
+            Antes de mirar el diff, lee la calibración de este repositorio:
+            - `CLAUDE.md` — cómo se escribe el código aquí y las reglas de proceso.
+            - `.claude/agents/adversarial-reviewer.md` — qué cuenta como hallazgo.
+            - `openspec/specs/` — la spec viva. Un cambio que contradiga un scenario es grave.
+
+            Qué es grave, y solo esto: contradecir un scenario de la spec; exponer datos que
+            no deben salir (el email de un usuario, por ejemplo); romperse con una entrada
+            alcanzable; o dejar `docs/api/openapi.json` o el README de la capability
+            desincronizados del código que el PR toca. Todo lo demás es sugerencia.
+
+            Cita siempre `fichero.ts:línea` de lo que hayas leído de verdad. Un hallazgo
+            grave sin cita se queda en sugerencia.
+
+            No reportes lo que ya cazan prettier, eslint/oxlint, el typecheck, los tests y
+            `openapi:check` en CI; ni el código generado (`backend/.adonisjs/`,
+            `backend/database/schema.ts`); ni ficheros que este PR no toca; ni el estilo o
+            las versiones del stack, que son deliberados.
+
+            Publica los hallazgos donde se leen, no en el registro de ejecución:
+            - cada hallazgo anclado a su línea con `mcp__github_inline_comment__create_inline_comment`;
+            - un resumen corto al final con `gh pr comment`.
+            Si no los publicas, para quien abrió el PR no existen.
+
+            No redirijas la salida de ningún comando a un fichero (`>`, `>>`, `tee`): no
+            tienes herramienta de escritura, el intento se deniega y te cuesta un turno.
+            Lee la salida directa del comando.
+
+          # `Read`, `Grep` y `Glob` no son opcionales: sin ellas no puede abrir ni la
+          # calibración ni un solo fichero del cambio, y cada intento denegado le cuesta
+          # un turno de los 40. El resto son las herramientas con las que publica.
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
