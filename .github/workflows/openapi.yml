@@ -1,0 +1,58 @@
+# El contrato de la API vive versionado en `docs/api/openapi.json`, pero lo
+# genera el código: rutas y decoradores de los controladores. Nada impide
+# tocar un controlador y dejar el fichero mintiendo, así que aquí se comprueba
+# en cada cambio propuesto y en cada push a `main`.
+#
+# `npm run openapi:check` regenera el documento en `backend/tmp/` y lo compara
+# con el versionado. Solo compara: no reescribe nada, no toca rutas y no abre
+# commits. Si difieren, sale con código 1 enumerando las diferencias por ruta
+# JSON, y el trabajo falla.
+name: openapi
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Lo único que necesita el trabajo es leerse el repositorio: no comenta, no
+# escribe, no publica nada.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: docs/api/openapi.json coincide con el código
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    # `openapi:check` bootea la aplicación —el documento sale de las rutas y de
+    # los controladores—, y `start/env.ts` valida el entorno al arrancar. En CI
+    # no hay fichero `.env`, así que las variables van aquí. Ninguna es un
+    # secreto ni tiene por qué serlo: no se sirve nada, no se firma nada y no
+    # se abre ninguna conexión a base de datos; `APP_KEY` es un relleno para
+    # que la validación del entorno pase.
+    env:
+      NODE_ENV: development
+      PORT: '3333'
+      HOST: localhost
+      LOG_LEVEL: info
+      APP_KEY: ci_no_es_un_secreto_solo_valida_el_entorno
+      APP_URL: http://localhost:3333
+      SESSION_DRIVER: memory
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run openapi:check

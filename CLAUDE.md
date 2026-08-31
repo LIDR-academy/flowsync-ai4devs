@@ -24,9 +24,11 @@ npm test                                        # node ace test
 npm run lint                                    # eslint
 npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
+npm run openapi:generate                        # escribe docs/api/openapi.json
+npm run openapi:check                           # compara ese fichero con el documento que genera el código
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy solo hay tests **functional de `auth`** (`tests/functional/auth/`): registro, login, sesión e iniciales. **`tests/unit/` no existe**, y la capability `tasks` no tiene ni un test.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay tests **functional de `auth`** (`tests/functional/auth/`: registro, login, sesión e iniciales) y de `tasks` (`tests/functional/tasks/assignee.spec.ts`), más un test **unit** del comparador de documentos OpenAPI (`tests/unit/openapi/diff.spec.ts`).
 
 ```bash
 node ace test unit                    # una suite
@@ -103,6 +105,16 @@ Rutas actuales (`start/routes.ts`), todas bajo `/api/v1`:
 
 VineJS 4 en `app/validators/`, consumido con `request.validateUsing(validator)`. Nota de API: se usa `vine.create({...})` (no `vine.compile`), y hay reglas como `.sameAs('password')` y `.unique({ table, column })` sobre el schema. Los validadores comparten builders de campo (`email()`, `password()`) en vez de repetir reglas.
 
+### El contrato OpenAPI es un fichero versionado
+
+`@foadonis/openapi` construye el documento en cada petición a partir de las rutas y de los decoradores de los controladores (`app/openapi/schemas.ts` guarda las formas que se repiten), y lo sirve en `/api.json`. Para que exista también fuera del servidor, `docs/api/openapi.json` lo guarda versionado:
+
+- `npm run openapi:generate` (`commands/openapi_generate.ts`) es **el único** que escribe ese fichero.
+- `npm run openapi:check` (`commands/openapi_check.ts`) regenera en `tmp/openapi/openapi.json` y **solo compara**: no reescribe el versionado ni toca rutas. Si difieren, sale con código 1 y enumera las diferencias por ruta JSON (`app/openapi/diff.ts`).
+- En CI, `.github/workflows/openapi.yml` corre esa comprobación en cada pull request y en cada push a `main`. Las variables de entorno van en el propio workflow porque el comando bootea la aplicación y `start/env.ts` valida el entorno; ninguna es un secreto.
+
+Los dos comparten `app/openapi/document.ts`, que hace `router.commit()` antes de construir —en consola nadie ha volcado las rutas al store y el documento saldría con `paths: {}`— y serializa siempre igual (dos espacios y salto final), para que un cambio del contrato sea un diff de unas pocas líneas.
+
 ### Imports por subpath
 
 `package.json` mapea `#controllers/*`, `#models/*`, `#validators/*`, `#transformers/*`, `#database/*`, `#generated/*`, `#start/*`, `#config/*`, `#tests/*`, etc. Úsalos siempre en lugar de rutas relativas. Nuevas variables de entorno: `node ace env:add` (las añade a `.env`, `.env.example` y al schema de `start/env.ts`, que valida al arrancar).
@@ -129,6 +141,6 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 ## Reglas de proceso
 - La rama es por unidad de trabajo, no por petición. Antes de tocar código, mira en qué rama estás: si ya es una rama de trabajo —cualquiera que no sea `main` ni una `sN/*`—, sigue en ella en vez de crear otra. Solo desde `main` o desde una `sN/*` se crea una nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main` ni en una `sN/*`.
 - El commit sí es por petición: al cerrar cada una, usar la skill `/commit`.
-- Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día. El documento se construye en cada petición y no hay fichero que generar, así que lo que se commitea es el diff regenerado de `.adonisjs/`; el README es `docs/capabilities/<nombre>/README.md`.
+- Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día. El documento vive en `docs/api/openapi.json`: se regenera con `npm run openapi:generate` y se commitea junto al diff de `.adonisjs/`; `npm run openapi:check` falla si el fichero se queda atrás. El README es `docs/capabilities/<nombre>/README.md`.
 - `gh pr create` (con una descripción completa de los cambios en el cuerpo del PR) y el pase del subagente `adversarial-reviewer` sobre ese PR van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición. El review adversarial es lo último, antes de dar la unidad por terminada.
 - Cuando abras el PR, no repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
