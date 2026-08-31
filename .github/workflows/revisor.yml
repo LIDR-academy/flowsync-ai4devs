@@ -11,9 +11,10 @@ on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
 
-# Lo mínimo que necesita: leerse el repositorio, escribir comentarios en el PR
-# y pedir el token OIDC con el que la acción se autentica como la app de
-# GitHub de Claude (sin `id-token: write` falla la autenticación).
+# Lo mínimo que necesita: leerse el repositorio y escribir comentarios en el PR.
+# `id-token: write` es para el camino de la app de GitHub de Claude, que hoy no
+# se usa porque el paso le pasa `github_token`; se deja porque sin él ese camino
+# falla en cuanto alguien quite esa línea.
 permissions:
   contents: read
   pull-requests: write
@@ -42,6 +43,16 @@ jobs:
           # API usa OTRA entrada y OTRO secreto: `anthropic_api_key` con
           # `${{ secrets.ANTHROPIC_API_KEY }}`. No son intercambiables.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Sin esta línea, la acción pide un token OIDC y lo canjea por el de la
+          # app de GitHub de Claude, y ese canje valida que este fichero sea
+          # idéntico al de la rama por defecto: mientras no esté en `main`, el
+          # trabajo se salta con «Workflow validation failed». Pasándole el token
+          # del propio workflow, la acción lo usa tal cual y no hay canje que
+          # validar. El token va limitado a los `permissions` declarados arriba y
+          # caduca al terminar el trabajo; los comentarios los firma
+          # `github-actions[bot]` en vez de la app de Claude.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
           prompt: |
             REPOSITORIO: ${{ github.repository }}

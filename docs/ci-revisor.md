@@ -18,6 +18,29 @@ dos pasos manuales que no se pueden commitear.
 Nada más. El workflow no necesita variables de entorno, ni base de datos, ni instalar dependencias:
 el revisor solo lee ficheros y comenta.
 
+## «Workflow validation failed», y por qué el paso lleva `github_token`
+
+Si la acción se autentica por el camino de la app de GitHub, pide un token OIDC y lo canjea en
+Anthropic por un token de la app. Ese canje **valida que el fichero del workflow sea idéntico al de
+la rama por defecto** del repositorio, y mientras no lo sea el trabajo se salta con este aviso:
+
+```
+Skipping action due to workflow validation: Workflow validation failed. The workflow file must
+exist and have identical content to the version on the repository's default branch.
+```
+
+Es lo esperado la primera vez que se añade el fichero. El mensaje sugiere que se arregla al fusionar
+el PR, pero aquí no basta: la comparación es contra `main`, y los PR de este curso van contra ramas
+`sN/*`. Por eso el paso pasa `github_token: ${{ secrets.GITHUB_TOKEN }}`: con esa entrada la acción
+usa ese token tal cual y **no hay canje que validar**
+([`src/github/token.ts`](https://github.com/anthropics/claude-code-action/blob/main/src/github/token.ts),
+`setupGitHubToken`). No es un secreto que haya que dar de alta: GitHub lo inyecta en cada ejecución,
+limitado a los `permissions` declarados en el workflow y caducado al terminar el trabajo.
+
+Lo que cambia: los comentarios los firma `github-actions[bot]` en vez de la app de Claude. Si algún
+día este workflow vive en `main` y prefieres la app, basta con quitar esa línea — `id-token: write`
+sigue declarado justo para eso.
+
 > Detalle a tener en cuenta: la acción detecta automáticamente un `.mcp.json` en la raíz del
 > repositorio, y aquí hay uno que apunta al MCP de Atlassian. Ese servidor pide un OAuth interactivo
 > que en CI no existe, y sus herramientas no están en `--allowedTools`, así que el revisor no puede
