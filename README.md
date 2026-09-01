@@ -52,6 +52,7 @@ El frontend **no tiene runner de tests** en esta rama.
 | [`docs/artefactos/`](docs/artefactos/) | Los reportes de cada módulo en versión navegable |
 | [`docs/backlog/`](docs/backlog/) | Historias de usuario y criterios de aceptación |
 | [`docs/prd/`](docs/prd/) | Alcance del MVP y requisitos |
+| [`docs/estado-actual.md`](docs/estado-actual.md) | Auditoría del repo en el Módulo 2. Histórico, no estado de hoy |
 
 El ancla es la spec viva de `openspec/specs/`. Todo lo demás cuelga de ella: mientras esté al día, lo que cuelga también.
 
