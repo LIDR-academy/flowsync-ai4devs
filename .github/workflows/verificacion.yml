@@ -49,6 +49,10 @@ jobs:
       - run: npm run lint
       # El typecheck del frontend vive dentro del build.
       - run: npm run build
+      # Vitest sobre `lib/api.ts`, que es el unico punto de contacto con el
+      # backend y donde vive la logica del frontend. El runner venia de
+      # `s3/start` y no cruzo de rama; se recupero el 2026-09-02.
+      - run: npm test
 
   documentacion:
     name: La documentación corresponde con el código

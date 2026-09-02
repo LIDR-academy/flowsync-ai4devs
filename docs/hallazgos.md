@@ -385,6 +385,10 @@ Mismo motivo que H-11: el arreglo no cruzó de rama. En `s4/start`, `lib/api.ts`
 
 **Resuelto el 2026-09-02** portando el arreglo por el mismo camino que en `s3/start`: `lib/api.ts` expone `onUnauthorized`, el proveedor de sesión se engancha ahí, y cualquier 401 de cualquier operación descarta la sesión y deja escrito el motivo. El cierre de sesión a propósito silencia el aviso, para que salir no aterrice en el acceso con un «tu sesión ha caducado» que no viene a cuento.
 
+**Y la prueba tampoco cruzó, y esa la olvidé yo.** Se portó el arreglo el 2026-09-02 y no el fichero que lo guardaba, que vivía en `frontend/src/lib/api.test.ts` de `s3/start` junto con el runner entero. Es el cuarto caso del patrón de H-22, y el único cometido **después** de escribir la regla que lo prohíbe, en el mismo commit que la escribía.
+
+Recuperado el mismo día: `vitest` vuelve al frontend, `npm test` corre en CI, y 28 pruebas cubren `lib/api.ts`. Tres mutaciones lo demuestran: quitar la emisión del aviso de 401 tumba una, devolver el estado inventado al mensaje genérico tumba dos, y quitar el `silenciarRechazo` del cierre de sesión tumba otra.
+
 ---
 
 ## H-14 · `updatedAt` vale distinto según el endpoint que lo devuelve
@@ -563,6 +567,10 @@ La regla que ese mismo commit escribió dice, literalmente: «**Lo que no vale**
 
 - Cada entrada de este documento dice ahora **qué rama describe**, que era la regla escrita en `CLAUDE.md` y no aplicada.
 - La comprobación del verificador dejó de conformarse con que la cadena «Lo que se arrastra» apareciera en cualquier parte del reporte: ahora exige el encabezado, la tabla, y filas con sus cinco columnas. Se comprobó mutando: sustituir la tabla por una frase, o dejar el encabezado sin filas, la tumba.
+
+**Y hubo un cuarto caso, cometido al cerrar este mismo hallazgo.** Al portar H-13 se trajo el código del arreglo y no la prueba que lo guardaba, porque esa prueba vivía en un runner de frontend que tampoco había cruzado de rama. Nadie lo notó: el frontend no tenía pruebas, así que no faltaba ninguna. Recuperado el 2026-09-02.
+
+Es la forma más incómoda del patrón: **el hueco no se ve cuando lo que falta es la herramienta que lo mediría.** `CLAUDE.md` decía «el frontend no tiene runner de tests en esta rama», y se leía como una limitación del curso cuando era algo que teníamos y perdimos.
 
 **Lo que no se arregla con código**: comprobar una fila cuesta minutos y darla por buena cuesta cero. Lo único que lo sostiene es que la columna «Estado» nombre la rama y la fecha en que se miró, no un «Cerrado» a secas.
 

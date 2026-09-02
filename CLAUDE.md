@@ -54,7 +54,9 @@ npm run lint      # oxlint (NO eslint)
 npm run format    # prettier --write .
 ```
 
-El frontend **no tiene runner de tests** en esta rama.
+El frontend corre **Vitest** (`npm test`): 28 pruebas sobre `src/lib/api.test.ts`, que es el único punto de contacto con el backend y donde vive la lógica del cliente -desenvolver el `{ data }`, traducir los errores de VineJS por `rule`, desglosarlos por campo, y avisar cuando el sistema rechaza la credencial.
+
+El runner venía de `s3/start` y **no cruzó a esta rama**; se recuperó el 2026-09-02 junto con el arreglo de H-13, cuya prueba se había quedado atrás. No hay runner de **navegador**, así que los 15 requisitos de `tasks` que solo se observan en pantalla siguen sin cubrir.
 
 ## Arquitectura del backend
 
@@ -124,7 +126,7 @@ El stack va deliberadamente en versiones muy recientes: **AdonisJS 7, Lucid 22, 
 
 ## Frontend
 
-El typecheck vive dentro de `npm run build`; el lint es **oxlint** (`.oxlintrc.json`), no eslint. El formateo es Prettier (`.prettierrc.json`: `semi: false`, `singleQuote: true`, para respetar el estilo ya existente); un hook `PostToolUse` en `.claude/settings.json` lo corre automáticamente sobre cada fichero de `frontend/` que Claude edite. No hay runner de tests instalado.
+El typecheck vive dentro de `npm run build`; el lint es **oxlint** (`.oxlintrc.json`), no eslint; las pruebas son **Vitest** (`npm test`). El formateo es Prettier (`.prettierrc.json`: `semi: false`, `singleQuote: true`, para respetar el estilo ya existente); un hook `PostToolUse` en `.claude/settings.json` lo corre automáticamente sobre cada fichero de `frontend/` que Claude edite.
 
 Stack: **Tailwind v4** (plugin de Vite, sin `tailwind.config.js`; los tokens viven en `src/index.css`), **shadcn/ui** (`components.json`, componentes generados en `src/components/ui/` — se traen con `npx shadcn@latest add <componente>` y no se editan a mano) y **react-router**. El alias `@/*` → `src/*` está declarado a la vez en `tsconfig.app.json` (sin `baseUrl`, deprecado en TS 6) y en `vite.config.ts`.
 
