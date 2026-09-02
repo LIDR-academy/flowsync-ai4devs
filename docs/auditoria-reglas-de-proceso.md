@@ -85,7 +85,7 @@ Su modo de fallo es el peor de los catorce. Las demás, cuando fallan, dejan el 
 
 El 2026-09-02 se le puso un job de CI al lado: `.github/workflows/revision-adversarial.yml`, con su calibración en `.github/calibracion-revision.md`.
 
-**Y su estado sigue siendo `pendiente`, no `se cumple`.** Por R-14: está escrito y no se le ha visto funcionar. Faltan el secreto `ANTHROPIC_API_KEY` y una prueba con un defecto plantado que confirme que el informe lo nombra.
+**Y su estado sigue siendo `pendiente`, no `se cumple`.** Por R-14: está escrito y no se le ha visto funcionar. Faltan la credencial -`CLAUDE_CODE_OAUTH_TOKEN`, que sale de `claude setup-token` y va contra la suscripción- y una prueba con un defecto plantado que confirme que el informe lo nombra.
 
 Marcarlo como resuelto porque existe el fichero sería el error exacto que este documento describe, cometido en el documento que lo describe. Ya pasó una vez con H-22.
 
