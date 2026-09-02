@@ -40,6 +40,8 @@
 | H-21 | El orden de validación difiere entre controladores | Baja | Abierto |
 | H-22 | La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama | Alta | **Resuelto (2026-09-02)** |
 
+> **Al abrir el Módulo 5**, la comprobación contra `s5/start` dice que **seis de los siete** vuelven rotos: H-11, H-13, H-14, H-15, H-16 y H-19. Solo H-17 llega arreglado. Evidencia y plan de acción de cada uno en la sección «Al abrir el Módulo 5», más abajo.
+
 ---
 
 ## H-01 · Los tests comparten base de datos con desarrollo
@@ -563,6 +565,59 @@ La regla que ese mismo commit escribió dice, literalmente: «**Lo que no vale**
 - La comprobación del verificador dejó de conformarse con que la cadena «Lo que se arrastra» apareciera en cualquier parte del reporte: ahora exige el encabezado, la tabla, y filas con sus cinco columnas. Se comprobó mutando: sustituir la tabla por una frase, o dejar el encabezado sin filas, la tumba.
 
 **Lo que no se arregla con código**: comprobar una fila cuesta minutos y darla por buena cuesta cero. Lo único que lo sostiene es que la columna «Estado» nombre la rama y la fecha en que se miró, no un «Cerrado» a secas.
+
+---
+
+# Al abrir el Módulo 5
+
+## Estado en `s5/start`, comprobado al abrir el Módulo 5
+
+> Comprobado el 2026-09-02 leyendo la rama fichero a fichero, antes de tocar nada, como manda la regla de arrastre.
+> `s5/start` está en `449bb69`, idéntico a `upstream/s5/start`.
+>
+> **Seis de los siete defectos que cerramos vuelven rotos.** No es una regresión: la rama del curso llega a la misma funcionalidad por otro camino y nunca tuvo nuestros arreglos. Es exactamente lo que pasó de `s3/start` a `s4/start`, y por lo que existe H-22.
+
+### Los seis que vuelven
+
+| # | Hallazgo | Evidencia en `s5/start` | Plan de acción |
+|---|---|---|---|
+| **H-19** · Alta | Las respuestas de error revelan traza, rutas y el SQL ejecutado | `backend/app/exceptions/handler.ts:9` declara `protected debug = !app.inProduction`, el valor con el que viene el framework, con el comentario original en inglés («display verbose errors with pretty printed stack traces»). El fichero entero son 30 líneas: **no hay rama para `E_ROW_NOT_FOUND`** ni intercepción de `5xx`. `backend/.env.example` no menciona `DEBUG_HTTP_ERRORS`. Vuelven las **dos mitades**: el volcado de Youch fuera de producción, y el `{ message: error.message }` del framework, que en un error de SQLite es la sentencia entera con el hash de la contraseña dentro | Portar `handler.ts` completo: la constante desde `env.get('DEBUG_HTTP_ERRORS', false)`, la normalización de `E_ROW_NOT_FOUND` a `{ errors: [...] }` con 404, y la intercepción de `status >= 500`. Añadir `DEBUG_HTTP_ERRORS=false` a `.env.example` y a `.env.test`, y `DEBUG_HTTP_ERRORS: Env.schema.boolean.optional()` a `start/env.ts`. Portar `tests/functional/errores.spec.ts` con sus cinco casos y los diecisiete rastros. **Verificar por mutación**: quitar la intercepción del `5xx` tiene que tumbar la prueba del error de base de datos. Traer [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md), que es lo que convierte esto en una decisión escrita y no en un arreglo suelto |
+| **H-11** · Alta | El email distingue mayúsculas: la misma persona se registra dos veces | `backend/app/validators/user.ts:6` es `const email = () => vine.string().email().maxLength(254)`, sin `.normalizeEmail()`. `backend/database/migrations/` tiene **cuatro** ficheros y ninguno es `normalize_user_emails` ni `unique_email_ignoring_case`. El índice de la tabla `users` compara byte a byte | Portar `app/validators/user.ts` entero, incluida la constante `SOLO_MINUSCULAS` con las transformaciones destructivas apagadas -las de Gmail, Outlook, Yahoo, iCloud y Yandex- y la función exportada `normalizeUserEmail`. Portar las dos migraciones: la que normaliza lo ya guardado usando esa misma función, y la que crea el índice único sobre `lower(email)`. Portar `tests/functional/auth/email_mayusculas.spec.ts` (6 pruebas). **Ojo al aplicar la migración**: si la base local tiene duplicados que solo se diferencian en la caja, falla a propósito y hay que resolverlos a mano antes. Ya pasó el 2026-09-02 |
+| **H-15** · Alta | Una tarea hecha con la fecha pasada llega marcada como vencida | `backend/app/models/task.ts:52-56`: `isOverdueOn` son tres líneas, `if (this.dueDate === null) return false` y `return this.dueDate < referenceDay`. **Falta la condición del estado.** La pantalla anuncia «Vencida» en rojo debajo de una cabecera que dice «Hecho» | Añadir `if (this.status === 'done') return false` como segunda guarda. Portar `tests/functional/tasks/vencimiento.spec.ts` (8 pruebas), que cubre además el borde del `<` estricto: vencer hoy todavía no es estar vencida. **Verificar por mutación** las dos cosas: quitar la condición del estado, y cambiar `<` por `<=`. Cada una tiene que tumbar su prueba |
+| **H-16** · Alta | Un estado inventado en el filtro devuelve 200 con lista vacía | `backend/app/validators/task.ts:29-31`: `listTasksValidator` declara `status: vine.string().optional()`, una cadena suelta. `/tasks?status=archivado` responde `200` con `[]`, que en la pantalla se lee como «el equipo no tiene nada en ese estado» en vez de «ese estado no existe». Es el fallo silencioso, no un error | Cambiar a `vine.enum(TASK_STATUSES).optional()`, importando la constante del modelo para que no haya dos listas de estados. Portar `tests/functional/tasks/filtro.spec.ts` (7 pruebas), incluida la que fija que el `422` lleva `meta.choices` con los tres estados válidos, que es de lo que el frontend construye el mensaje. **Verificar por mutación**: volver a `vine.string()` tiene que tumbarlas |
+| **H-13** · Media | Una sesión que caduca con la lista abierta deja al usuario sin salida | `frontend/src/lib/api.ts:188-190` es `if (!response.ok) { throw toApiError(...) }`, sin ningún punto de suscripción: **cero apariciones de `onUnauthorized`** en todo `frontend/src/`. El proveedor de sesión solo limpia el token al rehidratar, así que un 401 posterior deja el estado en `authenticated`, el aviso pide volver a entrar y el guard de rutas públicas rebota `/login` de vuelta a `/tasks`. Solo recargar lo desatasca | Portar el punto de suscripción a `lib/api.ts` -`onUnauthorized`, el `Set` de manejadores y la opción `silenciarRechazo`- y engancharlo desde `auth-provider.tsx` con un `useEffect`. Solo el 401 dispara: un 500 o un corte de red no pueden cerrar la sesión de nadie. El cierre de sesión a propósito pasa `silenciarRechazo: true`, o salir aterriza en el acceso con un «tu sesión ha caducado» que no viene a cuento. **Verificar en navegador**, no leyendo: revocar la credencial contra el backend por fuera y pulsar algo en la lista tiene que llevar a `/login` sin recargar y con el token ya borrado |
+| **H-14** · Baja | `updatedAt` vale distinto según el endpoint que lo devuelve | `backend/app/controllers/tasks_controller.ts` hace `await task.load('assignee')` y serializa el objeto en memoria, tanto en `store` como en `show`; `task_statuses_controller.ts` y `task_due_dates_controller.ts` repiten el patrón. El modelo recién guardado trae milisegundos y la base guarda con precisión de segundo, así que la escritura y la lectura siguiente dicen valores distintos del mismo campo sin que nada cambie en medio | Portar `Task.releerConResponsable(id)` al modelo -una sola consulta con `preload`, no `refresh()` más `load()`- y usarlo en las **tres** escrituras. Va en el modelo y no repetido en cada controlador para que la cuarta lo herede. Portar `tests/functional/tasks/escritura_lectura.spec.ts` (3 pruebas), que compara el objeto **entero** y no el campo sospechoso: comparar solo `updatedAt` deja de morder en cuanto el desajuste se mude a otro campo, y ya pasó una vez |
+
+### El que sí viene arreglado
+
+| # | Hallazgo | Evidencia en `s5/start` | Plan de acción |
+|---|---|---|---|
+| **H-17** · Alta | La lista filtraba el email del responsable | `backend/app/transformers/task_transformer.ts:13` usa `TaskAssigneeTransformer.transform(...)`, que expone `id`, `fullName` e `initials` y nada más. Es lo que el directo corrige en su Demo 1 del Módulo 4 | Nada que portar. **Sí hay que traer la comprobación**: el verificador tiene una que falla si la lista vuelve al transformer que expone la cuenta. Que hoy esté bien no impide que vuelva mañana, y es el único de los siete que llegó arreglado sin que nada lo vigile |
+
+### Y lo que no está, que es la mitad del problema
+
+Ninguno de los seis tiene nada en la rama que lo detecte.
+
+| Qué falta | Evidencia | Plan de acción |
+|---|---|---|
+| Las pruebas | `backend/tests/` tiene **cinco** ficheros: los cuatro de `auth` y `tasks/assignee.spec.ts`. Nosotros llevamos doce y 71 pruebas | Portar los siete que faltan más `tests/helpers/api.ts`, del que dependen todos. Sin el helper, cualquier prueba que lea un cuerpo de error o mande un payload inválido no compila: el registro tipado de Tuyau solo modela la respuesta de éxito |
+| El verificador | No existe `scripts/`. Cero comprobaciones deterministas | Portar `scripts/verificar-docs.mjs` con sus trece comprobaciones, y **volver a demostrar cada una mutando el código**. No vale darlas por buenas porque pasaban en `s4/start`: la rama tiene otro contrato -documento OpenAPI generado desde `app/openapi/schemas.ts`, no escrito a mano- y varias comprobaciones van a chocar con eso |
+| La integración continua | No existe `.github/`. Nuestro `verificacion.yml` es nuestro | Portarlo, y comprobar que **falla de verdad** empujando una mutación a una rama, no solo que sale verde |
+| El registro de hallazgos | No existen `docs/hallazgos.md` ni `docs/trazabilidad.md` | Traerlos antes de tocar código. Es el punto 1 de la regla de arrastre, y es el que se saltó al pasar de `s3` a `s4` |
+
+### Lo que esto le dice al Módulo 5
+
+El módulo va de que **una regla escrita en un fichero es una petición, no una garantía**, y de bajar a la capa que ejecuta lo que falla en silencio.
+
+`s5/start` trae el caso de estudio dentro. Su `CLAUDE.md:132` declara una regla de proceso explícita:
+
+> «Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día.»
+
+Y en esa rama **no hay nada que lo compruebe**: ni `scripts/`, ni `.github/`, ni una prueba. La regla depende por completo de que el agente se acuerde en cada cambio. Es literalmente la petición que el módulo describe.
+
+Nuestro contraste es que llevamos la misma clase de regla bajada a una comprobación que corre en CI y falla la build. Y aun así, el 2026-09-02 la quinta revisión adversarial demostró que **dos de esas comprobaciones daban luz verde a mutaciones reales**, y que la primera tabla que aplicó la regla de arrastre la incumplió el mismo día en que se escribió.
+
+Así que la lección del módulo tiene una segunda mitad que el prework no anuncia: **bajar una regla a un guardarraíl no la garantiza tampoco; la garantiza haber visto fallar el guardarraíl a propósito.** Es lo que ADR-0002 llama «una comprobación que no se ha visto fallar no cuenta», escrito antes de saber cuántas veces íbamos a necesitarlo.
 
 ---
 
