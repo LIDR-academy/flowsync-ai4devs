@@ -53,6 +53,29 @@ test.group('Tasks | filtro por estado', (group) => {
     ])
   })
 
+  test('el estado de una tarea tampoco admite un valor fuera del conjunto', async ({
+    client,
+    assert,
+  }) => {
+    const usuario = await espacioConTareas()
+    const [alguna] = await Task.query().limit(1)
+
+    // El filtro de la lista y el cambio de estado son dos validadores distintos.
+    // Cerrar el de la lista no dice nada del otro.
+    for (const status of ['archivado', 'Pendiente', '', 'PENDING']) {
+      const respuesta = await client
+        .patch(`/api/v1/tasks/${alguna.id}/status`)
+        .json(invalido({ status }))
+        .loginAs(usuario)
+
+      respuesta.assertStatus(422)
+      assert.equal(errores(respuesta)[0].field, 'status')
+    }
+
+    const sinCambios = await Task.findOrFail(alguna.id)
+    assert.equal(sinCambios.status, alguna.status)
+  })
+
   test('pedir algo que no existe se distingue de no encontrar nada', async ({ client, assert }) => {
     const usuario = await espacioConTareas()
     await Task.query().where('status', 'in_progress').delete()

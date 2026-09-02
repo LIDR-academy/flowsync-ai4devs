@@ -26,7 +26,7 @@ npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **52 pruebas functional**: 20 de `auth`, 30 de `tasks` (responsable, vencimiento, filtro, lista compartida y creación) y 2 de aislamiento de la base. **`tests/unit/` no existe.** Qué escenario de la spec cubre cada una, y cuáles siguen sin cubrir, en `docs/trazabilidad.md`.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **57 pruebas functional**: 20 de `auth`, 35 de `tasks` (responsable, vencimiento, filtro, lista compartida, creación y tarea inexistente) y 2 de aislamiento de la base. **`tests/unit/` no existe.** Qué escenario de la spec cubre cada una, y cuáles siguen sin cubrir, en `docs/trazabilidad.md`.
 
 ```bash
 node ace test unit                    # una suite

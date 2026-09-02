@@ -221,9 +221,9 @@
 
   <div class="estado">
     <div><span class="cifra roja">0</span><span class="rotulo">Pruebas de tasks al empezar</span></div>
-    <div><span class="cifra verde">20</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
+    <div><span class="cifra verde">35</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
     <div><span class="cifra">3</span><span class="rotulo">Defectos con la suite en verde</span></div>
-    <div><span class="cifra">7</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
+    <div><span class="cifra">9</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
   </div>
 
   <section>
@@ -315,17 +315,19 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
         <thead><tr><th>Comprueba</th><th>Muerde si</th></tr></thead>
         <tbody>
           <tr><td>El contrato cubre exactamente las rutas del código</td><td>Se añade una ruta sin documentar, o se documenta una que no existe</td></tr>
+          <tr><td>La tabla de rutas de <code>CLAUDE.md</code> corresponde con el código</td><td>Esa tabla se queda atrás</td></tr>
           <tr><td>Los estados documentados son los del dominio</td><td>Alguien añade o renombra un estado</td></tr>
-          <tr><td>La regla de vencimiento tiene sus tres condiciones</td><td>Se quita cualquiera de las tres</td></tr>
-          <tr><td>La comparación del vencimiento es estricta</td><td>Un <code>&lt;</code> se vuelve <code>&lt;=</code></td></tr>
+          <tr><td>La regla de vencimiento tiene sus tres condiciones y la comparación es estricta</td><td>Se quita cualquiera, o un <code>&lt;</code> se vuelve <code>&lt;=</code></td></tr>
           <tr><td>El filtro está acotado al enum</td><td>Vuelve a ser una cadena suelta</td></tr>
-          <tr><td>El responsable no expone la cuenta</td><td>La lista vuelve al transformer que filtraba el email</td></tr>
+          <tr><td>El responsable no expone la cuenta, ni en la lista ni en la tarea suelta</td><td>Cualquiera de las dos vuelve al transformer que filtraba el email</td></tr>
+          <tr><td>Toda operación que resuelve un id documenta su <code>404</code></td><td>Se añade una ruta con <code>findOrFail</code> sin documentar el rechazo</td></tr>
+          <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
           <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Las siete se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+    <p>Las nueve se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
 
     <div class="nota">
       <span class="rotulo">La lección más útil</span>
@@ -393,7 +395,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       </table>
     </div>
 
-    <p>Y 108 de los 124 escenarios de tareas siguen sin prueba. Están enumerados por prioridad en la matriz de trazabilidad, que es la diferencia entre un hueco conocido y una omisión.</p>
+    <p>Los 18 requisitos de tareas observables por API tienen prueba. Los 14 que solo se ven en pantalla no, porque el proyecto no tiene runner de navegador: es un hueco declarado en la matriz de trazabilidad, que es la diferencia entre un hueco conocido y una omisión.</p>
   </section>
 
   <p class="pie">El detalle completo está en <code>docs/trazabilidad.md</code>, <code>docs/hallazgos.md</code> y los ADR del repositorio, donde cada entrada indica cómo se verificó.</p>

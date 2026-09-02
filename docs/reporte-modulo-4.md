@@ -13,8 +13,8 @@
 | | Al empezar | Al terminar |
 |---|---:|---:|
 | Pruebas de `auth` | 20 | 20 |
-| Pruebas de `tasks` | **0** | 30 |
-| Requisitos de `tasks` con alguna prueba | 0 de 32 | 11 de 32 |
+| Pruebas de `tasks` | **0** | 35 |
+| Requisitos de `tasks` observables por API con prueba | 0 de 18 | **18 de 18** |
 | Defectos conocidos y abiertos | 0 (no se sabía de ninguno) | 3, anotados |
 | Documentos que contrastan contra el código | 0 | 9 comprobaciones en CI |
 
@@ -188,4 +188,4 @@ El segundo encuentra lo que el primero no puede encontrar, porque el primero sol
 | H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | En producción no ocurre. Apagarlo cambia el comportamiento del framework para todo el equipo y merece su propia decisión |
 | H-21 | El orden de validación difiere entre controladores | Ningún escenario lo fija. Conviene decidirlo antes de construir encima |
 
-Y 21 de los 32 requisitos de `tasks` siguen sin ninguna prueba. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
+Y los 14 requisitos de `tasks` que solo se observan en pantalla siguen sin prueba, porque el proyecto no tiene runner de navegador. Dentro de lo cubierto queda un hueco real: «las tareas exigen sesión» solo tiene prueba sobre una de las cinco rutas. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.

@@ -2,7 +2,7 @@ import Task from '#models/task'
 import User from '#models/user'
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
-import { errores, tarea } from '#tests/helpers/api'
+import { errores, invalido, tarea } from '#tests/helpers/api'
 
 /**
  * Cubre el requisito «Cuándo una tarea está vencida» y «El día de referencia lo
@@ -10,7 +10,7 @@ import { errores, tarea } from '#tests/helpers/api'
  *
  * Es la única regla de negocio no trivial del MVP y no la comprobaba nada. Una
  * de sus tres condiciones faltaba en el código: una tarea hecha con la fecha
- * pasada llegaba marcada como vencida, con las 20 pruebas de la suite en verde.
+ * pasada llegaba marcada como vencida, con las 24 pruebas de la suite en verde.
  */
 let contador = 0
 
@@ -137,6 +137,45 @@ test.group('Tasks | vencimiento', (group) => {
       .loginAs(usuario)
     diaInvalido.assertStatus(422)
     assert.equal(errores(diaInvalido)[0].field, 'today')
+  })
+
+  test('retirar la fecha es una operación admitida, no un error', async ({ client, assert }) => {
+    const { usuario, creada } = await tareaCon('2026-08-12', 'pending')
+
+    const sinFecha = await client
+      .put(`/api/v1/tasks/${creada.id}/due-date`)
+      .json({ today: '2026-08-26', dueDate: null })
+      .loginAs(usuario)
+
+    sinFecha.assertStatus(200)
+    assert.isNull(tarea(sinFecha).dueDate)
+    // Y deja de estar vencida, que es el escenario entero.
+    assert.isFalse(tarea(sinFecha).isOverdue)
+  })
+
+  test('una fecha que no existe se rechaza y la tarea conserva la suya', async ({
+    client,
+    assert,
+  }) => {
+    const { usuario, creada } = await tareaCon('2026-09-30', 'pending')
+
+    for (const dueDate of ['2026-02-31', '30/09/2026']) {
+      const respuesta = await client
+        .put(`/api/v1/tasks/${creada.id}/due-date`)
+        .json(invalido({ today: '2026-08-26', dueDate }))
+        .loginAs(usuario)
+
+      respuesta.assertStatus(422)
+      assert.equal(errores(respuesta)[0].field, 'dueDate')
+    }
+
+    // `2026-02-31` encaja en cualquier patrón AAAA-MM-DD y no existe: el riesgo
+    // era que se desplazara en silencio al 3 de marzo.
+    const sigue = await client
+      .get(`/api/v1/tasks/${creada.id}`)
+      .qs({ today: '2026-08-26' })
+      .loginAs(usuario)
+    assert.equal(tarea(sigue).dueDate, '2026-09-30')
   })
 
   test('la lista no lleva el vencimiento', async ({ client, assert }) => {

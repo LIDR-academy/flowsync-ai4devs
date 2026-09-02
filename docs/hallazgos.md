@@ -113,7 +113,7 @@ En el frontend hay que montarlo de cero. Es la razón de que `FS-118.6` esté es
 El runner del frontend es **Vitest** (`design.md` D5): comparte configuración y transformación con Vite, que el proyecto ya usa, así que resuelve el alias `@/*` sin configurarlo aparte y no introduce una segunda cadena de compilación.
 Es la única dependencia nueva del cambio.
 
-Lo que **no** cubre, declarado a propósito para que el hueco sea conocido: ver la sección «Escenarios sin cubrir» de `openspec/changes/archive/2026-08-25-add-test-foundation/tasks.md`.
+Lo que **no** cubre, declarado a propósito para que el hueco sea conocido: la sección «Escenarios sin cubrir» del `tasks.md` de ese change, que vive en `s3/start`. En `s4/start` el hueco equivalente está en [`trazabilidad.md`](trazabilidad.md).
 
 **Cómo se verificó**: `node ace test` en el backend y `npm test` en el frontend, ambos en verde, más `lint`, `typecheck` y `build` en los dos proyectos.
 
@@ -399,7 +399,7 @@ Lo llamativo es que el comentario inmediatamente encima del método decía, lite
 
 **Consecuencia visible**: `task-page.tsx` pinta la señal con `task.isOverdue && task.dueDate !== null`, así que una tarea cuya cabecera decía «Hecho» mostraba debajo, en rojo, que el plazo terminó y «la tarea sigue sin estar hecha».
 
-**Es la única regla de negocio no trivial del MVP**, y no la comprobaba nada. Las 20 pruebas de la suite estaban en verde.
+**Es la única regla de negocio no trivial del MVP**, y no la comprobaba nada. Las 24 pruebas de la suite estaban en verde.
 
 **Cómo se resolvió**: añadida la tercera condición, y seis pruebas nuevas en `tests/functional/tasks/vencimiento.spec.ts`. Quitar la condición tumba dos de ellas; cambiar el `<` por `<=` tumba una.
 

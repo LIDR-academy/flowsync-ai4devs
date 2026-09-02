@@ -11,11 +11,11 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 45 | — | — | 20 | parcial, ver §2 |
-| `tasks` | 32 | 124 | 12 | 118 | 30 | parcial, ver §3 |
+| `tasks` | 32 | 124 | 12 | 118 | 35 | 18 de 18 requisitos de API, ver §3 |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
 
-La suite estaba en verde, y escondía tres defectos que la revisión adversarial destapó: la regla de vencimiento incumplía una de sus tres condiciones, un estado inventado en el filtro respondía `200` con lista vacía, y la lista filtraba el email de cada responsable. Los tres están corregidos y cubiertos. Con las que fijan la lista compartida y la creación, son las 30 pruebas nuevas de esta tabla.
+La suite estaba en verde, y escondía tres defectos que la revisión adversarial destapó: la regla de vencimiento incumplía una de sus tres condiciones, un estado inventado en el filtro respondía `200` con lista vacía, y la lista filtraba el email de cada responsable. Los tres están corregidos y cubiertos. Con las que fijan la lista compartida, la creación, la tarea inexistente y los bordes de la fecha, son las 35 pruebas nuevas de esta tabla.
 
 Sigue habiendo mucho hueco. Lo que cambia es que ahora está enumerado.
 
@@ -67,51 +67,44 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 32 requisitos, 124 escenarios, 30 pruebas
+## 3 · `tasks` · 32 requisitos, 124 escenarios, 35 pruebas
 
-Se agrupa por lo que hay que hacer y se ordena por lo que más cuesta si se rompe en silencio.
+Los 32 requisitos se parten en dos grupos que no se pueden tratar igual: **18 son observables desde la API** y **14 solo se observan en pantalla**. La cuenta de cobertura se hace sobre los 18, porque el proyecto no tiene runner de navegador y los otros 14 no son un hueco que estas pruebas puedan llenar.
 
-### 3.1 · Reglas de dominio
+**18 de 18 requisitos observables por API tienen al menos una prueba.**
 
-Se rompen sin que nada avise y sin que se note en pantalla hasta que es tarde. Es donde estaban los tres defectos.
+### 3.1 · Reglas de dominio y contrato
 
-| Requisito de la spec | Criterios | Código | Prueba |
-|---|---|---|---|
-| Cuándo una tarea está vencida | `us-fechas-vencimiento` CA-8 a CA-12 | `models/task.ts` | `vencimiento.spec.ts` · las tres condiciones, y el borde estricto |
-| El día de referencia lo pone quien mira | `us-fechas-vencimiento` CA-13, CA-14 | `models/task.ts` | `vencimiento.spec.ts` · obligatorio y validado |
-| Un estado que no existe se rechaza, no se responde vacío | `us-filtrar-por-estado` CA-9 | `validators/task.ts` | `filtro.spec.ts` · se distingue de no encontrar nada |
-| Acotar la lista por estado | `us-filtrar-por-estado` CA-1 a CA-4 | `tasks_controller.ts` | `filtro.spec.ts` · cada estado devuelve el suyo |
-| Lo que cada tarea muestra de su responsable | `us-lista-compartida` CA-5, CA-6 | `task_assignee_transformer.ts` | `assignee.spec.ts` · conjunto cerrado de campos |
-| Tres estados fijos | `us-cambiar-estado` CA-1 | `validators/task.ts` | **ninguna** |
-| Aviso ante una fecha que no vale | `us-fechas-vencimiento` CA-15 a CA-18 | `validators/task.ts` | parcial · solo el día de referencia |
-| Ninguna tarea sin título | `us-titulo-obligatorio` CA-1 a CA-3 | `validators/task.ts` | **ninguna** |
-| Aviso ante un título demasiado largo | `us-editar-titulo` CA-6, CA-7 | `validators/task.ts` | **ninguna** |
+| Requisito de la spec | Prueba |
+|---|---|
+| Creación de una tarea con solo el título | `creacion.spec.ts` · un título basta, y el responsable lo pone el servidor |
+| Ninguna tarea sin título | `creacion.spec.ts` · vacío y solo espacios |
+| Aviso ante un título demasiado largo | `creacion.spec.ts` · 200 pasa, 201 se rechaza y no se guarda recortado |
+| Una sola lista compartida del espacio | `lista_compartida.spec.ts` · mismo conjunto, con y sin filtro, y el orden acordado |
+| Lo que cada tarea muestra de su responsable | `assignee.spec.ts` · conjunto cerrado de campos, en lista y en tarea suelta |
+| Tres estados fijos | `filtro.spec.ts` · el cambio de estado tampoco admite valores fuera del conjunto |
+| Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna |
+| Las tareas exigen sesión | `creacion.spec.ts` · crear sin sesión. **Parcial**: solo cubre una de las cinco rutas |
+| Fecha de vencimiento opcional | `vencimiento.spec.ts` y `creacion.spec.ts` · nace sin fecha, y sin fecha no vence |
+| Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar y retirar; `lista_compartida.spec.ts` · sobre una tarea ajena |
+| Cuándo una tarea está vencida | `vencimiento.spec.ts` · las tres condiciones y el borde estricto |
+| El día de referencia lo pone quien mira | `vencimiento.spec.ts` · obligatorio, y validado contra el calendario |
+| Consulta de una tarea suelta | `vencimiento.spec.ts`, `assignee.spec.ts`, `inexistente.spec.ts` |
+| La lista no lleva el vencimiento | `vencimiento.spec.ts` · ni `dueDate` ni `isOverdue` en la lista |
+| Aviso ante una fecha que no vale | `vencimiento.spec.ts` · `2026-02-31` y `30/09/2026`, y la fecha anterior se conserva |
+| Acotar la lista por estado | `filtro.spec.ts` · cada estado devuelve el suyo, y acotar es solo lectura |
+| Un filtro válido sin resultados es una lista vacía legítima | `filtro.spec.ts` |
+| Un estado que no existe se rechaza, no se responde vacío | `filtro.spec.ts` · se distingue de no encontrar nada |
 
-La regla de vencimiento es la única regla de negocio no trivial del MVP. Tenía tres condiciones y el código comprobaba dos: una tarea hecha con la fecha pasada llegaba marcada como vencida. El comentario encima del método ya prometía las tres.
+Los tres escenarios «Tarea inexistente», que viven repartidos entre tres de esos requisitos, los cubre `inexistente.spec.ts`: las tres rutas rechazan con la forma de error del proyecto y sin revelar internals.
 
-### 3.2 · Contrato de la API sin verificar (prioridad alta)
+### 3.2 · Lo que sigue sin cubrir, y por qué
 
-| Requisito de la spec | Ruta | Prueba |
-|---|---|---|
-| Creación de una tarea con solo el título | `POST /api/v1/tasks` | **ninguna** |
-| Una sola lista compartida del espacio | `GET /api/v1/tasks` | `lista_compartida.spec.ts` · dos personas ven el mismo conjunto, y ningún parámetro lo recorta |
-| Consulta de una tarea suelta | `GET /api/v1/tasks/:id` | `vencimiento.spec.ts` |
-| Cambio de estado de cualquier tarea | `PATCH /api/v1/tasks/:id/status` | parcial · solo dentro del vencimiento |
-| Fijar, cambiar y retirar la fecha de vencimiento | `PUT /api/v1/tasks/:id/due-date` | `vencimiento.spec.ts` · aplazar |
-| Acotar la lista por estado | `GET /api/v1/tasks?status=` | `filtro.spec.ts` |
-| Las tareas exigen sesión | las cinco rutas | **ninguna** |
-| Lo que cada tarea muestra de su responsable | `task_assignee_transformer.ts` | `assignee.spec.ts` |
-| La lista no lleva el vencimiento | `task_transformer.ts` | `vencimiento.spec.ts` |
+**Los 14 requisitos de pantalla**: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, no tener fecha no se penaliza, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, una sola vista sin señales de presencia, y el aviso al intentar crear sin un título válido.
 
-«Las tareas exigen sesión» sin prueba merece un párrafo aparte: es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
+No hay runner de navegador en el proyecto y este trabajo no añade uno. Es un hueco declarado, no una omisión.
 
-### 3.3 · Solo observable en pantalla (fuera del alcance de la suite)
-
-Son 12 requisitos: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, y una sola vista sin señales de presencia.
-
-No hay runner de navegador en el proyecto y este trabajo no añade uno. Quedan declarados como hueco conocido, no como omisión.
-
----
+**Y un hueco real dentro de lo cubierto**: «Las tareas exigen sesión» solo tiene prueba sobre `POST /api/v1/tasks`. Las otras cuatro rutas no la tienen, y es la única barrera entre los datos del espacio y cualquiera que pase por ahí.
 
 ## 4 · Criterios marcados `[PROPUESTO]`
 
@@ -136,9 +129,8 @@ Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD;
 
 Por orden de lo que más protege:
 
-1. Lo que queda sin cubrir de §3.1: los tres estados fijos, el título obligatorio y el título excesivo.
-2. «Las tareas exigen sesión», de §3.2. Es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
-3. La creación de tarea, que hoy no tiene ninguna prueba propia.
+1. «Las tareas exigen sesión» sobre las cinco rutas, no solo sobre la creación. Es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
+2. Un runner de navegador, si en algún momento los 14 requisitos de pantalla dejan de ser un hueco aceptable.
 4. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
 5. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
 6. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.

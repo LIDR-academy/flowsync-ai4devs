@@ -11,7 +11,7 @@
  * si encuentra una discrepancia, para que rompa la build en vez de avisar en un
  * log que nadie mira.
  */
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -57,40 +57,83 @@ function rutasDelCodigo() {
   const fuente = leerCodigo('backend/start/routes.ts')
   const rutas = new Set()
 
-  // `.prefix()` aparece DESPUES del cuerpo de su grupo, asi que las rutas se
-  // acumulan en un buffer y se vuelcan cuando aparece el prefijo al que
-  // pertenecen. Leerlo linea a linea asignando el ultimo prefijo visto colgaria
-  // cada grupo del prefijo del grupo anterior.
-  let pendientes = []
+  // Una pila, no un buffer. `.prefix()` aparece DESPUES del cuerpo de su grupo,
+  // y con un solo buffer una ruta declarada en el grupo externo antes de los
+  // subgrupos se colaba en el prefijo del primero que apareciera: la
+  // comprobación fallaba, pero nombrando una ruta que no existe, y documentar
+  // esa ruta inventada la dejaba en verde.
+  const pila = [[]]
 
   for (const linea of fuente.split('\n')) {
+    if (/\.group\(\(\)\s*=>\s*\{/.test(linea)) {
+      pila.push([])
+      continue
+    }
+
     const ruta = linea.match(/router\.(get|post|patch|put|delete)\('([^']*)'/)
     if (ruta) {
       const [, metodo, camino] = ruta
       // La raiz de cortesia no es parte de la API.
       if (!(camino === '/' && !/controllers\./.test(linea))) {
-        pendientes.push({ metodo: metodo.toUpperCase(), camino })
+        pila[pila.length - 1].push({ metodo: metodo.toUpperCase(), camino })
       }
       continue
     }
 
     const prefijo = linea.match(/\.prefix\('([^']+)'\)/)
-    if (prefijo && !prefijo[1].startsWith('/api') && pendientes.length) {
-      for (const { metodo, camino } of pendientes) {
-        rutas.add(`${metodo} ${prefijo[1]}${camino === '/' ? '' : `/${camino}`}`)
-      }
-      pendientes = []
+    if (!prefijo) continue
+
+    // El grupo que acaba de cerrarse es el que recibe este prefijo.
+    const grupo = pila.length > 1 ? pila.pop() : pila[0].splice(0)
+    const trozo = prefijo[1].startsWith('/api') ? '' : prefijo[1]
+    const destino = pila[pila.length - 1]
+
+    for (const { metodo, camino } of grupo) {
+      const compuesto = `${trozo}${camino === '/' ? '' : `/${camino}`}`.replace(/^\//, '')
+      // Vuelve al grupo de arriba, para que un prefijo exterior lo componga.
+      destino.push({ metodo, camino: compuesto || '/' })
     }
   }
 
   // Lo que quede sin volcar cuelga directamente del grupo externo. Descartarlo
-  // -que es lo que hacia antes- dejaba pasar sin documentar cualquier ruta que
-  // no estuviera dentro de un subgrupo con prefijo propio.
-  for (const { metodo, camino } of pendientes) {
+  // dejaba pasar sin documentar cualquier ruta que no estuviera dentro de un
+  // subgrupo con prefijo propio.
+  for (const { metodo, camino } of pila.flat()) {
     rutas.add(`${metodo} ${camino === '/' ? '' : camino}`)
   }
 
   return rutas
+}
+
+/**
+ * Las operaciones del contrato, con qué códigos de respuesta documenta cada
+ * una. Se recorre por indentación en vez de contar cadenas sueltas: contar
+ * `"404":` en todo el fichero daba por buena una operación que no lo tenía
+ * mientras otra cualquiera sí.
+ */
+function operacionesDelContrato() {
+  const operaciones = []
+  let ruta = null
+  let actual = null
+
+  for (const linea of leer('docs/api/openapi.yaml').split('\n')) {
+    const caminoNuevo = linea.match(/^ {2}(\/[^:]*):\s*$/)
+    if (caminoNuevo) {
+      ruta = caminoNuevo[1]
+      actual = null
+      continue
+    }
+    const metodo = linea.match(/^ {4}(get|post|patch|put|delete):\s*$/)
+    if (metodo && ruta) {
+      actual = { ruta, metodo: metodo[1].toUpperCase(), codigos: new Set() }
+      operaciones.push(actual)
+      continue
+    }
+    const codigo = linea.match(/^ {8}"(\d{3})":/)
+    if (codigo && actual) actual.codigos.add(codigo[1])
+  }
+
+  return operaciones
 }
 
 /**
@@ -167,8 +210,8 @@ comprobar('La regla de vencimiento comprueba sus tres condiciones', () => {
   // no meramente presente: una constante muerta con la comparación dentro
   // satisfacía la versión anterior de esta comprobación.
   const condiciones = [
-    ['tiene fecha', /if\s*\([^)]*dueDate === null[^)]*\)\s*return/],
-    ['no esta hecha', /if\s*\([^)]*status === 'done'[^)]*\)\s*return/],
+    ['tiene fecha', /if\s*\([^)]*dueDate === null[^)]*\)\s*\{?\s*return\s+false/],
+    ['no esta hecha', /if\s*\([^)]*status === 'done'[^)]*\)\s*\{?\s*return\s+false/],
     ['la fecha ha pasado', /return[^\n]*dueDate\s*<\s*referenceDay/],
   ]
 
@@ -210,27 +253,35 @@ comprobar('La tabla de rutas de CLAUDE.md corresponde con el código', () => {
 
 comprobar('Toda operación que resuelve un id documenta su 404', () => {
   // La spec exige 404 en tres escenarios y el contrato no documentaba ninguno,
-  // así que quien integre contra él no sabría que existe.
-  const contrato = leer('docs/api/openapi.yaml')
-  const conFindOrFail = ['tasks_controller.ts', 'task_statuses_controller.ts', 'task_due_dates_controller.ts']
+  // asi que quien integre contra el no sabria que existe.
+  //
+  // Se comprueba OPERACION A OPERACION. Contar `"404":` en todo el fichero
+  // daba por buena una operacion sin el suyo mientras otra cualquiera lo
+  // tuviera, y lo satisfacia incluso un 404 dejado en un comentario del YAML.
+  const conId = operacionesDelContrato().filter((o) => o.ruta.includes('{id}'))
+  if (!conId.length) throw new Error('el contrato no declara ninguna ruta con {id}')
+
+  const sinRechazo = conId.filter((o) => !o.codigos.has('404'))
+  if (sinRechazo.length) {
+    throw new Error(
+      `sin 404 documentado: ${sinRechazo.map((o) => `${o.metodo} ${o.ruta}`).join(', ')}`
+    )
+  }
+
+  // Y que ninguna ruta del codigo que resuelva un id se quede fuera del
+  // contrato. La lista de controladores se lee del directorio, no a mano.
+  const controladores = readdirSync(join(RAIZ, 'backend/app/controllers'))
+    .filter((f) => f.endsWith('.ts'))
     .filter((f) => /findOrFail/.test(leerCodigo(`backend/app/controllers/${f}`)))
 
-  if (!conFindOrFail.length) return 'ningún controlador resuelve un id'
-
-  const operacionesConId = (contrato.match(/^ {2}\/api\/v1\/tasks\/\{id\}/gm) || []).length
-  const cuatrocientosCuatro = (contrato.match(/"404":/g) || []).length
-
-  if (!cuatrocientosCuatro) {
+  const rutasConId = [...rutasDelCodigo()].filter((r) => r.includes(':id'))
+  if (controladores.length && rutasConId.length !== conId.length) {
     throw new Error(
-      `${conFindOrFail.length} controladores usan findOrFail y el contrato no documenta ningún 404`
+      `${rutasConId.length} rutas con id en el codigo y ${conId.length} documentadas`
     )
   }
-  if (cuatrocientosCuatro < operacionesConId) {
-    throw new Error(
-      `${operacionesConId} rutas con id y solo ${cuatrocientosCuatro} documentan el 404`
-    )
-  }
-  return `${cuatrocientosCuatro} operaciones con 404`
+
+  return `${conId.length} operaciones con 404`
 })
 
 comprobar('El filtro de la lista solo admite estados del dominio', () => {
@@ -264,6 +315,17 @@ comprobar('El responsable no expone la cuenta', () => {
   if (/UserTransformer/.test(lista)) {
     throw new Error('la lista vuelve a usar UserTransformer, que expone la cuenta')
   }
+
+  // El requisito dice «ni en la lista ni en la tarea suelta», así que las dos
+  // salidas se comprueban igual. Mirar solo la lista dejaba la otra abierta.
+  const detalle = leerCodigo('backend/app/transformers/task_detail_transformer.ts')
+  if (!/assignee:\s*TaskAssigneeTransformer\.transform\(/.test(detalle)) {
+    throw new Error('la tarea suelta no construye el responsable con TaskAssigneeTransformer')
+  }
+  if (/UserTransformer/.test(detalle)) {
+    throw new Error('la tarea suelta vuelve a usar UserTransformer, que expone la cuenta')
+  }
+
   return campos[1].replace(/['\s]/g, '')
 })
 
@@ -281,6 +343,12 @@ comprobar('Las pruebas no pueden escribir sobre la base de desarrollo', () => {
   const [, variable, enTest, fuera] = eleccion
   if (enTest === fuera) {
     throw new Error('el fichero de test y el de desarrollo son el mismo')
+  }
+  // Intercambiar las dos ramas del ternario es la mutación de un token más
+  // natural, y cumplía las otras condiciones dejando la suite escribiendo
+  // sobre la base de desarrollo.
+  if (!/test/.test(enTest) || /test/.test(fuera)) {
+    throw new Error(`las ramas están al revés: en test '${enTest}', fuera '${fuera}'`)
   }
   if (!new RegExp(`filename:\\s*app\\.tmpPath\\(${variable}\\)`).test(config)) {
     throw new Error(`la conexión no usa \`${variable}\`, así que la elección no llega a aplicarse`)
