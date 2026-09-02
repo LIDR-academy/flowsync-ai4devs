@@ -39,7 +39,7 @@ Catorce en total: siete del ciclo de trabajo, que venían del curso o salieron d
 |---|---|---|---|---|
 | R-01 | Rama nueva antes de tocar código; nunca commitear directo en `main`/`sN/*` | Silencioso | Un hook de `pre-commit` que mire la rama | *pendiente* |
 | R-02 | Al cerrar la tarea, `/commit` y luego `gh pr create` con descripción completa | Ruidoso | Nada. Se nota porque no hay PR | *pendiente* |
-| R-03 | Pasar el `adversarial-reviewer` sobre el PR antes de darlo por terminado | **Silencioso** | Un job de CI que lo lance al abrir el PR | *pendiente* |
+| R-03 | Pasar el `adversarial-reviewer` sobre el PR antes de darlo por terminado | **Silencioso** | Escrito, sin verificar: `.github/workflows/revision-adversarial.yml`, calibrado en `.github/calibracion-revision.md`. No bloquea a propósito | *pendiente* |
 | R-04 | No repetir el resumen del PR en el chat | Ruidoso | Nada. Es de estilo | *pendiente* |
 | R-05 | Un cambio en rutas, controladores o validadores cierra con `openapi.yaml` al día y `verificar-docs.mjs` ejecutado | **Silencioso** | Ya ejecutado: `scripts/verificar-docs.mjs` en CI | **Se cumple** |
 | R-06 | Verificar por código de salida, nunca por la última línea impresa | **Silencioso** | Nada lo comprueba. Es una forma de mirar | *pendiente* |
@@ -78,6 +78,21 @@ Así que la columna «Qué la ejecutaría» tiene una condición que no se ve en
 Esa condición es ahora **R-14**, y es la única regla de la tabla que no viene ni del curso ni de los proyectos de renelo: sale de esta cicatriz. Estaba escrita en un ADR como consecuencia de una decisión, que es un sitio donde nadie va a buscarla al añadir una comprobación nueva. Subirla a las reglas de proceso es, literalmente, el movimiento que el módulo describe: coger lo que falla en silencio y ponerlo donde se ejecuta.
 
 Su modo de fallo es el peor de los catorce. Las demás, cuando fallan, dejan el trabajo sin hacer. Esta, cuando falla, deja el trabajo **aparentemente hecho**: una comprobación en verde que no comprueba nada es peor que no tenerla, porque quien la ve deja de mirar.
+
+## 4 bis · R-03, el primer intento de bajar una regla a la capa que la ejecuta
+
+`R-03` -pasar el revisor adversarial sobre el PR- es el caso más limpio de regla con modo de fallo silencioso: si nadie lo lanza, el PR se ve idéntico y la build sigue verde.
+
+El 2026-09-02 se le puso un job de CI al lado: `.github/workflows/revision-adversarial.yml`, con su calibración en `.github/calibracion-revision.md`.
+
+**Y su estado sigue siendo `pendiente`, no `se cumple`.** Por R-14: está escrito y no se le ha visto funcionar. Faltan el secreto `ANTHROPIC_API_KEY` y una prueba con un defecto plantado que confirme que el informe lo nombra.
+
+Marcarlo como resuelto porque existe el fichero sería el error exacto que este documento describe, cometido en el documento que lo describe. Ya pasó una vez con H-22.
+
+Dos decisiones del job que conviene tener presentes al auditarlo:
+
+- **No bloquea.** Lo determinista bloquea; el revisor informa. Un revisor no determinista que tumba la build se desactiva la primera vez que se equivoca con prisa, y entonces no queda ni revisor ni build.
+- **No dispara solo con `pull_request`.** Nuestros PR son cross-repo, así que ese evento lo recibe el repositorio del curso y no este, y además los PR desde un fork no reciben secretos. Un job con ese disparador solo habría quedado presente e inerte, que es la peor forma de guardarraíl.
 
 ## 5 · Cómo se rellena la columna de estado
 
