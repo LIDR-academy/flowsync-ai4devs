@@ -29,6 +29,23 @@ export default class Task extends TaskSchema {
   declare assignee: BelongsTo<typeof User>
 
   /**
+   * Lo persistido, con el responsable, en una sola consulta.
+   *
+   * Toda escritura devuelve esto en vez del objeto que tiene en memoria. El
+   * modelo recién guardado trae `updatedAt` con milisegundos y la base lo
+   * guarda con precisión de segundo, así que sin releer la respuesta de la
+   * escritura y la de la lectura siguiente dicen valores distintos del mismo
+   * campo. Es H-14: hoy no duele porque la interfaz no pinta esas marcas, y
+   * dolería en cuanto algo las compare o cachee por ellas.
+   *
+   * Se relee y se trae el responsable en una consulta, no con `refresh()` más
+   * `load()`, que son dos.
+   */
+  static releerConResponsable(id: number) {
+    return Task.query().where('id', id).preload('assignee').firstOrFail()
+  }
+
+  /**
    * Si la tarea está vencida para quien mira desde `referenceDay`, un día del
    * calendario en formato `AAAA-MM-DD`.
    *

@@ -323,29 +323,108 @@ comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', (
 comprobar('El volcado de depuración va apagado salvo que se encienda', () => {
   // ADR-0003. Fue H-19, abierto tres módulos. Encenderlo devuelve traza, rutas
   // absolutas y el SQL ejecutado a cualquiera que alcance el puerto, sin sesión.
+  //
+  // La versión anterior era una lista negra -ni `true`, ni `inProduction`- y
+  // con eso `env.get(…) || !app.inTest` la pasaba entera dejando el volcado
+  // encendido en desarrollo. Ahora el valor tiene que ser **exactamente** la
+  // expresión que decide el ADR: cualquier cosa añadida es un entorno colándose
+  // por detrás, que es la forma que tenía este defecto de volver.
   const handler = leerCodigo('backend/app/exceptions/handler.ts')
   const debug = handler.match(/protected debug = (.+)/)
   if (!debug) throw new Error('el handler no declara `debug`')
 
-  const valor = debug[1].trim()
-  if (/^true/.test(valor)) throw new Error('el volcado está encendido a fuego')
-  if (/inProduction/.test(valor)) {
-    throw new Error('el volcado depende del entorno, y debe ir apagado en todos (ADR-0003)')
+  const valor = debug[1].trim().replace(/;$/, '')
+  if (valor !== "env.get('DEBUG_HTTP_ERRORS', false)") {
+    throw new Error(
+      `\`debug\` vale \`${valor}\`, y debe ser exactamente env.get('DEBUG_HTTP_ERRORS', false)`
+    )
   }
-  if (!/env\.get\('DEBUG_HTTP_ERRORS', false\)/.test(valor)) {
-    throw new Error(`\`debug\` vale \`${valor}\`, y debe salir de DEBUG_HTTP_ERRORS con false por defecto`)
+
+  // `isDebuggingEnabled(ctx)` es el gancho que el framework documenta para
+  // decidir esto por petición. Sobreescribirlo devuelve el volcado sin tocar
+  // `debug`, así que la comprobación de arriba no lo vería.
+  if (/isDebuggingEnabled\s*\(/.test(handler.replace(/this\.isDebuggingEnabled\s*\(/g, ''))) {
+    throw new Error('el handler sobreescribe isDebuggingEnabled: el volcado deja de depender de `debug`')
   }
+
+  // El interruptor tiene que existir en el esquema y venir apagado en la
+  // plantilla, que es el fichero que copia todo el que llega al proyecto.
+  if (!/DEBUG_HTTP_ERRORS/.test(leer('backend/start/env.ts'))) {
+    throw new Error('start/env.ts no declara DEBUG_HTTP_ERRORS: el interruptor sería letra muerta')
+  }
+  const plantilla = leer('backend/.env.example').match(/^DEBUG_HTTP_ERRORS=(.*)$/m)
+  if (!plantilla || plantilla[1].trim() !== 'false') {
+    throw new Error('.env.example no trae DEBUG_HTTP_ERRORS=false')
+  }
+  // Y la suite no puede heredar el `.env` de quien la ejecuta: el propio ADR
+  // invita a encender el volcado, y quien lo haga se encontraría las pruebas de
+  // H-19 en rojo por su configuración local.
+  const entornoDePruebas = leer('backend/.env.test').match(/^DEBUG_HTTP_ERRORS=(.*)$/m)
+  if (!entornoDePruebas || entornoDePruebas[1].trim() !== 'false') {
+    throw new Error('.env.test no fija DEBUG_HTTP_ERRORS=false: la suite dependería del .env local')
+  }
+
   return 'apagado, con DEBUG_HTTP_ERRORS para encenderlo'
+})
+
+comprobar('Un error inesperado no devuelve su mensaje', () => {
+  // La otra mitad de H-19, y la que sobrevivió a apagar el volcado: la rama sin
+  // depuración del framework responde `{ message: error.message }`, y el
+  // `message` de un SqliteError es la sentencia SQL entera, con los valores
+  // insertados dentro. Se reprodujo devolviendo el `insert into users …`
+  // completo, con el hash de la contraseña, en el alta y sin sesión.
+  const handler = leerCodigo('backend/app/exceptions/handler.ts')
+  if (!/status >= 500/.test(handler)) {
+    throw new Error('el handler no intercepta los 5xx: devolvería el mensaje crudo de la excepción')
+  }
+  if (!/status >= 500[\s\S]{0,200}errors:/.test(handler)) {
+    throw new Error('el 5xx no responde con la forma cerrada `{ errors: [...] }`')
+  }
+  // Esto es aviso temprano, no la garantía. La garantía es la prueba, que
+  // provoca un 500 real y mira el cuerpo entero.
+  const prueba = leer('backend/tests/functional/errores.spec.ts')
+  for (const rastro of ['insert into', '$scrypt$', 'assertStatus(500)']) {
+    if (!prueba.includes(rastro)) {
+      throw new Error(`errores.spec.ts ya no comprueba «${rastro}»`)
+    }
+  }
+  return '5xx cerrado, y con prueba que lo provoca'
 })
 
 comprobar('El reporte del módulo declara lo que se arrastra', () => {
   // La regla de proceso solo sirve si algo la hace cumplir.
+  //
+  // La versión anterior buscaba la cadena en cualquier parte del fichero, así
+  // que sustituir la tabla entera por «esta vez no hace falta la tabla de Lo
+  // que se arrastra» la dejaba en verde. Ahora se exige el encabezado, y bajo
+  // él una tabla con filas de verdad: una sección vacía es la misma mentira
+  // que no tenerla.
   const reportes = readdirSync(join(RAIZ, 'docs')).filter((f) => /^reporte-.*\.md$/.test(f))
   if (!reportes.length) throw new Error('no hay ningún reporte de módulo en docs/')
 
-  const sinTabla = reportes.filter((f) => !/Lo que se arrastra/.test(leer(`docs/${f}`)))
-  if (sinTabla.length) {
-    throw new Error(`sin sección «Lo que se arrastra»: ${sinTabla.join(', ')}`)
+  for (const fichero of reportes) {
+    const texto = leer(`docs/${fichero}`)
+    const seccion = texto.match(/^#{2,4} .*Lo que se arrastra.*$([\s\S]*?)(?=^#{2,4} |\Z)/m)
+    if (!seccion) {
+      throw new Error(`sin encabezado «Lo que se arrastra»: ${fichero}`)
+    }
+
+    const filas = seccion[1]
+      .split('\n')
+      .filter((linea) => /^\|/.test(linea.trim()))
+      // La cabecera y su separador de guiones no son datos.
+      .filter((linea) => !/^\|[\s|:-]+\|$/.test(linea.trim()))
+      .slice(1)
+
+    if (!filas.length) {
+      throw new Error(`la sección «Lo que se arrastra» de ${fichero} no tiene ninguna fila`)
+    }
+    // Cinco columnas: qué, desde dónde, en qué rama, en qué estado y qué falta.
+    // Menos que eso ya no es el registro que la regla pide.
+    const cortas = filas.filter((linea) => linea.trim().split('|').length - 2 < 5)
+    if (cortas.length) {
+      throw new Error(`filas incompletas en «Lo que se arrastra» de ${fichero}: ${cortas.length}`)
+    }
   }
   return `${reportes.length} reportes`
 })

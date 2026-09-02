@@ -24,10 +24,14 @@ export default class TaskDueDatesController {
     // vencimiento es un día en texto y nunca un instante.
     task.dueDate = dueDate === null ? null : toCalendarDay(dueDate)
     await task.save()
-    await task.load('assignee')
 
     // Se devuelve ya resuelta contra el día de quien pide, para que aplazar una
     // tarea vencida deje de mostrarla vencida en esta misma respuesta.
-    return serialize(TaskDetailTransformer.transform(task, toCalendarDay(today)))
+    return serialize(
+      TaskDetailTransformer.transform(
+        await Task.releerConResponsable(task.id),
+        toCalendarDay(today)
+      )
+    )
   }
 }

@@ -322,19 +322,21 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
           <tr><td>El responsable no expone la cuenta, ni en la lista ni en la tarea suelta</td><td>Cualquiera de las dos vuelve al transformer que filtraba el email</td></tr>
           <tr><td>Toda operación con un parámetro de ruta documenta su <code>404</code></td><td>Se añade una ruta que resuelve un identificador sin documentar el rechazo</td></tr>
           <tr><td>El rechazo por recurso inexistente sale con la forma del proyecto</td><td>El <code>404</code> vuelve al volcado de depuración del framework</td></tr>
-          <tr><td>El volcado de depuración va apagado</td><td>Se enciende a fuego o se ata al entorno (ADR-0003)</td></tr>
-          <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla</td></tr>
+          <tr><td>El volcado de depuración va apagado</td><td>Se enciende a fuego, se ata al entorno, o se sobreescribe <code>isDebuggingEnabled</code></td></tr>
+          <tr><td>Un error inesperado no devuelve su mensaje</td><td>Se deja de interceptar el <code>5xx</code> y vuelve el <code>{ message }</code> del framework, que en la base de datos es el SQL</td></tr>
+          <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas</td></tr>
           <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
           <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Las doce se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+    <p>Las trece se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
 
     <div class="nota">
       <span class="rotulo">La lección más útil</span>
       <p>La primera versión del verificador daba luz verde mientras tres documentos afirmaban comportamientos que la API no tenía, porque comprobaba lo cómodo. Un verificador que solo comprueba lo fácil es peor que no tenerlo: da una garantía que no existe.</p>
+      <p>Y le pasó cinco veces seguidas, siempre igual: la mutación con la que se probaba cada comprobación era la que ya cubría por construcción. La quinta revisión encendió el volcado con <code>|| !app.inTest</code> y vació la tabla de arrastre dejando una frase, con el verificador en verde las dos veces. Lo que ata el comportamiento es una prueba que lo provoca, no una lista negra sobre el texto del código.</p>
     </div>
   </section>
 
@@ -392,11 +394,12 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
         <thead><tr><th>#</th><th>Qué</th><th>Por qué no se cierra ahora</th></tr></thead>
         <tbody>
           <tr><td class="num">H-18</td><td>Changes archivados con verificaciones marcadas sin hacer</td><td>Es de proceso: se arregla cambiando cómo se archiva, no tocando código</td></tr>
-          <tr><td class="num">H-19</td><td>Los errores devuelven traza, rutas y el SQL ejecutado</td><td>En producción no ocurre. Apagarlo cambia el framework para todo el equipo y merece su propia decisión</td></tr>
           <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Ningún escenario lo fija. Conviene decidirlo antes de construir encima</td></tr>
         </tbody>
       </table>
     </div>
+
+    <p><strong>H-19 salió de esta tabla el 2026-09-02</strong>, cerrado por ADR-0003 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: <code>debug=false</code> es la configuración de producción, y es exactamente con la que se reprodujo la fuga del SQL.</p>
 
     <p>Los 17 requisitos de sistema de tareas tienen prueba. Los 15 que solo se ven en pantalla no, porque el proyecto no tiene runner de navegador: es un hueco declarado en la matriz de trazabilidad, que es la diferencia entre un hueco conocido y una omisión.</p>
   </section>

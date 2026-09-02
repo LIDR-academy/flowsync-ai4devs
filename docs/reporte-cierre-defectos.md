@@ -170,16 +170,20 @@ Y en navegador real, sobre el sistema levantado:
 ## 5 bis. Lo que se arrastra
 
 > Sección añadida el 2026-09-02, cuando se estableció la regla de arrastrar el registro de hallazgos entre módulos. Refleja el estado **al cerrar el Módulo 3**, sobre `s3/start`.
+>
+> **Corregida el 2026-09-02, el mismo día.** La primera versión marcaba H-11, H-13 y H-14 como `Cerrado | —`. Lo estaban en `s3/start` y **no en `s4/start`**, donde seguían vivos: el arreglo nunca cruzó de rama. Es H-22, y la columna «Qué pasó después» lo recoge.
 
-| # | Hallazgo | Desde | Estado al cerrar el Módulo 3 | Qué pasó después |
+| # | Hallazgo | Desde | Estado al cerrar el Módulo 3, en `s3/start` | Qué pasó después, comprobado en `s4/start` |
 |---|---|---|---|---|
-| H-19 | Las respuestas de error revelan internals | Módulo 3, lo destapó `/verify` | **Arreglado solo en una ruta.** D12 diagnosticó la causa general y aplicó un arreglo local | Reapareció en `s4/start`. Cerrado del todo el 2026-09-02 con ADR-0003 |
-| H-11 | El email distingue mayúsculas | Módulo 3 | Cerrado | — |
-| H-13 | Sesión caducada sin salida | Módulo 3 | Cerrado | — |
-| H-14 | `updatedAt` distinto según el endpoint | Módulo 3 | Cerrado | — |
-| — | La condición de carrera de `unique` sigue dando 500 | Módulo 3 | **Declarado, no arreglado** | Sigue igual |
+| H-19 | Las respuestas de error revelan internals | Módulo 3, lo destapó `/verify` | **Arreglado solo en una ruta.** D12 diagnosticó la causa general y aplicó un arreglo local | Reapareció en `s4/start`. Cerrado del todo el 2026-09-02, en dos pasos: ADR-0003 y su revisión |
+| H-11 | El email distingue mayúsculas | Módulo 3 | Cerrado en `s3/start` | **Vivo en `s4/start`.** Comprobado por API: `REV@EXAMPLE.COM` creó una segunda cuenta. Portado el 2026-09-02 |
+| H-13 | Sesión caducada sin salida | Módulo 3 | Cerrado en `s3/start` | **Vivo en `s4/start`.** Sin punto de suscripción en `lib/api.ts`. Portado el 2026-09-02 |
+| H-14 | `updatedAt` distinto según el endpoint | Módulo 3 | Cerrado en `s3/start` | **Vivo en `s4/start`**, y en tres escrituras en vez de dos. Portado el 2026-09-02 |
+| — | La condición de carrera de `unique` sigue dando 500 | Módulo 3 | **Declarado, no arreglado** | Sigue dando 500, pero el 500 ya no filtra nada (H-19) |
 
 **La lección de esta tabla es H-19.** Se dio por resuelto un defecto cuyo arreglo era local, teniendo escrito en el propio diseño que la causa era general. Esa es exactamente la forma en que un hallazgo sobrevive a un módulo: no por olvido, sino por darlo por cerrado antes de tiempo.
+
+**Y la segunda lección la dio la propia tabla.** Sus tres filas de `Cerrado | —` repitieron el error que existía para evitar, el mismo día en que se escribió la regla. Comprobar una fila cuesta minutos; darla por buena cuesta cero. Por eso la columna nombra ahora la rama en la que se miró.
 
 ---
 

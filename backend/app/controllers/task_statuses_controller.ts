@@ -21,8 +21,7 @@ export default class TaskStatusesController {
 
     task.status = status
     await task.save()
-    await task.load('assignee')
 
-    return serialize(TaskTransformer.transform(task))
+    return serialize(TaskTransformer.transform(await Task.releerConResponsable(task.id)))
   }
 }

@@ -4,12 +4,14 @@
 >
 > No son decisiones de producto: esas viven en `docs/prd/flowsync-mvp.md`, sección 10, como `D-nn`. Aquí van los hallazgos técnicos y de proceso que van a doler si nadie los conoce de antemano.
 >
-> Ramas de referencia: `s3/start` (H-01 a H-14) y `s4/start` (H-15 en adelante). Última revisión: 2026-08-26.
+> Ramas de referencia: `s3/start` (H-01 a H-14) y `s4/start` (H-15 en adelante). Última revisión: 2026-09-02.
 >
 > **Aviso de rama.** Las entradas H-01 a H-14 se trabajaron sobre `s3/start`, nuestra rama del Módulo 3, y **sus apartados «Resuelto» describen esa rama, no esta**.
 > El cambio `add-test-foundation` que citan no existe en `s4/start`; el curso llegó a la misma funcionalidad por otro camino.
 > Donde una entrada afecta también a `s4/start`, lleva una nota explícita que dice qué vale aquí.
 > Se conservan enteras porque el hallazgo y cómo se verificó son el registro de lo que pasó, y reescribirlos borraría esa historia.
+>
+> **Cada entrada dice qué rama describe.** No es formalismo: el 2026-09-02 se comprobaron una a una las que figuraban cerradas y **tres estaban vivas en `s4/start`** -H-11, H-13 y H-14- porque su arreglo nunca cruzó desde `s3/start`. Un «Resuelto» sin rama no dice nada.
 
 ## Índice por severidad
 
@@ -17,7 +19,7 @@
 |---|---|---|---|
 | H-01 | Los tests comparten base de datos con desarrollo | Alta | **Resuelto (2026-08-25)** |
 | H-02 | Cero pruebas automatizadas en todo el proyecto | Alta | **Resuelto (2026-08-25)** |
-| H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Alta | **Resuelto (2026-08-26)** |
+| H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Alta | **Resuelto** · `s3/start` 2026-08-26, `s4/start` 2026-09-02 |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | Documentado y sorteado |
 | H-04 | `fullName` es `nullable`, no `optional` | Media | Documentado y sorteado |
 | H-05 | La traducción de errores depende de los nombres de regla del backend | Media | Vigilado por pruebas |
@@ -26,16 +28,17 @@
 | H-08 | `AGENTS.md` es un symlink que Windows no materializa | Baja | Sin impacto hoy |
 | H-09 | `database/schema.ts` se regenera sin formato y rompe el lint | Baja | Reincidente |
 | H-10 | Los tipos de issue de Jira en `LID` están en dos idiomas | Baja | Sorteado |
-| H-13 | Una sesión que caduca con la lista abierta deja al usuario sin salida | Media | **Resuelto (2026-08-26)** |
+| H-13 | Una sesión que caduca con la lista abierta deja al usuario sin salida | Media | **Resuelto** · `s3/start` 2026-08-26, `s4/start` 2026-09-02 |
 | H-12 | El registro tipado de Tuyau solo modela la respuesta de éxito | Baja | Sorteado |
-| H-14 | `updatedAt` vale distinto según el endpoint que lo devuelve | Baja | **Resuelto (2026-08-26)** |
+| H-14 | `updatedAt` vale distinto según el endpoint que lo devuelve | Baja | **Resuelto** · `s3/start` 2026-08-26, `s4/start` 2026-09-02 |
 | H-15 | Una tarea hecha con la fecha pasada seguía llegando marcada como vencida | Alta | **Resuelto (2026-08-26)** |
 | H-16 | Un estado inventado en el filtro devolvía 200 con lista vacía | Alta | **Resuelto (2026-08-26)** |
 | H-17 | La lista filtraba el email del responsable | Alta | **Resuelto (2026-08-26)** |
 | H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Alta | Abierto |
-| H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Media | **Resuelto (2026-09-02)** · arrastrado desde el Módulo 3 |
+| H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Alta | **Resuelto (2026-09-02)** · arrastrado desde el Módulo 3, cerrado en dos pasos |
 | H-20 | Dos requisitos de la spec viva se contradecían sobre `today` | Media | **Resuelto (2026-08-26)** |
 | H-21 | El orden de validación difiere entre controladores | Baja | Abierto |
+| H-22 | La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama | Alta | **Resuelto (2026-09-02)** |
 
 ---
 
@@ -121,7 +124,7 @@ Lo que **no** cubre, declarado a propósito para que el hueco sea conocido: la s
 
 ## H-11 · El email distingue mayúsculas y minúsculas
 
-**Severidad: alta. Resuelto el 2026-08-26.** Detectado al escribir la spec viva de `auth` en el Módulo 3.
+**Rama: `s3/start` y `s4/start`. Severidad: alta. Resuelto el 2026-08-26 en `s3/start`, y el 2026-09-02 en `s4/start`.** Detectado al escribir la spec viva de `auth` en el Módulo 3.
 
 La regla de unicidad del email compara la cadena tal cual, así que **la misma persona puede registrarse dos veces cambiando la caja**.
 
@@ -154,6 +157,18 @@ Solo se baja a minúsculas. Las transformaciones por proveedor que arrastra `nor
 Las cuentas ya guardadas se normalizan con una migración. Se comprobó antes que no hubiera dos que solo se diferenciaran en mayúsculas.
 
 **Cómo se verificó**: cuatro pruebas funcionales, y quitar la normalización tumba cuatro casos.
+
+### Y en `s4/start` seguía vivo
+
+**Estaba marcado «Resuelto» y no lo estaba en esta rama.** El arreglo se hizo sobre `s3/start` y nunca cruzó: `s4/start` viene del curso, trae su propio `app/validators/user.ts` sin normalización, y no tiene ninguna de las dos migraciones.
+
+**Cómo se verificó**: existiendo `rev@example.com`, un alta con `REV@EXAMPLE.COM` devolvió `200` y creó una segunda cuenta con su propia sesión. Dos cuentas, un buzón. Quinta revisión adversarial, 2026-09-02, contra el servidor de la rama.
+
+**Resuelto el 2026-09-02** portando el arreglo entero: el validador normaliza a minúsculas antes de comprobar la unicidad, una migración normaliza las cuentas ya guardadas con la misma función que el validador, y un índice único sobre `lower(email)` lo impide también a lo que no pase por el validador.
+
+**Cómo se verificó**: seis pruebas en `tests/functional/auth/email_mayusculas.spec.ts`. Quitar la normalización del validador tumba cinco; comprobado.
+
+Un detalle que vale por la entrada entera: al aplicar la migración sobre la base de desarrollo, **falló**, porque allí estaban las dos cuentas duplicadas que la revisión había creado. Está diseñada para fallar en ese caso: unificar dos cuentas es una decisión con datos detrás y no la toma una migración.
 
 ---
 
@@ -339,7 +354,7 @@ Está fuera de nuestro alcance, es del framework.
 
 ## H-13 · Una sesión que caduca con la lista abierta deja al usuario sin salida
 
-**Severidad: media. Resuelto el 2026-08-26.**
+**Rama: `s3/start` y `s4/start`. Severidad: media. Resuelto el 2026-08-26 en `s3/start`, y el 2026-09-02 en `s4/start`.**
 
 Si la credencial deja de valer mientras la pantalla de tareas está abierta, `frontend/src/pages/tasks-page.tsx` pinta «Tu sesión ha caducado. Vuelve a iniciar sesión.» en un aviso que sustituye a toda la tarjeta.
 Pero ese aviso no ofrece ninguna navegación, y `auth-provider` solo limpia el token al arrancar, no ante un 401 posterior.
@@ -360,11 +375,19 @@ Poner un botón en el aviso de la lista habría arreglado la pantalla que ya con
 **Cómo se verificó**: en navegador real. Con la lista abierta, se revocó la credencial contra el backend por fuera de la aplicación y se pulsó un cambio de estado. La aplicación pasó a `/login` **sin recargar**, mostrando «Tu sesión ha caducado», y con el token ya borrado.
 Que un fallo que no es de credencial (500, corte de red, 422) no cierre la sesión lo cubre una prueba de Vitest **en `s3/start`**.
 
+### Y en `s4/start` seguía vivo
+
+Mismo motivo que H-11: el arreglo no cruzó de rama. En `s4/start`, `lib/api.ts` no exponía ningún punto de suscripción y `auth-provider` solo limpiaba el token al rehidratar, así que un 401 posterior al arranque dejaba el estado en `authenticated` y el guard de rutas públicas seguía rebotando `/login` de vuelta.
+
+**Cómo se verificó**: lectura del código de la rama, 2026-09-02. `grep` de `onUnauthorized` en `frontend/src/` no devolvía nada.
+
+**Resuelto el 2026-09-02** portando el arreglo por el mismo camino que en `s3/start`: `lib/api.ts` expone `onUnauthorized`, el proveedor de sesión se engancha ahí, y cualquier 401 de cualquier operación descarta la sesión y deja escrito el motivo. El cierre de sesión a propósito silencia el aviso, para que salir no aterrice en el acceso con un «tu sesión ha caducado» que no viene a cuento.
+
 ---
 
 ## H-14 · `updatedAt` vale distinto según el endpoint que lo devuelve
 
-**Severidad: baja. Resuelto el 2026-08-26.**
+**Rama: `s3/start` y `s4/start`. Severidad: baja. Resuelto el 2026-08-26 en `s3/start`, y el 2026-09-02 en `s4/start`.**
 
 La respuesta de `PATCH /api/v1/tasks/:id` devuelve el objeto en memoria, con milisegundos.
 El `GET` siguiente devuelve lo persistido, truncado al segundo.
@@ -384,6 +407,16 @@ GET   -> "updatedAt":"2026-08-26T06:09:01.000+00:00"
 Truncar al serializar se descartó: escondía el desajuste en la capa de presentación y dejaba el objeto en memoria diciendo una cosa y la base otra.
 
 **Cómo se verificó**: dos pruebas funcionales comparan campo por campo la tarea que devuelve la escritura con la que devuelve la lectura siguiente. Quitar el arreglo las tumba a las dos.
+
+### Y en `s4/start` seguía vivo, en una escritura más
+
+El arreglo tampoco cruzó, y la rama del curso añadió una tercera escritura -la fecha de vencimiento- con el mismo patrón: guardar, cargar la relación y serializar el objeto en memoria.
+
+**Cómo se verificó**: lectura de los tres controladores de escritura, 2026-09-02.
+
+**Resuelto el 2026-09-02**: `Task.releerConResponsable(id)` devuelve lo persistido con el responsable en una sola consulta, y lo usan las tres escrituras. Está en el modelo y no repetido en cada controlador, para que la cuarta lo herede.
+
+**Cómo se verificó**: tres pruebas en `tests/functional/tasks/escritura_lectura.spec.ts` comparan el objeto entero que devuelve cada escritura con el de la lectura siguiente. Devolver el objeto en memoria en una sola de las tres tumba su prueba; comprobado.
 
 ---
 
@@ -455,23 +488,34 @@ Peor en el change del filtro: `2026-08-13-add-task-status-filter/tasks.md` marca
 
 ## H-19 · Las respuestas de error devuelven traza, rutas y el SQL ejecutado
 
-**Severidad: media.** Deuda aceptada, declarada aquí.
+**Rama: `s4/start`. Severidad: alta. Resuelto el 2026-09-02**, en dos pasos y tras tres módulos abierto.
 
-`app/exceptions/handler.ts` fija `debug = !app.inProduction`, así que fuera de producción cualquier 500 o 404 responde con el volcado completo: nombre de fichero absoluto, número de línea, trozos de código fuente de `node_modules` y la sentencia SQL ejecutada.
+`app/exceptions/handler.ts` fijaba `debug = !app.inProduction`, así que fuera de producción cualquier error respondía con el volcado completo: nombre de fichero absoluto, número de línea, trozos de código fuente de `node_modules` y la sentencia SQL ejecutada.
 
-**Cómo se verificó**: un `PUT` sobre una base sin migrar devolvió la sentencia `update tasks set ...` completa y las rutas absolutas del disco. Revisión adversarial del Módulo 4.
+**Cómo se verificó**: un `PUT` sobre una base sin migrar devolvió la sentencia `update tasks set ...` completa y las rutas absolutas del disco. Cuarta revisión adversarial del Módulo 4.
 
-**Por qué se acepta**: en producción `debug` es `false` y el framework responde genérico, así que no es una fuga en despliegue. Lo que sí es real es que se filtra a cualquiera con acceso de red a la máquina de desarrollo.
+### El primer cierre, y por qué no bastaba
 
-**Qué hacer si se decide atacar**: apagarlo salvo con una variable explícita. No se hace ahora porque cambia el comportamiento del framework para todo el equipo y merece su propia decisión.
+[ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md) apagó el volcado por defecto **en todos los entornos**, con `DEBUG_HTTP_ERRORS=true` para encenderlo a propósito.
 
-**Resuelto el 2026-09-02** por [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md), tras tres módulos abierto.
+Eso quitó las trazas y **dejó abierta la mitad grande**. La rama sin depuración del framework responde `{ message: error.message }`, y el `message` de un `SqliteError` es la sentencia SQL entera con sus valores dentro. La quinta revisión adversarial lo reprodujo contra el servidor **con el volcado ya apagado**, que es la configuración de producción:
 
-El volcado va apagado por defecto **en todos los entornos**, no solo en producción, y quien lo quiera lo enciende con `DEBUG_HTTP_ERRORS=true`.
+```
+POST /api/v1/auth/signup   (tres altas simultáneas, carrera de `unique`)
+500 {"message":"insert into `users` (…) values ('2026-09-02 16:05:03',
+     'fuga@example.com', 'Fuga Prod',
+     '$scrypt$n=16384,r=8,p=1$unlY7g4Rjk2DDvyFxREKCw$1YV0BCIlj…'"}
+```
 
-Lo que hizo defendible la decisión, comprobado antes de tomarla: **el diagnóstico no se pierde, cambia de sitio**. `ExceptionHandler.report()` sigue registrando el error con su objeto completo en el log del servidor. El desarrollador tiene lo mismo en su terminal; quien deja de tenerlo es cualquiera que alcance el puerto.
+Endpoint público, sin sesión, y con el hash de la contraseña dentro del cuerpo.
 
-**Cómo se verificó**: `tests/functional/errores.spec.ts` comprueba el cuerpo entero de cuatro clases de error contra siete rastros distintos. Encender el volcado tumba dos.
+**El argumento que lo bajó de prioridad tres módulos seguidos -«en producción `debug` es `false`, así que no es una fuga en despliegue»- era falso justo para la parte más grave.** `debug=false` es exactamente la configuración con la que se reprodujo.
+
+### El cierre completo
+
+El manejador intercepta todo `5xx` y responde `{ errors: [{ message: 'Error interno del servidor' }] }`, sin tocar `report()`. El mensaje de un error inesperado no es contrato: lo escribe la librería que falló y describe el fallo, no el producto.
+
+**Cómo se verificó**: `tests/functional/errores.spec.ts` provoca un `500` real -una cuenta guardada en mayúsculas por debajo del validador y un alta de la misma en minúsculas, que el índice `lower(email)` detiene- y comprueba el cuerpo entero contra diecisiete rastros, entre ellos `insert into`, `SqliteError` y `$scrypt$`. Quitar la intercepción tumba esa prueba; comprobado.
 
 > Su recorrido completo, desde que apareció en el Módulo 3 hasta que se cerró, está en la sección «El defecto que arrastramos» al final de este documento.
 
@@ -496,6 +540,29 @@ Lo que hizo defendible la decisión, comprobado antes de tomarla: **el diagnóst
 `TaskStatusesController.update` y `TaskDueDatesController.update` resuelven la tarea **antes** de validar; `TasksController.show` valida antes. Los dos caminos cumplen la spec, pero significa que un `PATCH` con estado inventado sobre una tarea inexistente da 404, mientras un `GET` sin `today` sobre una tarea inexistente da 422.
 
 Ningún escenario lo fija. Conviene fijarlo antes de que alguien construya encima.
+
+---
+
+## H-22 · La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama
+
+**Rama: `s4/start`. Severidad: alta. Resuelto el 2026-09-02.**
+
+El 2026-09-02 se estableció la regla de arrastrar este registro entre módulos, y se escribió la primera tabla «Lo que se arrastra» en `docs/reporte-cierre-defectos.md`. Esa tabla marcaba **H-11, H-13 y H-14** como `Cerrado | —`.
+
+Los tres estaban vivos en `s4/start`.
+
+La regla que ese mismo commit escribió dice, literalmente: «**Lo que no vale**: dar un hallazgo por resuelto porque se arregló en otra rama». La primera tabla que la aplicó hizo exactamente eso, en tres de sus cinco filas, el mismo día.
+
+**Cómo se verificó**: quinta revisión adversarial. H-11 contra el servidor de la rama -un alta con `REV@EXAMPLE.COM` existiendo `rev@example.com` devolvió `200` y creó una segunda cuenta-, H-13 y H-14 por lectura del código, que no contenía ninguno de los dos arreglos.
+
+**Consecuencia**: es el mismo defecto que la regla existe para evitar, cometido por el instrumento que la implementa. Y es peor que no tener tabla: una fila que dice «Cerrado» detiene la comprobación de quien la lee.
+
+**Resuelto el 2026-09-02**: los tres hallazgos se comprobaron uno a uno contra la rama, se portaron sus arreglos con pruebas, y la tabla se corrigió. Además:
+
+- Cada entrada de este documento dice ahora **qué rama describe**, que era la regla escrita en `CLAUDE.md` y no aplicada.
+- La comprobación del verificador dejó de conformarse con que la cadena «Lo que se arrastra» apareciera en cualquier parte del reporte: ahora exige el encabezado, la tabla, y filas con sus cinco columnas. Se comprobó mutando: sustituir la tabla por una frase, o dejar el encabezado sin filas, la tumba.
+
+**Lo que no se arregla con código**: comprobar una fila cuesta minutos y darla por buena cuesta cero. Lo único que lo sostiene es que la columna «Estado» nombre la rama y la fecha en que se miró, no un «Cerrado» a secas.
 
 ---
 
@@ -533,9 +600,9 @@ Al documentar el contrato se escribieron tres `404` con la forma de error del pr
 
 Se normalizó entonces en el manejador de excepciones, que es el sitio general que D12 ya había señalado tres semanas antes. Ahora sí: cualquier ruta que se añada mañana lo hereda.
 
-**Hoy. Sigue abierto, y más ancho de lo que decíamos.**
+**Cuarta revisión adversarial, 2026-09-01. Es más ancho de lo que decíamos.**
 
-Fuera de producción, **cualquier** excepción que el proyecto no controle sigue saliendo con el volcado completo. La cuarta revisión adversarial lo evidenció con un `500` de SQLite que devolvía la sentencia ejecutada y rutas absolutas del disco:
+Fuera de producción, **cualquier** excepción que el proyecto no controlara salía con el volcado completo. Se evidenció con un `500` de SQLite que devolvía la sentencia ejecutada y rutas absolutas del disco:
 
 ```
 PUT /api/v1/tasks/10/due-date
@@ -553,7 +620,7 @@ Tres razones, y ninguna es que fuera difícil de arreglar.
 
 **2. Cerrarlo del todo no es un arreglo, es una decisión.** Significa apagar el modo depuración fuera de producción, que cambia el comportamiento del framework para todo el equipo y quita información útil mientras se desarrolla. Eso merece su propio ADR, y nadie lo ha escrito.
 
-**3. En producción no ocurre.** `debug` es `false` allí, así que el framework responde genérico. Eso lo baja de prioridad cada vez que se mira, y por eso lleva tres módulos bajándose de prioridad.
+**3. «En producción no ocurre», que además era falso.** El argumento fue que allí `debug` es `false` y el framework responde genérico. Eso lo bajó de prioridad tres módulos seguidos. Y la respuesta genérica del framework es `{ message: error.message }`, que en un error de base de datos **es la sentencia SQL**: la parte más grave de la fuga ocurría precisamente con la configuración que se citaba como prueba de que no ocurría. Nadie lo comprobó hasta la quinta revisión.
 
 ### Cómo se cerró, el 2026-09-02
 
@@ -563,7 +630,17 @@ Lo que faltaba no era código, era la decisión. Está en [ADR-0003](adr/0003-el
 
 Se descartó apagarlo solo en `test`, que habría puesto la suite en verde sobre un defecto vivo. Es justo el error que este módulo entero enseña a no cometer.
 
-Tres módulos abierto, y el arreglo fueron dos líneas. Lo caro no era hacerlo: era decidirlo, y nadie lo había escrito.
+### Y volvió a pasar lo mismo, en el commit que lo cerraba
+
+La quinta revisión adversarial, sobre ese mismo commit, encontró que **apagar el volcado no cerraba el defecto**. Quitaba las trazas de Youch y dejaba intacta la respuesta que da el framework cuando la depuración está apagada: `{ message: error.message }`. En un error de base de datos ese mensaje **es la sentencia SQL**, y en el alta de una cuenta esa sentencia lleva dentro el hash de la contraseña. Reproducido contra el servidor con `debug` ya en `false`, en un endpoint público y sin sesión.
+
+Es el patrón de D12 por tercera vez, y esta vez lo cometimos con el diagnóstico delante: **causa general entendida, arreglo aplicado a una de sus manifestaciones**. Primero se arregló una ruta, luego una excepción, luego el volcado. Cada paso era correcto y ninguno era el sitio general.
+
+El sitio general era la costumbre de devolver el `message` de una excepción tal cual. El cierre definitivo intercepta todo `5xx` y responde una forma cerrada, y no depende de qué excepción sea, porque el agujero nunca lo abrió una excepción concreta.
+
+**Y la frase que lo mantuvo abierto era falsa.** «En producción no ocurre» se repitió tres módulos como motivo para bajarlo de prioridad. `debug=false` es la configuración de producción, y es exactamente con la que se reprodujo la fuga del SQL. El argumento no era una prioridad discutible: era un error de hecho que nadie comprobó.
+
+Tres módulos abierto, dos intentos de cierre, y lo caro nunca fue el código.
 
 ---
 
