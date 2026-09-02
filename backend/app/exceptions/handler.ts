@@ -35,13 +35,13 @@ export default class HttpExceptionHandler extends ExceptionHandler {
      * Se normaliza aquí y no en cada controlador porque son tres rutas hoy y
      * cualquiera que se añada mañana heredaría el mismo agujero.
      *
-     * **Esto no cierra H-19.** Fuera de producción, **cualquier** excepción que
-     * el proyecto no controle sigue saliendo con el volcado de depuración: una
-     * ruta desconocida, un fallo de la base de datos con su SQL, cualquier
-     * error inesperado. Aquí solo se normaliza el caso que el contrato
-     * documenta. Cerrar el resto es apagar el modo depuración, que cambia el
-     * comportamiento del framework para todo el equipo y merece su propia
-     * decisión.
+     * Esto normaliza la **forma** del cuerpo, para que las tres rutas que
+     * resuelven un identificador respondan como el contrato documenta, con
+     * `{ errors: [...] }`, en vez del `{ message }` escueto del framework.
+     *
+     * Que ninguna respuesta lleve el volcado de depuración es otra cosa, y la
+     * decide ADR-0003 apagándolo en todos los entornos. Las dos piezas son
+     * complementarias: sin esta, el 404 saldría limpio pero con otra forma.
      */
     if (error instanceof Error && 'code' in error && error.code === 'E_ROW_NOT_FOUND') {
       return ctx.response

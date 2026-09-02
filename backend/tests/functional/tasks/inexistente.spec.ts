@@ -9,10 +9,10 @@ import { cuerpo, errores } from '#tests/helpers/api'
  *
  * La spec solo exige el `404`, y el código ya lo devolvía. Lo que no había era
  * ninguna prueba sobre el **cuerpo**, y por eso pasó desapercibido que
- * `E_ROW_NOT_FOUND` era la única excepción del sistema que caía al renderizador
- * de depuración: devolvía el nombre de la excepción, la traza, la línea del ORM
- * y rutas absolutas del disco. El contrato documentaba `{ errors: [...] }`,
- * como el resto de errores, y por tanto mentía.
+ * `E_ROW_NOT_FOUND` caía al renderizador de depuración: devolvía el nombre de
+ * la excepción, la traza, la línea del ORM y rutas absolutas del disco. El
+ * contrato documentaba `{ errors: [...] }`, como el resto de errores, y por
+ * tanto mentía.
  */
 const RUTAS = [
   { nombre: 'consultar', metodo: 'get', camino: (id: string) => `/api/v1/tasks/${id}` },
@@ -74,8 +74,8 @@ test.group('Tasks | tarea inexistente', (group) => {
     // El cuerpo entero. Es lo que devolvía el renderizador de depuración y lo
     // que ninguna prueba miraba, porque todas se conformaban con el código.
     //
-    // Cubre las rutas de tareas, no el sistema entero: una ruta desconocida
-    // sigue filtrando la traza, y eso es H-19, aceptado como deuda.
+    // Cubre las rutas de tareas. Que ninguna respuesta del sistema revele
+    // internals lo cubre `tests/functional/errores.spec.ts`, desde ADR-0003.
     const crudo = JSON.stringify(respuesta.body())
     for (const rastro of ['frames', 'fileName', 'lineNumber', 'node_modules', 'E_ROW_NOT_FOUND']) {
       assert.notInclude(crudo, rastro, `la respuesta filtra «${rastro}»`)
