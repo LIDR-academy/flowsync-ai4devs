@@ -104,9 +104,32 @@ test.group('Errores | ninguna respuesta revela internals', (group) => {
     sinRastros(respuesta.body(), assert)
   })
 
+  /**
+   * Las **siete** rutas protegidas, no una muestra.
+   *
+   * El título decía «todas» y la lista traía tres, todas de lectura: las dos
+   * escrituras de tarea y el cierre de sesión no las miraba nadie. Un nombre
+   * que promete más de lo que el cuerpo hace es la forma de prueba que peor
+   * envejece, porque quien la lee da por cubierto lo que no está.
+   *
+   * La lista se contrasta contra la tabla de rutas de `CLAUDE.md`: si mañana se
+   * añade una ruta protegida y no se añade aquí, el hueco vuelve.
+   */
+  const RUTAS_PROTEGIDAS = [
+    ['get', '/api/v1/account/profile'],
+    ['post', '/api/v1/account/logout'],
+    ['get', '/api/v1/tasks'],
+    ['post', '/api/v1/tasks'],
+    ['get', '/api/v1/tasks/1'],
+    ['patch', '/api/v1/tasks/1/status'],
+    ['put', '/api/v1/tasks/1/due-date'],
+  ] as const
+
   test('sin credencial, en todas las rutas protegidas', async ({ client, assert }) => {
-    for (const camino of ['/api/v1/tasks', '/api/v1/tasks/1', '/api/v1/account/profile']) {
-      const respuesta = await client.get(camino)
+    for (const [metodo, camino] of RUTAS_PROTEGIDAS) {
+      // Sin cuerpo a propósito: la credencial se comprueba antes de llegar al
+      // controlador, así que un 422 aquí significaría que el orden es otro.
+      const respuesta = await client[metodo](camino)
 
       respuesta.assertStatus(401)
       sinRastros(respuesta.body(), assert)

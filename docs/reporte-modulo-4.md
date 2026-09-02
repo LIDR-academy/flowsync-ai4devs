@@ -245,4 +245,6 @@ El segundo encuentra lo que el primero no puede encontrar, porque el primero sol
 
 > H-19 estaba en esta tabla y salió de ella el 2026-09-02, cerrado por ADR-0003 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: ver la sección 4 ter.
 
-Y los 15 requisitos de `tasks` que solo se observan en pantalla siguen sin prueba, porque el proyecto no tiene runner de navegador. Dentro de lo cubierto queda un hueco real: «las tareas exigen sesión» solo tiene prueba sobre una de las cinco rutas. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
+Y los 15 requisitos de `tasks` que solo se observan en pantalla siguen sin prueba, porque el proyecto no tiene runner de navegador. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
+
+> **El hueco de «las tareas exigen sesión» se cerró el 2026-09-02.** Decía aquí que solo había prueba sobre una de las cinco rutas. Al mirarlo, el problema era mayor y de otra forma: la prueba se llamaba «sin credencial, en todas las rutas protegidas» y su lista traía **tres de las siete**, todas de lectura. Las dos escrituras de tarea y el cierre de sesión no las miraba nadie, y el título daba por cubierto lo que no estaba. Ahora recorre las siete, y añadir a la lista una ruta que no exige sesión la tumba; comprobado.
