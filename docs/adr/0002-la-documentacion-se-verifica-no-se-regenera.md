@@ -56,4 +56,6 @@ Ese 404 no lleva `field` ni `rule`: no viene de validar un campo, y ponerlos ser
 
 Queda atado por una comprobación del verificador y por `tests/functional/tasks/inexistente.spec.ts`, que mira el cuerpo y no solo el código de estado. Sin las dos cosas, el contrato volvería a mentir en silencio, que es exactamente lo que ya pasó una vez.
 
-**Lo que no cubre**: una ruta desconocida sigue devolviendo el volcado de depuración fuera de producción. Es H-19, aceptado como deuda, y cerrarlo significa apagar el modo depuración para todo el equipo.
+**Lo que no cubre**: fuera de producción, **cualquier** excepción que el proyecto no controle sigue devolviendo el volcado de depuración, con traza, rutas absolutas del disco y, si viene de la base, el SQL ejecutado. No es solo una ruta desconocida: la revisión adversarial lo evidenció con un `500` de SQLite. Aquí solo se normaliza el caso que el contrato documenta.
+
+Es H-19, aceptado como deuda, y cerrarlo significa apagar el modo depuración para todo el equipo.

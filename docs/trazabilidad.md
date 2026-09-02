@@ -132,8 +132,8 @@ Por orden de lo que más protege:
 
 1. «Las tareas exigen sesión» sobre las cinco rutas, no solo sobre la creación. Es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
 2. Un runner de navegador, si en algún momento los 15 requisitos de pantalla dejan de ser un hueco aceptable.
-4. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
-5. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
-6. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
+3. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
+4. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
+5. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
 
 Lo que **no** se propone: perseguir un porcentaje de cobertura. La métrica de esta matriz es qué escenario de la spec está cubierto, no qué línea se ejecuta.

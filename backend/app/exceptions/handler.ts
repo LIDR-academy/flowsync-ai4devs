@@ -23,11 +23,13 @@ export default class HttpExceptionHandler extends ExceptionHandler {
      * Se normaliza aquí y no en cada controlador porque son tres rutas hoy y
      * cualquiera que se añada mañana heredaría el mismo agujero.
      *
-     * **No es la única que se filtra.** `E_ROUTE_NOT_FOUND` hace lo mismo ante
-     * una ruta desconocida, y sin exigir sesión. Queda fuera a propósito: es
-     * H-19 en `docs/hallazgos.md`, se acepta como deuda, y cerrarlo es apagar
-     * el modo depuración, que cambia el comportamiento del framework para todo
-     * el equipo y merece su propia decisión.
+     * **Esto no cierra H-19.** Fuera de producción, **cualquier** excepción que
+     * el proyecto no controle sigue saliendo con el volcado de depuración: una
+     * ruta desconocida, un fallo de la base de datos con su SQL, cualquier
+     * error inesperado. Aquí solo se normaliza el caso que el contrato
+     * documenta. Cerrar el resto es apagar el modo depuración, que cambia el
+     * comportamiento del framework para todo el equipo y merece su propia
+     * decisión.
      */
     if (error instanceof Error && 'code' in error && error.code === 'E_ROW_NOT_FOUND') {
       return ctx.response

@@ -61,12 +61,25 @@ function comprobar(nombre, fn) {
  * elimina de golpe toda esa clase de fallo.
  */
 function rutasDelCodigo() {
-  const salida = execFileSync('node', ['ace', 'list:routes', '--json'], {
-    cwd: join(RAIZ, 'backend'),
-    encoding: 'utf8',
-    maxBuffer: 16 * 1024 * 1024,
-    env: { ...process.env, NODE_ENV: 'test' },
-  })
+  if (!existsSync(join(RAIZ, 'backend/node_modules'))) {
+    throw new Error('falta backend/node_modules: ejecuta `npm ci` dentro de backend/')
+  }
+
+  let salida
+  try {
+    salida = execFileSync('node', ['ace', 'list:routes', '--json'], {
+      cwd: join(RAIZ, 'backend'),
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+      timeout: 60_000,
+      env: { ...process.env, NODE_ENV: 'test' },
+    })
+  } catch (error) {
+    // `ace` escribe sus errores en stdout, no en stderr, y `error.message` se
+    // queda en «Command failed». Sin esto el diagnostico se descartaba entero.
+    const detalle = [error.stdout, error.stderr].filter(Boolean).join('\n').trim()
+    throw new Error(`no se pudieron leer las rutas: ${detalle || error.message}`)
+  }
 
   const rutas = new Set()
   const recorrer = (nodo) => {
@@ -75,12 +88,14 @@ function rutasDelCodigo() {
 
     if (nodo.pattern) {
       const metodos = nodo.methods ?? (nodo.method ? [nodo.method] : [])
-      for (const metodo of metodos) {
-        // HEAD la anade el framework por cada GET, y OPTIONS el CORS.
-        if (metodo === 'HEAD' || metodo === 'OPTIONS') continue
-        // La raiz de cortesia no es parte de la API.
-        if (nodo.pattern === '/') continue
-        rutas.add(`${metodo} ${nodo.pattern}`)
+      // La raiz de cortesia no es parte de la API.
+      if (nodo.pattern !== '/') {
+        if (!metodos.length) {
+          throw new Error(`la ruta ${nodo.pattern} no declara ningun metodo`)
+        }
+        // No se filtra HEAD ni OPTIONS: este framework no los anade solo, asi
+        // que descartarlos solo hacia invisible una ruta declarada con ellos.
+        for (const metodo of metodos) rutas.add(`${metodo} ${nodo.pattern}`)
       }
     }
     Object.values(nodo).forEach(recorrer)
@@ -133,7 +148,7 @@ function operacionesDelContrato() {
     // mismos ocho espacios, contaba como declarado.
     if (/^ {6}\w+:/.test(linea)) enRespuestas = /^ {6}responses:/.test(linea)
 
-    const codigo = linea.match(/^ {8}"(\d{3})":/)
+    const codigo = linea.match(/^ {8}"?(\d{3})"?:/)
     if (codigo && actual && enRespuestas) actual.codigos.add(codigo[1])
   }
 
@@ -189,9 +204,12 @@ comprobar('Los estados del contrato son los del dominio', () => {
   if (!declarados.length) throw new Error('no se encuentra TASK_STATUSES en el modelo')
 
   const estados = [...declarados[0][1].matchAll(/'([^']+)'/g)].map((m) => m[1])
-  const contrato = leer('docs/api/openapi.yaml')
-  const enum_ = contrato.match(/enum: \[([^\]]+)\]/)
-  if (!enum_) throw new Error('el contrato no declara el enum de estados')
+  // Sin comentarios y anclado al esquema que declara los estados: coger el
+  // primer `enum:` del fichero lo satisfacia un comentario con el enum viejo.
+  const contrato = leer('docs/api/openapi.yaml').replace(/^\s*#.*$/gm, '')
+  const bloque = contrato.match(/EstadoDeTarea:[\s\S]{0,400}?enum: \[([^\]]+)\]/)
+  if (!bloque) throw new Error('el contrato no declara el enum en EstadoDeTarea')
+  const enum_ = bloque
 
   const documentados = enum_[1].split(',').map((s) => s.trim())
   const iguales =
@@ -287,8 +305,14 @@ comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', (
   // cierto es el handler. Sin esto, quitarlo devolvería el volcado de
   // depuración y el contrato volvería a mentir sin que nada avisara.
   const handler = leerCodigo('backend/app/exceptions/handler.ts')
-  if (!/E_ROW_NOT_FOUND/.test(handler)) {
-    throw new Error('el handler no normaliza E_ROW_NOT_FOUND (ADR-0002)')
+  // Con el operador dentro del patrón. Invertirlo a `!==` rompe los tres 404 y
+  // convierte todo lo demás en un 404 falso, y la version anterior de esta
+  // comprobacion lo dejaba pasar: solo exigia que las dos cadenas coexistieran.
+  if (!/error\.code === 'E_ROW_NOT_FOUND'/.test(handler)) {
+    throw new Error('el handler no compara `error.code === E_ROW_NOT_FOUND` (ADR-0002)')
+  }
+  if (/error\.code !== 'E_ROW_NOT_FOUND'/.test(handler)) {
+    throw new Error('la comparacion esta invertida: normalizaria todo menos el 404')
   }
   if (!/status\(404\)[\s\S]{0,120}errors:/.test(handler)) {
     throw new Error('el handler no responde 404 con la forma `{ errors: [...] }`')
