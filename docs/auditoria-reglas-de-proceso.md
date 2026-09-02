@@ -2,7 +2,11 @@
 
 > Qué reglas declara este repositorio, cuáles se cumplen, cuáles no, y cuáles **no se pueden comprobar**.
 >
-> Preparado el 2026-09-02, antes del directo del Módulo 5. La columna de estado está deliberadamente sin rellenar: es el ejercicio de la sesión, y rellenarla antes destruye lo único interesante, que es la distancia entre lo que uno cree y lo que sale.
+> Preparado el 2026-09-02, antes del directo del Módulo 5.
+>
+> **La columna de estado va deliberadamente sin rellenar**, salvo dos filas: es el ejercicio de la sesión, y rellenarla antes destruye lo único interesante, que es la distancia entre lo que uno cree y lo que sale.
+>
+> Las dos excepciones no son descuidos y conviene que se vean. `R-05` dice **Se cumple** porque su comprobación corre en CI y se la ha visto fallar, así que no hay nada que contrastar en el directo. `R-13` dice **No se puede comprobar**, que no es un estado pendiente sino una propiedad de la regla: ninguna comprobación sabe si un documento sigue siendo útil.
 
 ## Por qué existe este documento
 

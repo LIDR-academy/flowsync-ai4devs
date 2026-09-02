@@ -78,6 +78,13 @@ describe('Desenvolver la respuesta', () => {
 
     await listTasks('t', 'done')
     expect(fetchMock.mock.calls[1][0]).toContain('?status=done')
+
+    // El caso que el título prometía y el cuerpo no mandaba: cadena vacía.
+    // Cambiar `status ?` por `status !== undefined ?` pasaba esta prueba
+    // mientras generaba `?status=`, que el validador rechaza con un 422 cuando
+    // lo que la persona pidió es «sin filtro». Lo señaló la sexta revisión.
+    await listTasks('t', '')
+    expect(fetchMock.mock.calls[2][0]).toMatch(/\/api\/v1\/tasks$/)
   })
 
   it('el día de hoy viaja en cada lectura que informa del vencimiento', async () => {

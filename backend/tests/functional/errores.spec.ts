@@ -136,6 +136,43 @@ test.group('Errores | ninguna respuesta revela internals', (group) => {
     }
   })
 
+  /**
+   * El contrato afirma en su primera línea que «todo error viaja como
+   * `{ errors: [ ... ] }`», y no era cierto: un JSON mal formado devolvía
+   * `{ message }` bajo un `400` que el contrato **sí** documenta con
+   * `schema: Errores`. Contrato roto en silencio, encontrado por la sexta
+   * revisión adversarial.
+   *
+   * Estos son los errores que no maneja nadie más: no son de validación, no
+   * son de credencial, y no vienen de resolver un identificador. Son justo los
+   * que se colaban.
+   */
+  test('todo error viaja con la forma del contrato', async ({ client, assert }) => {
+    const respuestas = [
+      // El cuerpo se corta a la mitad: el parser falla antes de que exista
+      // ningún validador que pueda decir nada.
+      await client
+        .post('/api/v1/auth/login')
+        .header('content-type', 'application/json')
+        .json(invalido('{"email":')),
+      // JSON válido que no es un objeto.
+      await client
+        .post('/api/v1/auth/login')
+        .header('content-type', 'application/json')
+        .json(invalido('"hola"')),
+      await client.get('/api/v1/inventado'),
+    ]
+
+    for (const respuesta of respuestas) {
+      const cuerpo = respuesta.body() as { errors?: { message?: string }[] }
+
+      assert.isArray(cuerpo.errors, 'la respuesta no trae `errors`: ' + JSON.stringify(cuerpo))
+      assert.isNotEmpty(cuerpo.errors)
+      assert.isString(cuerpo.errors?.[0]?.message)
+      sinRastros(cuerpo, assert)
+    }
+  })
+
   test('un cuerpo que el validador rechaza', async ({ client, assert }) => {
     const respuesta = await client
       .post('/api/v1/auth/signup')

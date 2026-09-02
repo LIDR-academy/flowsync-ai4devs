@@ -12,7 +12,7 @@
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 45 | — | — | 26 | parcial, ver §2 |
 | `tasks` | 32 | 124 | 12 | 118 | 38 | 17 de 17 requisitos de sistema, ver §3 |
-| transversal | — | — | — | — | 7 | 5 de forma de los errores, 2 de aislamiento de la base |
+| transversal | — | — | — | — | 8 | 6 de forma de los errores, 2 de aislamiento de la base |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
 

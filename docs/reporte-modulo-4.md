@@ -158,7 +158,7 @@ La sesión en directo lo monta como el clímax de su tercera demo: abre ese mate
 
 **Lo grave era que nada lo fijaba.** Ningún escenario de `tasks` tenía prueba que cubriera «el contenido no depende de quién mira», así que aplicar la instrucción del prework dejaba la suite entera en verde.
 
-Ahora sí: `tests/functional/tasks/lista_compartida.spec.ts` fija cuatro cosas -dos personas ven el mismo conjunto campo por campo, cada una ve la tarea de la otra con su responsable, una tarea ajena se consulta suelta igual que una propia, y ningún parámetro recorta la lista-. Verificado aplicando literalmente la instrucción del prework: **tres pruebas caen**.
+Ahora sí: `tests/functional/tasks/lista_compartida.spec.ts` fija cuatro cosas -dos personas ven el mismo conjunto campo por campo, cada una ve la tarea de la otra con su responsable, una tarea ajena se consulta suelta igual que una propia, y ningún parámetro recorta la lista-. Verificado aplicando literalmente la instrucción del prework: **cuatro pruebas caen**. (Decía tres hasta el 2026-09-02, cuando la sexta revisión adversarial volvió a contarlas.)
 
 Es la lección del módulo convertida en guardarraíl, que es lo único que sobrevive a que nadie se acuerde.
 

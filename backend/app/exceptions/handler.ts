@@ -72,6 +72,36 @@ export default class HttpExceptionHandler extends ExceptionHandler {
   }
 
   /**
+   * Todo error que llegue aquí sale con la forma del proyecto.
+   *
+   * El contrato afirma, desde su primera línea, que «todo error viaja como
+   * `{ errors: [ ... ] }`». No era cierto, y la sexta revisión adversarial lo
+   * demostró con cuatro casos alcanzables. El peor:
+   *
+   * ```
+   * POST /api/v1/auth/login   --data '{"email":'
+   * 400 {"message":"Unexpected end of JSON input"}
+   * ```
+   *
+   * El contrato **sí** documenta ese `400` para login, con `schema: Errores`.
+   * Devolver otra forma bajo un código documentado rompe a quien integre igual
+   * que devolver otro código, y encima en silencio.
+   *
+   * Aquí solo llegan los errores que nadie más maneja: los de validación tienen
+   * su propio renderizador, el `401` se auto-maneja, y el `404` de recurso y
+   * los `5xx` se resuelven arriba. Lo que queda -JSON mal formado, ruta
+   * desconocida, y cualquier `Exception` que se lance con un estado- venía
+   * saliendo con el `{ message }` escueto del framework.
+   *
+   * Cambiar el envoltorio no cambia el mensaje: el texto sigue siendo el que
+   * escribió quien lanzó el error. Para los `5xx`, que son los que dicen cosas
+   * que no deberían, la decisión es la de arriba y esta no la toca.
+   */
+  async renderErrorAsJSON(error: { status: number; message: string }, ctx: HttpContext) {
+    ctx.response.status(error.status).send({ errors: [{ message: error.message }] })
+  }
+
+  /**
    * The method is used to report error to the logging service or
    * the a third party error monitoring service.
    *

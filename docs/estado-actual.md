@@ -7,7 +7,7 @@
 >
 > Es el primer artefacto de la cadena SDD y antecede al alcance del MVP. Su función es impedir que el PRD reinvente capacidades que ya existen o dé por hecho un modelo de datos que no está.
 >
-> Rama de referencia: `s3/start`. Verificado leyendo el código y la base de datos, no de memoria.
+> Verificado leyendo el código y la base de datos, no de memoria. La rama es `s2/start`, la que dice la línea de arriba: una versión anterior de esta nota decía `s3/start` y se contradecía con su propio encabezado.
 >
 > El PRD y el backlog de esta rama son los del curso, no los del Módulo 2. Aquellos viven en la rama `docs/alcance-mvp`.
 

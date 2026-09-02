@@ -54,8 +54,14 @@ export function tareas(respuesta: Respuesta): TareaSerializada[] {
 /**
  * Marca un payload que el validador **debe** rechazar. El nombre es la
  * documentación: si una prueba lo usa, está probando un borde a propósito.
+ *
+ * Acepta `unknown` y no `Record`, porque el borde más interesante no es un
+ * objeto con campos malos: es un cuerpo que ni siquiera llega a ser un objeto.
+ * Un JSON cortado a la mitad falla en el parser, antes de que exista ningún
+ * validador que pueda decir nada, y es el caso que hacía falso el «todo error
+ * viaja como `{ errors: [...] }`» del contrato.
  */
-export function invalido<T>(payload: Record<string, unknown>): T {
+export function invalido<T>(payload: unknown): T {
   return payload as T
 }
 

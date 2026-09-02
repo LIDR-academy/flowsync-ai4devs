@@ -447,6 +447,13 @@ comprobar('Un error inesperado no devuelve su mensaje', () => {
   if (!/status >= 500[\s\S]{0,200}errors:/.test(handler)) {
     throw new Error('el 5xx no responde con la forma cerrada `{ errors: [...] }`')
   }
+  // Con el operador dentro del patrón, igual que en la del 404. Invertir la
+  // negación -`&& this.isDebuggingEnabled(ctx)`- deja la intercepción activa
+  // solo con el volcado encendido, que es exactamente al revés, y la versión
+  // anterior lo dejaba pasar porque solo exigía que las cadenas coexistieran.
+  if (!/status >= 500 && !this\.isDebuggingEnabled\(/.test(handler)) {
+    throw new Error('la condición del 5xx no es `status >= 500 && !this.isDebuggingEnabled(ctx)`')
+  }
   // Esto es aviso temprano, no la garantía. La garantía es la prueba, que
   // provoca un 500 real y mira el cuerpo entero.
   const prueba = leer('backend/tests/functional/errores.spec.ts')
