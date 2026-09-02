@@ -71,13 +71,34 @@ No cuántos produce. Un revisor que devuelve veinte cosas ciertas y ninguna acci
 
 De referencia, las cinco revisiones manuales del Módulo 4: las cinco encontraron algo real y las cinco terminaron en código. Ese es el listón que la versión automática tiene que sostener, y si baja, lo que hay que revisar es esta calibración, no el modelo.
 
-## Estado: sin verificar
+## Estado: parcialmente verificado
 
-**Esta comprobación todavía no cuenta** (R-14). Está escrita y no se la ha visto funcionar.
+**Esta comprobación todavía no cuenta** (R-14). El revisor no se ha ejecutado ni una vez.
 
-Para que cuente hacen falta dos cosas, en este orden:
+### Lo que sí se ha visto funcionar
 
-1. **Verla correr.** Que el job termine y deje un informe. Falta el secreto `ANTHROPIC_API_KEY` en el repositorio.
-2. **Verla morder.** Abrir una rama con un defecto plantado de una de las cinco categorías graves -por ejemplo, quitar la tercera condición de `isOverdueOn`, que es H-15- y comprobar que el informe lo nombra. Si no lo nombra, el problema es el prompt o la calibración, y hay que arreglarlo antes de confiar en un verde.
+Primera ejecución, `2026-09-02`, [run 33669154850](https://github.com/rene2bcore/flowsync-ai4devs/actions/runs/33669154850), disparada por el push del propio commit que añade el workflow:
+
+- El disparador `push` **dispara**, y el job arranca.
+- La puerta detecta la ausencia de clave -`TIENE_CLAVE: false`- y **omite la revisión sin fallar**: verde en 7 segundos, con su línea en el resumen.
+
+Eso verifica la decisión que más me preocupaba del diseño: que un secreto ausente no deje el job en rojo. Un rojo por falta de configuración enseña a ignorar el rojo.
+
+### Lo que no se ha visto
+
+Todo lo demás, y es la mayor parte:
+
+| Qué | Por qué no |
+|---|---|
+| La detección del PR abierto en el repositorio del curso | La puerta sale antes, por falta de clave |
+| La invocación de `claude -p` con sus flags | Nunca se ha ejecutado. Los flags están escritos con cuidado y el YAML valida, pero la primera ejecución real puede pedir ajustes |
+| La extracción del prompt desde `.claude/agents/` | Probada en local, no en el runner |
+| La publicación del informe, y su caída al resumen cuando el PR vive en otro repositorio | Nunca se ha llegado ahí |
+| **Que el revisor encuentre algo** | Lo importante, y lo que falta entero |
+
+### Qué falta, en orden
+
+1. **El secreto `ANTHROPIC_API_KEY`** en Settings → Secrets and variables → Actions. Sin eso no hay nada más que verificar.
+2. **Verla morder.** Una rama con un defecto plantado de una de las cinco categorías graves -por ejemplo, quitar la tercera condición de `isOverdueOn`, que es H-15- y comprobar que el informe lo nombra. Si no lo nombra, el problema está en el prompt o en esta calibración, y hay que arreglarlo **antes** de fiarse de un verde.
 
 Hasta entonces, `R-03` sigue siendo una petición con un job al lado.
