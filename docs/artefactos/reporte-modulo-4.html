@@ -324,6 +324,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
           <tr><td>El rechazo por recurso inexistente sale con la forma del proyecto</td><td>El <code>404</code> vuelve al volcado de depuración del framework</td></tr>
           <tr><td>El volcado de depuración va apagado</td><td>Se enciende a fuego, se ata al entorno, o se sobreescribe <code>isDebuggingEnabled</code></td></tr>
           <tr><td>Un error inesperado no devuelve su mensaje</td><td>Se deja de interceptar el <code>5xx</code> y vuelve el <code>{ message }</code> del framework, que en la base de datos es el SQL</td></tr>
+          <tr><td>Toda operación documenta el error que no estaba previsto</td><td>Una operación del contrato se queda sin su <code>500</code>, o deja de usar el esquema de errores del proyecto</td></tr>
           <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas</td></tr>
           <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
           <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
@@ -331,7 +332,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       </table>
     </div>
 
-    <p>Las trece se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+    <p>Las catorce se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
 
     <div class="nota">
       <span class="rotulo">La lección más útil</span>

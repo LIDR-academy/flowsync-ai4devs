@@ -113,7 +113,7 @@ También deja anotado que **tres de los doce ficheros del backlog no son histori
 
 Arquitectura con diagramas, contrato OpenAPI, ADR y README, escritos a partir de lo que existe.
 
-Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Trece comprobaciones que corren en CI:
+Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Catorce comprobaciones que corren en CI:
 
 | Comprueba | Muerde si |
 |---|---|
@@ -127,11 +127,12 @@ Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`
 | El rechazo por recurso inexistente sale con la forma del proyecto | El `404` vuelve al volcado de depuración del framework |
 | El volcado de depuración va apagado | Se enciende a fuego, se ata al entorno, o se sobreescribe `isDebuggingEnabled` |
 | Un error inesperado no devuelve su mensaje | Se deja de interceptar el `5xx` y vuelve el `{ message }` del framework, que en la base de datos es el SQL |
+| Toda operación documenta el error que no estaba previsto | Una operación del contrato se queda sin su `500`, o deja de usar el esquema de errores del proyecto |
 | El reporte de cada módulo declara lo que arrastra | Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas |
 | Las pruebas no pueden escribir sobre la base de desarrollo | La elección por entorno se deshace o deja de aplicarse |
 | Los documentos que el README enlaza existen | Un enlace apunta a un fichero que no está |
 
-Las trece se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
+Las catorce se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
 
 **Y dos de ellas dieron luz verde a mutaciones reales antes de endurecerse.** La quinta revisión encendió el volcado con `|| !app.inTest` y sustituyó la tabla de arrastre por la frase «esta vez no hace falta la tabla de Lo que se arrastra»: el verificador pasó las dos veces. Es la quinta pasada consecutiva en que la mutación con la que se probó una comprobación era la que esa comprobación ya cubría por construcción. Lo que ata el comportamiento es una prueba que lo provoca; el contraste sobre el texto del código es aviso temprano, no garantía.
 

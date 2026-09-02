@@ -300,6 +300,52 @@ comprobar('Toda operación que resuelve un id documenta su 404', () => {
   return `${conId.length} operaciones con 404`
 })
 
+comprobar('Toda operación documenta el error que no estaba previsto', () => {
+  // ADR-0003 decidió que **cualquier** 5xx responde una forma cerrada, y eso es
+  // contrato: quien integre tiene que saber que un fallo inesperado llega como
+  // `{ errors: [...] }` y no como el `{ message }` del framework con el SQL
+  // dentro.
+  //
+  // El contrato no lo documentaba en ninguna de las nueve operaciones, y ninguna
+  // comprobación lo vio porque ninguna miraba ahí: la del 404 solo mira rutas
+  // con `{id}`, y la del volcado solo mira el handler. Un cambio de forma de
+  // respuesta se coló entero entre las dos.
+  //
+  // Se comprueba operación a operación, por el mismo motivo que el 404: contar
+  // apariciones en el fichero da por buena una operación sin el suyo.
+  const operaciones = operacionesDelContrato()
+  if (!operaciones.length) throw new Error('el contrato no declara ninguna operación')
+
+  const sinInterno = operaciones.filter((o) => !o.codigos.has('500'))
+  if (sinInterno.length) {
+    throw new Error(
+      `sin 500 documentado: ${sinInterno.map((o) => `${o.metodo} ${o.ruta}`).join(', ')}`
+    )
+  }
+
+  // Y que lo que documenta sea la forma del proyecto, no una descripción suelta.
+  //
+  // Se acota el bloque por indentación en vez de mirar una ventana de N
+  // caracteres. La primera versión de esta comprobación usaba 600 y falló al
+  // escribirse, porque la descripción ocupa 631: una ventana fija no comprueba
+  // la estructura, comprueba cuánto se escribió, y se rompe en cuanto alguien
+  // alarga un párrafo.
+  const lineas = leer('docs/api/openapi.yaml').split('\n')
+  const inicio = lineas.findIndex((l) => /^ {4}ErrorInterno:\s*$/.test(l))
+  if (inicio === -1) throw new Error('el contrato no declara la respuesta `ErrorInterno`')
+
+  const bloque = []
+  for (const linea of lineas.slice(inicio + 1)) {
+    if (/^ {0,4}\S/.test(linea)) break
+    bloque.push(linea)
+  }
+  if (!bloque.some((l) => /schema:\s*\{\s*\$ref:\s*"#\/components\/schemas\/Errores"/.test(l))) {
+    throw new Error('la respuesta de error interno no usa el esquema `Errores` del proyecto')
+  }
+
+  return `${operaciones.length} operaciones con 500`
+})
+
 comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', () => {
   // El contrato documenta `{ errors: [...] }` en los tres 404, y quien lo hace
   // cierto es el handler. Sin esto, quitarlo devolvería el volcado de
