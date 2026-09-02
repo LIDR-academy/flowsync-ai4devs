@@ -24,4 +24,14 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
+
+  /**
+   * Devolver el volcado de depuración en el cuerpo de los errores HTTP.
+   *
+   * Apagado por defecto en todos los entornos (ADR-0003). El diagnóstico no se
+   * pierde: sigue saliendo por el log del servidor, que es donde se mira.
+   * Encenderlo expone traza, rutas absolutas del disco y el SQL ejecutado a
+   * cualquiera que alcance el puerto.
+   */
+  DEBUG_HTTP_ERRORS: Env.schema.boolean.optional(),
 })

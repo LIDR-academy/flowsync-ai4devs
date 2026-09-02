@@ -25,7 +25,11 @@ El artefacto que dirige la implementación es el de este repositorio: los criter
 
 ## Las historias
 
-Doce historias cubren las dos épicas, **todas con criterios de aceptación escritos**. Dos están además descompuestas en tickets.
+Doce ficheros cubren las dos épicas, **todos con criterios de aceptación escritos**. Dos están además descompuestos en tickets.
+
+> **Aviso de redacción (2026-08-26).** Tres de esos doce ficheros no describen una historia de usuario sino un criterio de aceptación de otra: `us-titulo-obligatorio.md` y `us-responsable-y-estado-por-defecto.md` son criterios de `us-crear-tarea`, y `us-abrir-tarea.md` es una superficie que no entrega valor por separado (su propia cabecera declara «Traza: ninguna directa»).
+>
+> No se han borrado, porque este backlog es el registro de lo que se decidió. El journey, el story mapping y la lectura correcta -nueve historias, no doce- están en [`redaccion-de-historias.md`](./redaccion-de-historias.md). Importa para la trazabilidad: la cadena empieza en la historia, y un error ahí se propaga a todo lo que cuelga.
 
 ### E2 · Gestión de tareas
 

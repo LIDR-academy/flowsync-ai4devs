@@ -1,0 +1,460 @@
+openapi: 3.1.0
+
+info:
+  title: FlowSync API
+  version: "1.0.0"
+  description: |
+    Contrato de la API tal y como está implementada en la rama `s4/start`.
+
+    Escrito a partir de `backend/start/routes.ts`, `backend/app/controllers/`,
+    `backend/app/validators/` y `backend/app/transformers/`. Si algo de aquí no
+    corresponde con el código, el documento está roto.
+
+    Dos convenciones que aplican a todo:
+
+    - Toda respuesta correcta viaja envuelta bajo la clave `data`. La única
+      excepción es `POST /account/logout`, que devuelve el objeto plano.
+    - Todo error viaja como `{ "errors": [ ... ] }`, y los de validación
+      señalan el campo responsable.
+
+servers:
+  - url: http://localhost:3333
+    description: Desarrollo
+
+tags:
+  - name: auth
+    description: Alta de cuenta y acceso
+  - name: account
+    description: La cuenta de quien tiene la sesión
+  - name: tasks
+    description: La lista compartida del espacio
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/auth/signup:
+    post:
+      tags: [auth]
+      summary: Crear una cuenta
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password, passwordConfirmation]
+              properties:
+                fullName:
+                  type: [string, "null"]
+                  description: Puede ser nulo, pero el campo debe viajar.
+                email: { type: string, format: email, maxLength: 254 }
+                password: { type: string, minLength: 8, maxLength: 32 }
+                passwordConfirmation:
+                  type: string
+                  description: Debe coincidir con `password`.
+      responses:
+        "200":
+          description: Cuenta creada, con una credencial ya utilizable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuthResult"
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/auth/login:
+    post:
+      tags: [auth]
+      summary: Obtener una credencial de acceso
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Credencial emitida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuthResult"
+        "400":
+          description: |
+            Credenciales incorrectas. La respuesta es **idéntica** tanto si la
+            contraseña es errónea como si la cuenta no existe: nada permite
+            distinguir los dos casos.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Errores" }
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/account/profile:
+    get:
+      tags: [account]
+      summary: Consultar la cuenta propia
+      responses:
+        "200":
+          description: Los datos públicos de la cuenta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/Cuenta" }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/account/logout:
+    post:
+      tags: [account]
+      summary: Cerrar la sesión presentada
+      responses:
+        "200":
+          description: |
+            La credencial usada deja de servir. Las demás sesiones de la misma
+            cuenta siguen abiertas.
+
+            Única respuesta del sistema **sin** envoltorio `data`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, examples: ["Logged out successfully"] }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/tasks:
+    get:
+      tags: [tasks]
+      summary: La lista compartida del espacio
+      description: |
+        Una sola lista para todo el espacio. Su contenido no depende de quién la
+        consulta.
+
+        Sin filtro **no** devuelve todas: lo hecho se queda fuera. Orden por
+        fecha de creación descendente, con el identificador como desempate
+        estable.
+
+        No lleva la fecha de vencimiento: eso solo lo informa la consulta de una
+        tarea suelta.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EstadoDeTarea"
+          description: |
+            Acota la lista a un estado. Un estado válido sin tareas devuelve una
+            lista vacía legítima; un estado que no existe se rechaza con 422 y
+            **nunca** se responde como lista vacía.
+      responses:
+        "200":
+          description: Las tareas del espacio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/TareaDeLista" }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+    post:
+      tags: [tasks]
+      summary: Crear una tarea
+      description: |
+        El título es lo único que se acepta. El responsable y el estado los pone
+        el sistema y no se leen de la petición ni aunque vengan.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: |
+                    Se recorta por los extremos antes de validar, así que un
+                    título de solo espacios se rechaza igual que uno vacío.
+                    Superar el máximo es un error, nunca un recorte silencioso.
+      responses:
+        "201":
+          description: |
+            Tarea creada, a nombre de quien la crea y en estado `pending`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/TareaDeLista" }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/tasks/{id}:
+    get:
+      tags: [tasks]
+      summary: Una tarea suelta, con su vencimiento resuelto
+      description: |
+        La única lectura que informa del vencimiento, y por eso la única que
+        exige el día de quien mira.
+      parameters:
+        - $ref: "#/components/parameters/IdDeTarea"
+        - name: today
+          in: query
+          required: true
+          schema: { type: string, format: date, examples: ["2026-08-26"] }
+          description: |
+            El día del calendario desde el que se mira. **Obligatorio y sin
+            valor por defecto** a propósito: tomar el día del servidor daría la
+            lectura equivocada a quien mire desde otro huso, y fallaría solo
+            lejos de donde se probó.
+      responses:
+        "200":
+          description: La tarea con todo lo que tiene
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/TareaConDetalle" }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/tasks/{id}/status:
+    patch:
+      tags: [tasks]
+      summary: Cambiar el estado de una tarea
+      description: |
+        Cualquier persona con sesión puede cambiar el estado de cualquier tarea,
+        en cualquier dirección. No hay permisos por responsable ni transiciones
+        prohibidas: volver de `done` a `pending` es lo que arregla un clic dado
+        por error.
+      parameters:
+        - $ref: "#/components/parameters/IdDeTarea"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { $ref: "#/components/schemas/EstadoDeTarea" }
+      responses:
+        "200":
+          description: La tarea con su nuevo estado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/TareaDeLista" }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+  /api/v1/tasks/{id}/due-date:
+    put:
+      tags: [tasks]
+      summary: Fijar, cambiar o retirar la fecha de vencimiento
+      description: |
+        Las tres son la misma operación: quitar la fecha no borra nada, pone el
+        valor «sin fecha», que es un valor legítimo del campo.
+      parameters:
+        - $ref: "#/components/parameters/IdDeTarea"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [today, dueDate]
+              properties:
+                today:
+                  type: string
+                  format: date
+                  description: El día de referencia de quien pide.
+                dueDate:
+                  type: [string, "null"]
+                  format: date
+                  description: |
+                    `null` retira la fecha. Se comprueba el calendario de
+                    verdad: `2026-02-31` se rechaza.
+      responses:
+        "200":
+          description: |
+            La tarea con su vencimiento ya resuelto contra `today`, de modo que
+            aplazar una tarea vencida deja de mostrarla vencida en esta misma
+            respuesta.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/TareaConDetalle" }
+        "401": { $ref: "#/components/responses/SinCredencial" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "422": { $ref: "#/components/responses/ErrorValidacion" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token de acceso opaco emitido por `signup` o `login`.
+
+  parameters:
+    IdDeTarea:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  schemas:
+    EstadoDeTarea:
+      type: string
+      enum: [pending, in_progress, done]
+      description: |
+        Conjunto cerrado. Viaja siempre con estos identificadores, nunca con el
+        rótulo en castellano que se pinta en pantalla.
+
+    Cuenta:
+      type: object
+      description: Los datos públicos de una cuenta. La contraseña no sale nunca.
+      properties:
+        id: { type: integer }
+        fullName: { type: [string, "null"] }
+        email: { type: string, format: email }
+        initials: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Responsable:
+      type: object
+      description: |
+        Lo justo para identificar a quien lleva la tarea. **No incluye el email
+        ni las fechas de la cuenta**, ni en la lista ni en la tarea suelta.
+      properties:
+        id: { type: integer }
+        fullName: { type: [string, "null"] }
+        initials: { type: string }
+
+    TareaDeLista:
+      type: object
+      description: La tarea tal y como la lleva la lista. Sin fecha de vencimiento.
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/EstadoDeTarea" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        assignee: { $ref: "#/components/schemas/Responsable" }
+
+    TareaConDetalle:
+      type: object
+      description: La tarea con su fecha de vencimiento y su condición de vencida.
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/EstadoDeTarea" }
+        dueDate: { type: [string, "null"], format: date }
+        isOverdue:
+          type: boolean
+          description: |
+            Vencida ⇔ tiene fecha **anterior** al día de referencia **y** no
+            está hecha. La comparación es estricta: vencer hoy todavía no es
+            estar vencida.
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        assignee: { $ref: "#/components/schemas/Responsable" }
+
+    AuthResult:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/Cuenta" }
+        token: { type: string }
+
+    Errores:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message: { type: string }
+              field: { type: string }
+              rule: { type: string }
+              meta: { type: object }
+
+  responses:
+    NoEncontrada:
+      description: |
+        No existe ninguna tarea con ese identificador. Un identificador mal
+        formado se rechaza igual, sin revelar nada sobre cómo está construido el
+        sistema por dentro.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Errores" }
+
+    SinCredencial:
+      description: |
+        Sin credencial, o con una que el sistema no reconoce. Las dos respuestas
+        son idénticas.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Errores" }
+
+    ErrorValidacion:
+      description: |
+        Datos que no valen. Se informa de **todos** los problemas a la vez, cada
+        uno señalando su campo.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Errores" }
+
+    ErrorInterno:
+      description: |
+        Algo falló y no estaba previsto. El cuerpo es **siempre el mismo**, y no
+        depende de qué excepción se lanzara: el mensaje de un error inesperado lo
+        escribe la librería que falló y describe el fallo, no el producto
+        (ADR-0003).
+
+        En particular **no** lleva la traza, ni rutas del disco, ni la sentencia
+        SQL ejecutada. El diagnóstico completo queda en el log del servidor, en
+        nivel `error`, que es donde mira quien desarrolla y no quien alcanza el
+        puerto.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Errores" }
+          example:
+            errors:
+              - message: Error interno del servidor

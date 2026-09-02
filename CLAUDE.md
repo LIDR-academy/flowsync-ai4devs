@@ -26,7 +26,7 @@ npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy solo hay tests **functional de `auth`** (`tests/functional/auth/`): registro, login, sesión e iniciales. **`tests/unit/` no existe**, y la capability `tasks` no tiene ni un test.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **76 pruebas functional**: 26 de `auth` (registro, acceso, sesión, iniciales y mayúsculas del email), 42 de `tasks` (responsable, vencimiento, filtro, lista compartida, creación, tarea inexistente, escritura contra lectura y orden de validación), 6 de errores y 2 de aislamiento de la base. **`tests/unit/` no existe.** Qué escenario de la spec cubre cada una, y cuáles siguen sin cubrir, en `docs/trazabilidad.md`.
 
 ```bash
 node ace test unit                    # una suite
@@ -36,7 +36,11 @@ node ace test --groups=... --tags=... --failed --watch
 node ace make:test --suite=functional # scaffolding de un fichero de test
 ```
 
-Ojo con la BD en tests: `config/database.ts` define una única conexión SQLite apuntando a `app.tmpPath('db.sqlite3')` sin override por entorno, así que las suites functional pegan contra el **mismo fichero** que el servidor de desarrollo. `.env.test` solo cambia `SESSION_DRIVER=memory`. Si añades tests que escriben, aísla con los hooks de `testUtils.db()` (truncate / transacción global) o el estado se filtra entre runs.
+La BD de tests está aislada por construcción (ADR-0001): `config/database.ts` elige el fichero según el entorno, y `bin/test.ts` fuerza `NODE_ENV=test` de forma incondicional, así que la suite no puede escribir sobre `tmp/db.sqlite3`. Se comprobó antes de arreglarlo que sí podía: un fichero de prueba sin hook dejaba filas en la base de desarrollo con la suite en verde.
+
+Los ficheros de prueba siguen declarando `group.each.setup(() => testUtils.db().withGlobalTransaction())`, que es lo que aísla un caso de otro dentro de la misma ejecución. Mantenlo al escribir uno nuevo.
+
+Dos cosas del arnés que ahorran tiempo: el registro tipado de Tuyau tipa solo la respuesta de **éxito** de cada ruta, así que para leer un error o enviar un payload que el validador debe negar están los helpers de `tests/helpers/api.ts` (`errores`, `tarea`, `tareas`, `invalido`); y `assert.hasAllKeys` no existe en este plugin, es `assert.sameMembers` sobre `Object.keys`.
 
 Otros comandos útiles: `node ace list:routes`, `node ace make:controller|model|migration|validator|transformer|service`, `node ace migration:fresh`, `node ace repl`.
 
@@ -50,7 +54,9 @@ npm run lint      # oxlint (NO eslint)
 npm run format    # prettier --write .
 ```
 
-No hay runner de tests instalado en el frontend.
+El frontend corre **Vitest** (`npm test`): 28 pruebas sobre `src/lib/api.test.ts`, que es el único punto de contacto con el backend y donde vive la lógica del cliente -desenvolver el `{ data }`, traducir los errores de VineJS por `rule`, desglosarlos por campo, y avisar cuando el sistema rechaza la credencial.
+
+El runner venía de `s3/start` y **no cruzó a esta rama**; se recuperó el 2026-09-02 junto con el arreglo de H-13, cuya prueba se había quedado atrás. No hay runner de **navegador**, así que los 15 requisitos de `tasks` que solo se observan en pantalla siguen sin cubrir.
 
 ## Arquitectura del backend
 
@@ -98,6 +104,13 @@ Rutas actuales (`start/routes.ts`), todas bajo `/api/v1`:
 | POST | `/api/v1/auth/login` | `AccessTokensController.store` | no |
 | GET | `/api/v1/account/profile` | `ProfileController.show` | sí |
 | POST | `/api/v1/account/logout` | `AccessTokensController.destroy` | sí |
+| GET | `/api/v1/tasks` | `TasksController.index` | sí |
+| POST | `/api/v1/tasks` | `TasksController.store` | sí |
+| GET | `/api/v1/tasks/:id` | `TasksController.show` | sí |
+| PATCH | `/api/v1/tasks/:id/status` | `TaskStatusesController.update` | sí |
+| PUT | `/api/v1/tasks/:id/due-date` | `TaskDueDatesController.update` | sí |
+
+El contrato completo, con cuerpos y respuestas, en `docs/api/openapi.yaml`. `scripts/verificar-docs.mjs` falla si esa tabla y el contrato dejan de corresponder con `start/routes.ts`.
 
 ### Validación
 
@@ -113,7 +126,7 @@ El stack va deliberadamente en versiones muy recientes: **AdonisJS 7, Lucid 22, 
 
 ## Frontend
 
-El typecheck vive dentro de `npm run build`; el lint es **oxlint** (`.oxlintrc.json`), no eslint. El formateo es Prettier (`.prettierrc.json`: `semi: false`, `singleQuote: true`, para respetar el estilo ya existente); un hook `PostToolUse` en `.claude/settings.json` lo corre automáticamente sobre cada fichero de `frontend/` que Claude edite. No hay runner de tests instalado.
+El typecheck vive dentro de `npm run build`; el lint es **oxlint** (`.oxlintrc.json`), no eslint; las pruebas son **Vitest** (`npm test`). El formateo es Prettier (`.prettierrc.json`: `semi: false`, `singleQuote: true`, para respetar el estilo ya existente); un hook `PostToolUse` en `.claude/settings.json` lo corre automáticamente sobre cada fichero de `frontend/` que Claude edite.
 
 Stack: **Tailwind v4** (plugin de Vite, sin `tailwind.config.js`; los tokens viven en `src/index.css`), **shadcn/ui** (`components.json`, componentes generados en `src/components/ui/` — se traen con `npx shadcn@latest add <componente>` y no se editan a mano) y **react-router**. El alias `@/*` → `src/*` está declarado a la vez en `tsconfig.app.json` (sin `baseUrl`, deprecado en TS 6) y en `vite.config.ts`.
 
@@ -127,7 +140,52 @@ Organización de `src/`:
 La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defecto `http://localhost:3333`.
 
 ## Reglas de proceso
+
+> Cada regla lleva su **modo de fallo**, porque es lo que decide dónde tiene que vivir.
+> Lo que falla ruidoso puede quedarse escrito aquí: se nota solo. Lo que falla en silencio hay que bajarlo a algo que lo ejecute, o se cumplirá lo justo para que dejes de comprobarlo. Y lo que no se puede comprobar se dice, en vez de fingir que se cumple.
+>
+> **El modo de fallo es una propiedad de la regla y se declara aquí. Si la regla se cumple o no es otra cosa, es empírico, y va en [`docs/auditoria-reglas-de-proceso.md`](docs/auditoria-reglas-de-proceso.md).** Confundir las dos es la forma de acabar con un fichero de reglas que nadie ha contrastado nunca.
+
+### Ciclo de trabajo
+
 - Antes de tocar código: crear una rama nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main`/`s1/start`.
 - Al cerrar la tarea: usar la skill `/commit`, luego `gh pr create` con una descripción completa de los cambios en el cuerpo del PR.
 - Después de abrir el PR: usar el subagente `adversarial-reviewer` sobre él, antes de darlo por terminado.
 - No repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
+- **Cuando un cambio toque rutas, controladores o validadores**: actualizar `docs/api/openapi.yaml` y el README si corresponde, y ejecutar `node scripts/verificar-docs.mjs` antes de cerrar. La documentación de este repo se **contrasta**, no se regenera (ADR-0002), así que el contraste solo sirve si se ejecuta.
+- **Un change se archiva declarando lo que no ejecutó.** · *Fallo silencioso.* Las casillas que queden sin marcar van nombradas en una sección «Lo que no se ejecutó» del propio `tasks.md`, con lo que costaron. Una casilla vacía en un archivo es indistinguible de una que nadie tuvo que hacer, y esa ambigüedad produjo H-15, H-16 y H-17. Nada puede comprobar si una verificación a mano se hizo; sí se puede exigir que su ausencia se vea (H-18).
+- **La petición se valida antes de resolver el identificador** (ADR-0004). `validateUsing` va en la primera línea de la acción, antes de `findOrFail`. Un `404` afirma «te entendí y no está», y eso no se puede decir de una petición que no se entendió.
+- Verificar por **código de salida**, nunca por lo que imprime la última línea. Un `| tail -1` se come el error y deja pasar un lint en rojo como si estuviera limpio.
+- **`docs/hallazgos.md` se arrastra entre ramas.** Al empezar un módulo, traerlo antes de tocar nada y comprobar una a una si sus entradas abiertas siguen vivas en la rama nueva: el curso llega a la misma funcionalidad por otro camino, así que algunas se arreglan solas y otras reaparecen. Cada apartado dice **qué rama describe**. Al cerrar el módulo, su reporte lleva una sección «Lo que se arrastra». Detalle en el propio `hallazgos.md`.
+
+### Calidad del cambio
+
+Siete reglas, y ninguna viene del curso. Las **seis primeras** son las que renelo aplica en sus proyectos, y viven en `~/.claude/CLAUDE.md` y `~/OPINIONS.md`, heredadas por todos ellos sin que ninguno las declare: se copian aquí para poder **contrastarlas contra un repositorio de verdad**, que es el ejercicio del Módulo 5. La **séptima** no viene de ningún fichero: sale de la cicatriz de este repositorio.
+
+- **Un bug no se cierra sin reproducirlo.** · *Fallo silencioso.*
+  Primero se reproduce en un entorno E2E lo más parecido posible a como lo vive el usuario final, y se confirma que el arreglo ataca el problema real y no el síntoma.
+  Todo bug arreglado deja detrás una prueba que lo reproduce.
+  Nadie nota que no se reprodujo: el bug se cierra igual y el commit se ve idéntico.
+
+- **Al índice se va por nombre.** · *Fallo silencioso, pero auditable.*
+  `git add <fichero>`, nunca `git add -A` ni `git add .`. Lo que entra en un commit se decide, no se barre.
+  El commit lo registra para siempre, aunque nadie lo mire.
+
+- **Los hooks no se saltan.** · *Fallo ruidoso.*
+  Nada de `--no-verify`. Si un hook falla, se investiga la causa.
+  Saltarlo convierte la comprobación en decorado, y es un acto deliberado que hay que teclear.
+
+- **Todo atajo tomado por velocidad se escribe como deuda técnica.** · *Fallo silencioso, y el que más decae.*
+  Explícito, con su motivo, en el sitio donde alguien lo vaya a leer. Un atajo sin registrar deja de ser una decisión y pasa a ser cómo funciona el sistema.
+
+- **Un lint en rojo, un test que falla o uno flaky se arreglan aunque no los hayas causado.** · *Fallo silencioso.*
+  Es la más fácil de contrastar contra un repositorio en vivo, y la que más rápido se erosiona: cada excepción hace la siguiente más barata.
+
+- **La documentación desactualizada es peor que no tenerla.** · *No se puede comprobar automáticamente.*
+  Se documenta cuando aporta valor -ADR, integraciones, variables de entorno, supuestos de seguridad, modos de fallo- y nunca como ritual.
+  Ninguna comprobación sabe si un documento sigue siendo útil. Solo sabe si sigue coincidiendo con el código, que es otra cosa y es lo que hace `scripts/verificar-docs.mjs`.
+
+- **Una comprobación cuenta cuando se la ha visto fallar.** · *Fallo peor que silencioso: da una garantía que no existe.*
+  Toda comprobación que se añada -al verificador, a CI, a la suite- se demuestra **mutando el código a propósito** y viendo que se pone en rojo. Si no se ha visto fallar, no cuenta como comprobación: cuenta como una segunda regla escrita, y encima con la apariencia de estar ejecutada.
+  No es una precaución teórica. Cinco revisiones adversariales seguidas encontraron el verificador en verde sobre mutaciones reales, siempre por el mismo motivo: la mutación con la que se había probado cada comprobación era la que esa comprobación ya cubría por construcción.
+  Viene de [ADR-0002](docs/adr/0002-la-documentacion-se-verifica-no-se-regenera.md), donde estaba escrita como consecuencia de una decisión y no como regla de proceso. Se sube aquí porque es lo que sostiene la columna «Qué la ejecutaría» de la auditoría: sin ella, esa columna es una lista de comprobaciones que nadie sabe si muerden.

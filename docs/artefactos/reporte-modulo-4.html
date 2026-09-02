@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Reset minimo: al publicarse como artefacto lo pone el host; aqui va
+     explicito para que el fichero abra igual desde el repositorio. */
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+  img, svg, video { max-width: 100%; height: auto; }
+</style>
+<title>Verde no es correcto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground: #EEF1F4;
+    --surface: #FFFFFF;
+    --surface-sunk: #E4E9ED;
+    --ink: #131A20;
+    --ink-soft: #4E5C69;
+    --ink-faint: #7A8794;
+    --hairline: #D3DBE1;
+    --hairline-soft: #E3E9ED;
+    --accent: #0B6B63;
+    --accent-soft: #E0EFEC;
+    --alta: #9C2B3B;
+    --alta-soft: #F6E4E6;
+    --media: #9A661A;
+    --media-soft: #F7ECDA;
+    --baja: #566472;
+    --baja-soft: #E6EAEE;
+    --ok: #2F6B45;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1317; --surface: #141C22; --surface-sunk: #1B252C;
+      --ink: #E4EBF0; --ink-soft: #A2B0BC; --ink-faint: #75838F;
+      --hairline: #26323A; --hairline-soft: #1E282F;
+      --accent: #4FB3A6; --accent-soft: #16302E;
+      --alta: #E08694; --alta-soft: #331B20;
+      --media: #DCA85E; --media-soft: #2E2517;
+      --baja: #93A2B0; --baja-soft: #1F272E;
+      --ok: #6FBF8C;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0D1317; --surface: #141C22; --surface-sunk: #1B252C;
+    --ink: #E4EBF0; --ink-soft: #A2B0BC; --ink-faint: #75838F;
+    --hairline: #26323A; --hairline-soft: #1E282F;
+    --accent: #4FB3A6; --accent-soft: #16302E;
+    --alta: #E08694; --alta-soft: #331B20;
+    --media: #DCA85E; --media-soft: #2E2517;
+    --baja: #93A2B0; --baja-soft: #1F272E;
+    --ok: #6FBF8C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 1.25rem 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 46rem; margin: 0 auto; display: flex; flex-direction: column; gap: 3.25rem; }
+
+  .cabecera { display: flex; flex-direction: column; gap: 1.1rem; padding: 4rem 0 0; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--accent); margin: 0;
+  }
+
+  h1 {
+    font-family: Newsreader, Georgia, serif;
+    font-size: clamp(2.2rem, 5.5vw, 3.1rem);
+    line-height: 1.08; font-weight: 600; letter-spacing: -0.015em;
+    text-wrap: balance; margin: 0;
+  }
+
+  .bajada {
+    font-family: Newsreader, Georgia, serif;
+    font-size: 1.2rem; line-height: 1.55; color: var(--ink-soft);
+    margin: 0; max-width: 38rem;
+  }
+
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.76rem; color: var(--ink-faint);
+    padding-top: 0.9rem; border-top: 1px solid var(--hairline);
+  }
+  .meta b { color: var(--ink-soft); font-weight: 500; }
+
+  .estado {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1px; background: var(--hairline); border: 1px solid var(--hairline);
+  }
+  .estado div { background: var(--surface); padding: 1.05rem 1.1rem; display: flex; flex-direction: column; gap: 0.2rem; }
+  .estado .cifra {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums; font-size: 1.5rem; font-weight: 500; line-height: 1.1;
+  }
+  .estado .cifra.verde { color: var(--ok); }
+  .estado .cifra.roja { color: var(--alta); }
+  .estado .rotulo { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); }
+
+  section { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  h2 {
+    font-family: Newsreader, Georgia, serif;
+    font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2;
+    margin: 0; padding-bottom: 0.7rem; border-bottom: 2px solid var(--ink); text-wrap: balance;
+  }
+
+  .intro { margin: 0; color: var(--ink-soft); max-width: 40rem; }
+
+  .hallazgo {
+    display: flex; flex-direction: column; gap: 0.85rem;
+    padding: 1.5rem 0 0; border-top: 1px solid var(--hairline-soft);
+  }
+  .hallazgo:first-of-type { border-top: none; padding-top: 0; }
+
+  .encabezado { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem; }
+
+  .chip {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em;
+    padding: 0.17rem 0.45rem; border-radius: 2px; white-space: nowrap;
+  }
+  .chip.alta { background: var(--alta-soft); color: var(--alta); }
+  .chip.media { background: var(--media-soft); color: var(--media); }
+  .chip.baja { background: var(--baja-soft); color: var(--baja); }
+  .chip.id { background: var(--accent-soft); color: var(--accent); }
+
+  .titulo {
+    font-size: 1.06rem; font-weight: 600; margin: 0; line-height: 1.35; flex: 1 1 16rem;
+  }
+
+  .hallazgo p { margin: 0; }
+  .hallazgo p + p { margin-top: 0.55rem; }
+
+  blockquote {
+    margin: 0; padding: 0.15rem 0 0.15rem 1.1rem;
+    border-left: 2px solid var(--accent);
+    font-family: Newsreader, Georgia, serif; font-size: 1.1rem; font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  pre {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.78rem; line-height: 1.6;
+    background: var(--surface-sunk); color: var(--ink-soft);
+    padding: 0.8rem 0.95rem; margin: 0; overflow-x: auto;
+    border-left: 2px solid var(--accent); white-space: pre;
+  }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.86em; background: var(--surface-sunk);
+    padding: 0.08em 0.32em; border-radius: 2px;
+  }
+  pre code { background: none; padding: 0; font-size: 1em; }
+
+  .tabla-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th {
+    text-align: left; font-size: 0.71rem; letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 500;
+    padding: 0 0.9rem 0.5rem 0; border-bottom: 1px solid var(--hairline); white-space: nowrap;
+  }
+  td { padding: 0.6rem 0.9rem 0.6rem 0; border-bottom: 1px solid var(--hairline-soft); vertical-align: top; }
+  td.num {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;
+  }
+
+  .nota {
+    background: var(--surface); border-left: 3px solid var(--media);
+    padding: 1.15rem 1.3rem; display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .nota .rotulo {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--media);
+  }
+  .nota p { margin: 0; }
+
+  .pie { font-size: 0.83rem; color: var(--ink-faint); border-top: 1px solid var(--hairline); padding-top: 1.2rem; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  em { font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 1.06em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cabecera">
+    <p class="eyebrow">FlowSync · Módulo 4</p>
+    <h1>Verde no es correcto</h1>
+    <p class="bajada">La suite pasaba entera y escondía tres defectos, dos de ellos en la única regla de negocio del producto y en su filtro. Los destapó una revisión contrastada contra la spec viva, no una prueba.</p>
+    <div class="meta">
+      <span><b>Rama</b> s4/start</span>
+      <span><b>Fecha</b> 2026-08-26</span>
+      <span><b>Commits</b> 30</span>
+    </div>
+  </header>
+
+  <div class="estado">
+    <div><span class="cifra roja">0</span><span class="rotulo">Pruebas de tasks al empezar</span></div>
+    <div><span class="cifra verde">38</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
+    <div><span class="cifra">9</span><span class="rotulo">Defectos encontrados, 7 cerrados</span></div>
+    <div><span class="cifra">17</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
+  </div>
+
+  <section>
+    <h2>El priming: el aislamiento era disciplina, no estructura</h2>
+    <p class="intro">El prework pide cazar un «casi correcto» propio. El que apareció no estaba en el producto sino en el arnés.</p>
+
+    <p>El curso aísla la base de datos declarando una transacción global <strong>en cada fichero de prueba</strong>, y el comentario de cabecera explicaba por qué: la conexión no tiene override por entorno, y vaciar la base se llevaría los datos de desarrollo.</p>
+
+    <p>Funciona mientras todos los ficheros lo declaren. Comprobé si el riesgo era teórico añadiendo un fichero <strong>sin</strong> el hook:</p>
+
+    <pre><code>$ node ace test
+ PASSED
+Tests  21 passed (21)
+
+$ select id, email from users   -- base de DESARROLLO
+{ id: 6, email: 'fuga@sonda.test' }     ← la fila del test
+{ id: 2, email: 'nuevo@flowsync.local' }</code></pre>
+
+    <p>Veintiuna pruebas en verde y una fila de test escrita en la base con la que se estaba trabajando. Ahora la conexión elige el fichero según el entorno, y los hooks se mantienen intactos para lo que sirven bien: aislar un caso de otro.</p>
+  </section>
+
+  <section>
+    <h2>Los tres defectos</h2>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-15</span>
+        <span class="chip alta">Alta</span>
+        <h3 class="titulo">La regla de vencimiento comprobaba dos de sus tres condiciones</h3>
+      </div>
+      <p>Miraba si hay fecha y si esa fecha pasó. No miraba el estado. Una tarea en <code>done</code> con fecha del 12 de agosto, consultada el 26, devolvía <code>status: "done"</code> e <code>isOverdue: true</code> <strong>en la misma respuesta</strong>.</p>
+      <p>En pantalla: una tarea cuya cabecera decía «Hecho» mostraba debajo, en rojo, que el plazo terminó y «la tarea sigue sin estar hecha».</p>
+      <p>Lo que hace este caso instructivo es el comentario que había justo encima del método:</p>
+      <blockquote>Tres condiciones y ninguna más: hay fecha, esa fecha es anterior al día de referencia, y la tarea no está hecha.</blockquote>
+      <p>El comentario decía tres. El código hacía dos. Nada los ataba.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-16</span>
+        <span class="chip alta">Alta</span>
+        <h3 class="titulo">Un estado inventado en el filtro respondía 200 con lista vacía</h3>
+      </div>
+      <p>El validador declaraba el estado como cadena suelta en vez de acotarlo al conjunto del dominio, así que un valor inventado llegaba a la consulta y salía como lista vacía.</p>
+      <pre><code>GET /api/v1/tasks?status=archivado     → 200 {"data":[]}
+GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
+      <p>Byte a byte idénticas. El requisito dice literalmente que pedir algo que no existe y no encontrar nada <strong>tienen que ser distinguibles desde fuera</strong>. Otra vez el comentario prometía lo contrario: «Un estado inventado jamás sale por aquí como lista vacía».</p>
+      <p>Arrastraba tres ramas del frontend escritas a propósito para ese error que no se ejecutaban nunca. Entrar en <code>/tasks?status=archivado</code> mostraba «No hay ninguna tarea en «archivado»», que además afirma algo falso.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-17</span>
+        <span class="chip alta">Alta</span>
+        <h3 class="titulo">La lista filtraba el email del responsable</h3>
+      </div>
+      <p>La lista construía el responsable con el transformer de cuenta, que incluye el email y las fechas. El transformer que existe justo para evitarlo, y lo explica en su propio comentario, solo lo usaba la vista de detalle. La lista, que es la que todos abren, usaba el otro.</p>
+      <p>Una cuenta pidiendo la lista recibía el email de todas las demás.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>El patrón, que es el hallazgo de verdad</h2>
+    <p class="intro">Los tres tienen la misma forma: alguien escribió lo correcto en prosa y otra cosa en código, y nada comprobaba que coincidieran.</p>
+
+    <p>Hay una causa común, documentada en el propio repositorio. El change que construyó la lista contiene, <strong>sin marcar</strong>:</p>
+
+    <pre><code>- [ ] 6.3 Verificar que ninguna respuesta de tareas
+      incluye el email del responsable</code></pre>
+
+    <p>El change se archivó igualmente. Y su documento de diseño había predicho el fallo con nombre y apellidos:</p>
+
+    <blockquote>la regresión más probable, que el responsable acabe filtrando el email al cliente, no la va a detectar nada automático</blockquote>
+
+    <p>Ocurrió exactamente eso. Peor en el change del filtro: marca la casilla «Verificar que un estado inventado devuelve 422 y no una lista vacía» <strong>como hecha</strong>, sobre código que nunca lo ha hecho, y su diseño afirma que el validador usa el enum, que no era cierto.</p>
+
+    <div class="nota">
+      <span class="rotulo">Queda abierto</span>
+      <p>No se arregla con código. Mientras la verificación sea una afirmación de quien archiva, el archivo es una lista de buenas intenciones. Una casilla marcada tiene que significar que se ejecutó algo.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Lo que impide que la documentación vuelva a mentir</h2>
+    <p class="intro">Arquitectura, contrato de API, ADR y README se escribieron a partir de lo que existe. Pero lo que los sostiene no son los documentos: es un verificador que <em>no genera, contrasta y falla</em>.</p>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>Comprueba</th><th>Muerde si</th></tr></thead>
+        <tbody>
+          <tr><td>El contrato cubre exactamente las rutas del código</td><td>Se añade una ruta sin documentar, o se documenta una que no existe</td></tr>
+          <tr><td>La tabla de rutas de <code>CLAUDE.md</code> corresponde con el código</td><td>Esa tabla se queda atrás</td></tr>
+          <tr><td>Los estados documentados son los del dominio</td><td>Alguien añade o renombra un estado</td></tr>
+          <tr><td>La regla de vencimiento tiene sus tres condiciones y la comparación es estricta</td><td>Se quita cualquiera, o un <code>&lt;</code> se vuelve <code>&lt;=</code></td></tr>
+          <tr><td>El filtro está acotado al enum</td><td>Vuelve a ser una cadena suelta</td></tr>
+          <tr><td>El responsable no expone la cuenta, ni en la lista ni en la tarea suelta</td><td>Cualquiera de las dos vuelve al transformer que filtraba el email</td></tr>
+          <tr><td>Toda operación con un parámetro de ruta documenta su <code>404</code></td><td>Se añade una ruta que resuelve un identificador sin documentar el rechazo</td></tr>
+          <tr><td>El rechazo por recurso inexistente sale con la forma del proyecto</td><td>El <code>404</code> vuelve al volcado de depuración del framework</td></tr>
+          <tr><td>El volcado de depuración va apagado</td><td>Se enciende a fuego, se ata al entorno, o se sobreescribe <code>isDebuggingEnabled</code></td></tr>
+          <tr><td>Un error inesperado no devuelve su mensaje</td><td>Se deja de interceptar el <code>5xx</code> y vuelve el <code>{ message }</code> del framework, que en la base de datos es el SQL</td></tr>
+          <tr><td>Toda operación documenta el error que no estaba previsto</td><td>Una operación del contrato se queda sin su <code>500</code>, o deja de usar el esquema de errores del proyecto</td></tr>
+          <tr><td>La versión navegable dice lo mismo que el reporte</td><td>Un artefacto HTML se queda sin la tabla de arrastre, o declara un número de comprobaciones que ya no es</td></tr>
+          <tr><td>Ningún change se archiva con casillas mudas</td><td>Un change archivado deja casillas sin marcar y no declara cuáles ni qué costaron</td></tr>
+          <tr><td>La petición se valida antes de resolver el identificador</td><td>Una acción invierte el orden y pone <code>findOrFail</code> antes de <code>validateUsing</code></td></tr>
+          <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas</td></tr>
+          <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
+          <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Las diecisiete se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+
+    <div class="nota">
+      <span class="rotulo">La lección más útil</span>
+      <p>La primera versión del verificador daba luz verde mientras tres documentos afirmaban comportamientos que la API no tenía, porque comprobaba lo cómodo. Un verificador que solo comprueba lo fácil es peor que no tenerlo: da una garantía que no existe.</p>
+      <p>Y le pasó cinco veces seguidas, siempre igual: la mutación con la que se probaba cada comprobación era la que ya cubría por construcción. La quinta revisión encendió el volcado con <code>|| !app.inTest</code> y vació la tabla de arrastre dejando una frase, con el verificador en verde las dos veces. Lo que ata el comportamiento es una prueba que lo provoca, no una lista negra sobre el texto del código.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>El hallazgo que el prework anuncia y no es un bug</h2>
+    <p class="intro">Contrastar el prework contra la transcripción del directo dejó el hallazgo más incómodo de los dos módulos, y no está en el código: está en el material de apoyo.</p>
+
+    <p>La lección asíncrona presenta tres hallazgos de ejemplo. Dos son reales y son exactamente H-15 y H-16. El tercero, marcado como <strong>crítico</strong>, es un IDOR: «el listado no filtra por el usuario autenticado y devuelve tareas de otros».</p>
+
+    <p>Y no se queda en anunciarlo. <strong>Da la instrucción de arreglo</strong>:</p>
+
+    <blockquote>Arregla el hallazgo crítico: filtra las tareas por el usuario autenticado y añade un test que cubra el aislamiento por usuario.</blockquote>
+
+    <p>Aplicada al pie de la letra, esa instrucción <strong>rompe el producto</strong>. El requisito «Una sola lista compartida del espacio» dice que el contenido no depende de quién la consulta, y la aplicación existe precisamente para ver en qué anda el equipo.</p>
+
+    <p>La sesión en directo lo monta como el clímax de su tercera demo: abre ese material en pantalla, señala que el IDOR <strong>no</strong> aparece en el informe del revisor, y explica por qué no aparecer es lo correcto.</p>
+
+    <blockquote>El adversario no decide qué es un bug. Lo decide la spec.</blockquote>
+
+    <div class="nota">
+      <span class="rotulo">Lo grave</span>
+      <p>Nada lo fijaba. Ningún escenario tenía prueba que cubriera «el contenido no depende de quién mira», así que aplicar la instrucción del prework dejaba la suite entera en verde.</p>
+      <p>Ahora cuatro pruebas lo cierran. Verificado aplicando la instrucción literalmente: <strong>tres caen</strong>. Es la lección convertida en guardarraíl, que es lo único que sobrevive a que nadie se acuerde.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Módulo 3 frente a Módulo 4</h2>
+    <p class="intro">Los dos atacan el mismo problema desde extremos opuestos.</p>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th></th><th>Módulo 3 · OpenSpec</th><th>Módulo 4 · Verificación</th></tr></thead>
+        <tbody>
+          <tr><td>Pregunta que responde</td><td>¿Estamos construyendo lo correcto?</td><td>¿Lo construido hace lo que dijimos?</td></tr>
+          <tr><td>Momento humano</td><td>Revisar el contrato <strong>antes</strong> del código</td><td>Refutar el resultado <strong>después</strong> del código</td></tr>
+          <tr><td>Artefacto que produce</td><td>La spec viva</td><td>La matriz de trazabilidad y las pruebas</td></tr>
+          <tr><td>Cómo falla si falta</td><td>Se construye bien lo que no era</td><td>Se cree construido lo que no está</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Lo que el Módulo 4 demuestra sobre el Módulo 3 es incómodo y vale el módulo entero: <strong>la spec viva de tareas estaba bien escrita, con 32 requisitos y 124 escenarios, y el código la incumplía en tres sitios sin que nadie se enterara.</strong> Especificar bien no verifica nada por sí solo.</p>
+
+    <p>Y al revés: los tres defectos se encontraron <strong>porque</strong> existía esa spec. Sin ella la revisión no habría tenido contra qué contrastar, y habría opinado sobre estilo. El escenario «La tarea no filtra datos de cuenta» es lo que convierte «el email va en la respuesta» de observación en incumplimiento.</p>
+
+    <p>Hay además una diferencia de método que conviene retener. En el Módulo 3 se llega a la trazabilidad por el proceso: cada change declara qué escenarios deja sin cubrir. En el Módulo 4 se llega por el producto: se recorre la spec entera preguntando, requisito a requisito, si algo lo comprueba. El segundo encuentra lo que el primero no puede, porque el primero solo mira lo que un change tocó.</p>
+  </section>
+
+  <section>
+    <h2>Lo que se arrastra</h2>
+
+    <p class="intro">Tabla obligatoria en el reporte de cada módulo. Sirve para que nada se dé por resuelto porque se arregló en otra rama o porque el síntoma no se ve.</p>
+
+    <div class="nota">
+      <span class="rotulo">La primera versión de esta tabla incumplió su propia regla</span>
+      <p>Marcaba H-11, H-13 y H-14 como cerrados porque lo estaban en <code>s3/start</code>, sin comprobarlos aquí. Los tres estaban vivos. Es H-22, y la columna «Estado» dice ahora la rama, no un «Cerrado» a secas.</p>
+    </div>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Qué</th><th>Desde</th><th>Estado en <code>s4/start</code></th><th>Qué falta</th></tr></thead>
+        <tbody>
+          <tr><td class="num">H-18</td><td>Changes archivados con verificaciones marcadas sin ejecutar</td><td>Módulo 3</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Los tres archivados declaran lo que no ejecutaron, y una comprobación lo exige</td></tr>
+          <tr><td class="num">H-19</td><td>Las respuestas de error revelan internals</td><td>Módulo 3</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Se cerró en dos pasos: el primero no bastaba</td></tr>
+          <tr><td class="num">H-11</td><td>El email distingue mayúsculas</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado con seis pruebas</td></tr>
+          <tr><td class="num">H-13</td><td>Sesión caducada sin salida</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado, y con él el runner de frontend que tampoco había cruzado</td></tr>
+          <tr><td class="num">H-14</td><td><code>updatedAt</code> distinto según el endpoint</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b>, y en una escritura más</td><td>Nada. Portado con tres pruebas</td></tr>
+          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Módulo 4</td><td><b>Cerrado el 2026-09-02</b> (ADR-0004)</td><td>Nada. Se valida primero, con tres escenarios en la spec</td></tr>
+          <tr><td class="num">H-22</td><td>La tabla de arrastre dio por cerrados tres hallazgos sin comprobarlos</td><td>Módulo 4, esta misma tabla</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Las tres filas de arriba son su corrección</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><b>Y lo que hay que comprobar al saltar a <code>s5/start</code></b>: esa rama trae rotos <b>seis</b> de los siete defectos que cerramos. Solo H-17 llega arreglado, y es el único que llega bien sin que nada lo vigile.</p>
+  </section>
+
+  <section>
+    <h2>Lo que queda abierto</h2>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Qué</th><th>Por qué no se cierra ahora</th></tr></thead>
+        <tbody>
+          <tr><td class="num">—</td><td>Los 15 requisitos de <code>tasks</code> que solo se observan en pantalla</td><td>No hay runner de navegador. Vitest cubre <code>lib/api.ts</code>; lo que falta es el que ve la pantalla</td></tr>
+          <tr><td class="num">—</td><td>El revisor adversarial en CI, escrito y sin verificar</td><td>Falta la credencial. Hasta que se le vea encontrar algo, no cuenta (R-14)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>H-19 salió de esta tabla el 2026-09-02</strong>, cerrado por ADR-0003 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: <code>debug=false</code> es la configuración de producción, y es exactamente con la que se reprodujo la fuga del SQL.</p>
+
+    <p>Los 17 requisitos de sistema de tareas tienen prueba. Los 15 que solo se ven en pantalla no, porque el proyecto no tiene runner de navegador: es un hueco declarado en la matriz de trazabilidad, que es la diferencia entre un hueco conocido y una omisión.</p>
+  </section>
+
+  <p class="pie">El detalle completo está en <code>docs/trazabilidad.md</code>, <code>docs/hallazgos.md</code> y los ADR del repositorio, donde cada entrada indica cómo se verificó.</p>
+
+</div>
+</body>
+</html>

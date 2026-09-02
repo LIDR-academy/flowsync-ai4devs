@@ -27,7 +27,11 @@ export const createTaskValidator = vine.create({
  * corre sobre `request.all()`, que mezcla ambos.
  */
 export const listTasksValidator = vine.create({
-  status: vine.string().optional(),
+  // `enum` y no `string`: con `string` un estado inventado llegaba al `where`
+  // y salía como lista vacía con un 200 bien formado, indistinguible de un
+  // filtro válido sin resultados. Es justo lo que el comentario de arriba
+  // dice que no puede pasar, y lo que el requisito prohíbe.
+  status: vine.enum(TASK_STATUSES).optional(),
 })
 
 /**
