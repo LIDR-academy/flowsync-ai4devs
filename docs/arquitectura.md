@@ -172,4 +172,4 @@ Los dos construyen el responsable con `TaskAssigneeTransformer`, que expone `id`
 
 Dos suites declaradas en `adonisrc.ts`: `unit` (sin ficheros todavía) y `functional`. Qué está cubierto y qué no, en [`trazabilidad.md`](trazabilidad.md).
 
-El frontend **no tiene runner de tests** en esta rama.
+El frontend corre **Vitest** (`npm test`), 28 pruebas sobre `src/lib/api.test.ts`, que es el único punto de contacto con el backend. No hay runner de **navegador**.

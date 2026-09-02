@@ -36,7 +36,7 @@ node scripts/verificar-docs.mjs
 
 `verificar-docs.mjs` contrasta la documentación contra el código y falla si dejan de coincidir: rutas documentadas que no existen, estados que no cuadran con el dominio, el email del responsable colándose en la lista, o el aislamiento de la base de pruebas deshecho.
 
-El frontend **no tiene runner de tests** en esta rama.
+El frontend corre **Vitest** (`npm test`), 28 pruebas sobre `src/lib/api.test.ts`. No hay runner de **navegador**, así que los 15 requisitos que solo se observan en pantalla siguen sin cubrir.
 
 ## Dónde está cada cosa
 

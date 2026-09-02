@@ -43,7 +43,9 @@ Estaban documentados desde el Módulo 3 y sin arreglar porque los tres cambian c
 
 **Por qué dolía.** La escritura devolvía el objeto en memoria, con milisegundos; la lectura siguiente devolvía lo persistido, truncado al segundo. Sin impacto visible hoy, pero es el mismo campo con dos valores.
 
-**Arreglo.** La escritura relee lo persistido antes de serializar, en una sola consulta que ya trae el responsable.
+**Arreglo.** La escritura relee lo persistido antes de serializar, trayendo el responsable con `preload`.
+
+> **Corregido el 2026-09-02.** Aquí decía «en una sola consulta». Son dos: `preload` emite siempre una consulta aparte por relación. Medido con `DEBUG=knex:query` en la sexta revisión adversarial.
 
 **Por qué ahí.** Truncar al serializar escondía el desajuste en la capa de presentación y dejaba el objeto en memoria diciendo una cosa y la base otra.
 
@@ -92,7 +94,11 @@ Con el backend caído, la lista mostraba una caja roja sin cabecera, sin enlaces
 
 ### Menor · Dos consultas donde el diseño decía una
 
-`refresh()` seguido de `load('assignee')` lanza dos consultas por escritura. Sustituido por una sola con `preload`.
+`refresh()` seguido de `load('assignee')` lanza dos consultas por escritura. Sustituido por `preload`.
+
+> **Este hallazgo se dio por cerrado y no lo estaba**, descubierto el 2026-09-02. `preload` también emite dos: una por la tarea y otra por la relación. El diseño decía una y el arreglo tampoco daba una. Medido, no supuesto.
+>
+> Se deja abierto como lo que es: dos consultas por escritura, aceptadas. Bajarlo a una exigiría un join a mano, y son tres rutas.
 
 ---
 

@@ -89,7 +89,7 @@ La spec se parte sola por sujeto: **17 requisitos empiezan por «El sistema SHAL
 | Lo que cada tarea muestra de su responsable | `assignee.spec.ts` · conjunto cerrado de campos, en lista y en tarea suelta |
 | Tres estados fijos | `filtro.spec.ts` · el cambio de estado tampoco admite valores fuera del conjunto |
 | Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna |
-| Las tareas exigen sesión | `creacion.spec.ts` · crear sin sesión. **Parcial**: solo cubre una de las cinco rutas |
+| Las tareas exigen sesión | `errores.spec.ts` · las **siete** rutas protegidas sin credencial, más `creacion.spec.ts` |
 | Fecha de vencimiento opcional | `vencimiento.spec.ts` y `creacion.spec.ts` · nace sin fecha, y sin fecha no vence |
 | Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar, retirar, y una fecha imposible que se rechaza conservando la anterior; `lista_compartida.spec.ts` · sobre una tarea ajena |
 | Cuándo una tarea está vencida | `vencimiento.spec.ts` · las tres condiciones y el borde estricto |
@@ -108,7 +108,7 @@ Los tres escenarios «Tarea inexistente», que viven repartidos entre tres de es
 
 No hay runner de navegador en el proyecto y este trabajo no añade uno. Es un hueco declarado, no una omisión.
 
-**Y un hueco real dentro de lo cubierto**: «Las tareas exigen sesión» solo tiene prueba sobre `POST /api/v1/tasks`. Las otras cuatro rutas no la tienen, y es la única barrera entre los datos del espacio y cualquiera que pase por ahí.
+> **Ese hueco se cerró el 2026-09-02.** Decía aquí que «Las tareas exigen sesión» solo tenía prueba sobre `POST /api/v1/tasks`. Al mirarlo era mayor y de otra forma: la prueba se llamaba «sin credencial, en todas las rutas protegidas» y su lista traía **tres de las siete**, todas de lectura. Ahora recorre las siete, y meter en la lista una ruta que no exige sesión la tumba.
 
 ## 4 · Criterios marcados `[PROPUESTO]`
 
@@ -133,9 +133,8 @@ Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD;
 
 Por orden de lo que más protege:
 
-1. «Las tareas exigen sesión» sobre las cinco rutas, no solo sobre la creación. Es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
-2. Un runner de navegador, si en algún momento los 15 requisitos de pantalla dejan de ser un hueco aceptable.
-3. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
+1. Un runner de navegador, si en algún momento los 15 requisitos de pantalla dejan de ser un hueco aceptable. El de Vitest ya está, y cubre `lib/api.ts`; lo que falta es el que ve la pantalla.
+2. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
 4. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
 5. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
 

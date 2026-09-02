@@ -6,7 +6,7 @@
 
 ## Por qué no bloquea
 
-Las comprobaciones deterministas de `verificacion.yml` -tipos, lint, 71 pruebas, los catorce contrastes del verificador- **sí bloquean**, porque su respuesta no depende del día: o el contrato coincide con el código o no.
+Las comprobaciones deterministas de `verificacion.yml` -tipos, lint, 71 pruebas de backend, 28 de frontend, los quince contrastes del verificador- **sí bloquean**, porque su respuesta no depende del día: o el contrato coincide con el código o no.
 
 Esta no. Es un modelo leyendo un diff, y se equivoca. Un revisor no determinista que tumba la build se desactiva la primera vez que se equivoca con prisa, y entonces no queda ni revisor ni build.
 
@@ -114,6 +114,7 @@ Todo lo demás, y es la mayor parte:
 |---|---|
 | La detección del PR abierto en el repositorio del curso | La puerta sale antes, por falta de clave |
 | La invocación de `claude -p` con sus flags | Nunca se ha ejecutado. Los flags están escritos con cuidado y el YAML valida, pero la primera ejecución real puede pedir ajustes |
+| Que `--disallowed-tools` acote de verdad al revisor | Es la corrección del hallazgo de la sexta revisión: `--allowed-tools` preaprueba, no restringe, y con `bypassPermissions` no acotaba nada. La negativa explícita es lo correcto por documentación, y **no se ha visto aplicarse**. Mientras tanto la defensa que sí está en pie es que el diff se entrega en un fichero, así que el revisor no necesita shell |
 | Que `CLAUDE_CODE_OAUTH_TOKEN` autentique al CLI en el runner | `claude setup-token` existe y lo dice el propio CLI, pero el nombre exacto de la variable no se ha comprobado contra una ejecución. Si falla, el resumen del job lo dirá y se ajusta |
 | La extracción del prompt desde `.claude/agents/` | Probada en local, no en el runner |
 | La publicación del informe, y su caída al resumen cuando el PR vive en otro repositorio | Nunca se ha llegado ahí |

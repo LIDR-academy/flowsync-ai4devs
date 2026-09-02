@@ -21,11 +21,23 @@ import { cuerpo, tarea, tareas } from '#tests/helpers/api'
  * añadió una tercera escritura -la fecha de vencimiento- con el mismo patrón.
  *
  * La comparación es **campo por campo sobre el objeto entero**, no sobre
- * `updatedAt`. Comparar solo el campo sospechoso dejaría de morder en cuanto el
- * desajuste se mudara a otro, y ya pasó una vez: dos respuestas que salían del
- * mismo transformer se comparaban entre sí, así que borrar el campo las dejaba
- * iguales y la prueba seguía en verde.
+ * `updatedAt`: comparar solo el campo sospechoso dejaría de morder en cuanto el
+ * desajuste se mudara a otro.
+ *
+ * Y eso solo no basta, que es lo que la sexta revisión adversarial demostró.
+ * Quitó `updatedAt` de **los dos** transformers y las 71 pruebas siguieron en
+ * verde, con el verificador también: escritura y lectura salen del mismo
+ * transformer, así que un campo ausente en los dos lados sigue siendo
+ * `deepEqual`. Justo el campo del que trata H-14, y el contrato lo promete en
+ * `TareaDeLista` y `TareaConDetalle`.
+ *
+ * Por eso hay además un **conjunto cerrado de campos**. En `s3/start` existía;
+ * al portar el arreglo a esta rama vino el arreglo y no el guardarraíl, que es
+ * el quinto caso del patrón de H-22.
  */
+const CAMPOS_DE_LISTA = ['id', 'title', 'status', 'createdAt', 'updatedAt', 'assignee']
+const CAMPOS_DE_DETALLE = [...CAMPOS_DE_LISTA, 'dueDate', 'isOverdue']
+
 test.group('Tasks | la escritura devuelve lo persistido', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
@@ -50,6 +62,7 @@ test.group('Tasks | la escritura devuelve lo persistido', (group) => {
     const lista = await client.get('/api/v1/tasks').loginAs(usuario)
     const enLista = tareas(lista).find((t) => t.id === tarea(creada).id)
 
+    assert.sameMembers(Object.keys(tarea(creada)), CAMPOS_DE_LISTA)
     assert.deepEqual(tarea(creada), enLista)
   })
 
@@ -71,6 +84,7 @@ test.group('Tasks | la escritura devuelve lo persistido', (group) => {
     const lista = await client.get('/api/v1/tasks').loginAs(usuario)
     const enLista = tareas(lista).find((t) => t.id === tarea(cambiada).id)
 
+    assert.sameMembers(Object.keys(tarea(cambiada)), CAMPOS_DE_LISTA)
     assert.deepEqual(tarea(cambiada), enLista)
   })
 
@@ -96,6 +110,7 @@ test.group('Tasks | la escritura devuelve lo persistido', (group) => {
       .loginAs(usuario)
       .qs({ today: '2026-09-02' })
 
+    assert.sameMembers(Object.keys(tarea(fijada)), CAMPOS_DE_DETALLE)
     assert.deepEqual(tarea(fijada), tarea(leida))
   })
 })

@@ -88,8 +88,11 @@ function rutasDelCodigo() {
 
     if (nodo.pattern) {
       const metodos = nodo.methods ?? (nodo.method ? [nodo.method] : [])
-      // La raiz de cortesia no es parte de la API.
-      if (nodo.pattern !== '/') {
+      // Antes se excluia `/` por patron, y eso hacia invisible **cualquier**
+      // ruta montada en la raiz: la sexta revision añadio un `router.post('/')`
+      // sin documentar y el verificador siguio en verde. Se excluye solo el
+      // saludo de cortesia, y por metodo.
+      if (!(nodo.pattern === '/' && metodos.length === 1 && metodos[0] === 'GET')) {
         if (!metodos.length) {
           throw new Error(`la ruta ${nodo.pattern} no declara ningun metodo`)
         }
@@ -388,15 +391,33 @@ comprobar('El volcado de depuración va apagado salvo que se encienda', () => {
 
   // `isDebuggingEnabled(ctx)` es el gancho que el framework documenta para
   // decidir esto por petición. Sobreescribirlo devuelve el volcado sin tocar
-  // `debug`, así que la comprobación de arriba no lo vería.
-  if (/isDebuggingEnabled\s*\(/.test(handler.replace(/this\.isDebuggingEnabled\s*\(/g, ''))) {
-    throw new Error('el handler sobreescribe isDebuggingEnabled: el volcado deja de depender de `debug`')
+  // `debug`, así que la comprobación de `debug` no lo vería.
+  //
+  // Se busca el nombre en CUALQUIER forma de declaración, no solo como método.
+  // La versión anterior exigía el paréntesis pegado -`isDebuggingEnabled(`- y
+  // la sexta revisión la pasó por encima con
+  // `protected isDebuggingEnabled = (_ctx) => true`, que es una propiedad y
+  // lleva ` = ` en medio: verificador en verde con el volcado de Youch
+  // devuelto en todo error. Ahora se quitan las llamadas y se mira si el
+  // nombre sigue apareciendo, sea cual sea la sintaxis.
+  const sinLlamadas = handler.replace(/this\.isDebuggingEnabled\s*\(/g, '')
+  if (/isDebuggingEnabled/.test(sinLlamadas)) {
+    throw new Error('el handler declara isDebuggingEnabled: el volcado deja de depender de `debug`')
   }
 
-  // El interruptor tiene que existir en el esquema y venir apagado en la
-  // plantilla, que es el fichero que copia todo el que llega al proyecto.
-  if (!/DEBUG_HTTP_ERRORS/.test(leer('backend/start/env.ts'))) {
-    throw new Error('start/env.ts no declara DEBUG_HTTP_ERRORS: el interruptor sería letra muerta')
+  // El interruptor tiene que existir en el esquema, **con su tipo**, y venir
+  // apagado en la plantilla, que es el fichero que copia todo el que llega.
+  //
+  // El tipo no es un detalle. Con `Env.schema.string` la variable llega como
+  // la cadena `'false'`, que en JavaScript es **truthy**: el volcado quedaría
+  // encendido en todos los entornos, producción incluida, con el
+  // `.env.example` diciendo `false` y el verificador en verde. La versión
+  // anterior solo miraba que la cadena `DEBUG_HTTP_ERRORS` apareciera.
+  const esquema = leerCodigo('backend/start/env.ts')
+  if (!/DEBUG_HTTP_ERRORS:\s*Env\.schema\.boolean/.test(esquema)) {
+    throw new Error(
+      'start/env.ts no declara DEBUG_HTTP_ERRORS como boolean: una cadena `false` sería truthy'
+    )
   }
   const plantilla = leer('backend/.env.example').match(/^DEBUG_HTTP_ERRORS=(.*)$/m)
   if (!plantilla || plantilla[1].trim() !== 'false') {
@@ -473,6 +494,37 @@ comprobar('El reporte del módulo declara lo que se arrastra', () => {
     }
   }
   return `${reportes.length} reportes`
+})
+
+comprobar('La versión navegable dice lo mismo que el reporte', () => {
+  // `docs/artefactos/*.html` es lo que se publica y lo que la gente abre, y
+  // hasta ahora no lo miraba nada: el filtro de la comprobación de arrastre es
+  // `^reporte-.*\.md$` sobre `docs/`, así que el HTML podía decir cualquier
+  // cosa. La sexta revisión lo encontró afirmando 35 pruebas y 12
+  // comprobaciones, y sin la tabla «Lo que se arrastra» que la regla exige.
+  const artefactos = readdirSync(join(RAIZ, 'docs/artefactos')).filter((f) => f.endsWith('.html'))
+  if (!artefactos.length) throw new Error('no hay ningún artefacto en docs/artefactos/')
+
+  for (const fichero of artefactos) {
+    const html = leer(`docs/artefactos/${fichero}`)
+
+    if (!/Lo que se arrastra/.test(html)) {
+      throw new Error(`${fichero} no trae la sección «Lo que se arrastra»`)
+    }
+    // El número de comprobaciones es el que más se ha quedado atrás: cambió
+    // cinco veces en dos días y el HTML se olvidó las dos últimas.
+    //
+    // Solo se exige a quien lo declara. Un reporte de un módulo anterior no
+    // tiene por qué hablar del verificador, y obligarle sería pedirle que
+    // afirme algo que en su momento no era cierto. Esta condición se escribió
+    // primero sin acotar y falló contra el reporte del Módulo 3.
+    const total = (leer('scripts/verificar-docs.mjs').match(/^comprobar\(/gm) ?? []).length
+    const declarado = html.match(/>(\d+)<\/span><span class="rotulo">Comprobaciones/)
+    if (declarado && Number(declarado[1]) !== total) {
+      throw new Error(`${fichero} dice ${declarado[1]} comprobaciones y hay ${total}`)
+    }
+  }
+  return `${artefactos.length} artefactos`
 })
 
 comprobar('El filtro de la lista solo admite estados del dominio', () => {

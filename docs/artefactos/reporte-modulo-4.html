@@ -215,15 +215,15 @@
     <div class="meta">
       <span><b>Rama</b> s4/start</span>
       <span><b>Fecha</b> 2026-08-26</span>
-      <span><b>Commits</b> 4</span>
+      <span><b>Commits</b> 30</span>
     </div>
   </header>
 
   <div class="estado">
     <div><span class="cifra roja">0</span><span class="rotulo">Pruebas de tasks al empezar</span></div>
-    <div><span class="cifra verde">35</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
-    <div><span class="cifra">3</span><span class="rotulo">Defectos con la suite en verde</span></div>
-    <div><span class="cifra">12</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
+    <div><span class="cifra verde">38</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
+    <div><span class="cifra">9</span><span class="rotulo">Defectos encontrados, 7 cerrados</span></div>
+    <div><span class="cifra">15</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
   </div>
 
   <section>
@@ -325,6 +325,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
           <tr><td>El volcado de depuración va apagado</td><td>Se enciende a fuego, se ata al entorno, o se sobreescribe <code>isDebuggingEnabled</code></td></tr>
           <tr><td>Un error inesperado no devuelve su mensaje</td><td>Se deja de interceptar el <code>5xx</code> y vuelve el <code>{ message }</code> del framework, que en la base de datos es el SQL</td></tr>
           <tr><td>Toda operación documenta el error que no estaba previsto</td><td>Una operación del contrato se queda sin su <code>500</code>, o deja de usar el esquema de errores del proyecto</td></tr>
+          <tr><td>La versión navegable dice lo mismo que el reporte</td><td>Un artefacto HTML se queda sin la tabla de arrastre, o declara un número de comprobaciones que ya no es</td></tr>
           <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas</td></tr>
           <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
           <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
@@ -332,7 +333,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       </table>
     </div>
 
-    <p>Las catorce se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+    <p>Las quince se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
 
     <div class="nota">
       <span class="rotulo">La lección más útil</span>
@@ -385,6 +386,34 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
     <p>Y al revés: los tres defectos se encontraron <strong>porque</strong> existía esa spec. Sin ella la revisión no habría tenido contra qué contrastar, y habría opinado sobre estilo. El escenario «La tarea no filtra datos de cuenta» es lo que convierte «el email va en la respuesta» de observación en incumplimiento.</p>
 
     <p>Hay además una diferencia de método que conviene retener. En el Módulo 3 se llega a la trazabilidad por el proceso: cada change declara qué escenarios deja sin cubrir. En el Módulo 4 se llega por el producto: se recorre la spec entera preguntando, requisito a requisito, si algo lo comprueba. El segundo encuentra lo que el primero no puede, porque el primero solo mira lo que un change tocó.</p>
+  </section>
+
+  <section>
+    <h2>Lo que se arrastra</h2>
+
+    <p class="intro">Tabla obligatoria en el reporte de cada módulo. Sirve para que nada se dé por resuelto porque se arregló en otra rama o porque el síntoma no se ve.</p>
+
+    <div class="nota">
+      <span class="rotulo">La primera versión de esta tabla incumplió su propia regla</span>
+      <p>Marcaba H-11, H-13 y H-14 como cerrados porque lo estaban en <code>s3/start</code>, sin comprobarlos aquí. Los tres estaban vivos. Es H-22, y la columna «Estado» dice ahora la rama, no un «Cerrado» a secas.</p>
+    </div>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Qué</th><th>Desde</th><th>Estado en <code>s4/start</code></th><th>Qué falta</th></tr></thead>
+        <tbody>
+          <tr><td class="num">H-18</td><td>Changes archivados con verificaciones marcadas sin ejecutar</td><td>Módulo 3</td><td><b>Abierto</b></td><td>No se arregla con código. Una casilla marcada tiene que significar que se ejecutó algo</td></tr>
+          <tr><td class="num">H-19</td><td>Las respuestas de error revelan internals</td><td>Módulo 3</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Se cerró en dos pasos: el primero no bastaba</td></tr>
+          <tr><td class="num">H-11</td><td>El email distingue mayúsculas</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado con seis pruebas</td></tr>
+          <tr><td class="num">H-13</td><td>Sesión caducada sin salida</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado, y con él el runner de frontend que tampoco había cruzado</td></tr>
+          <tr><td class="num">H-14</td><td><code>updatedAt</code> distinto según el endpoint</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b>, y en una escritura más</td><td>Nada. Portado con tres pruebas</td></tr>
+          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Módulo 4</td><td><b>Abierto</b></td><td>Ningún escenario lo fija. Decidirlo antes de construir encima</td></tr>
+          <tr><td class="num">H-22</td><td>La tabla de arrastre dio por cerrados tres hallazgos sin comprobarlos</td><td>Módulo 4, esta misma tabla</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Las tres filas de arriba son su corrección</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><b>Y lo que hay que comprobar al saltar a <code>s5/start</code></b>: esa rama trae rotos <b>seis</b> de los siete defectos que cerramos. Solo H-17 llega arreglado, y es el único que llega bien sin que nada lo vigile.</p>
   </section>
 
   <section>

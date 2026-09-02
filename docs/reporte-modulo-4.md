@@ -12,11 +12,12 @@
 
 | | Al empezar | Al terminar |
 |---|---:|---:|
-| Pruebas de `auth` | 20 | 20 |
-| Pruebas de `tasks` | **0** | 35 |
+| Pruebas de `auth` | 20 | 26 |
+| Pruebas de `tasks` | **0** | 38 |
+| Pruebas de frontend | 0 | 28 |
 | Requisitos de sistema de `tasks` con prueba | 0 de 17 | **17 de 17** |
-| Defectos conocidos y abiertos | 0 (no se sabía de ninguno) | 3, anotados |
-| Documentos que contrastan contra el código | 0 | 12 comprobaciones en CI |
+| Defectos encontrados | 0 (no se sabía de ninguno) | 9, de los que 7 quedaron cerrados |
+| Documentos que contrastan contra el código | 0 | 15 comprobaciones en CI |
 
 ---
 
@@ -113,7 +114,7 @@ También deja anotado que **tres de los doce ficheros del backlog no son histori
 
 Arquitectura con diagramas, contrato OpenAPI, ADR y README, escritos a partir de lo que existe.
 
-Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Catorce comprobaciones que corren en CI:
+Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Quince comprobaciones que corren en CI:
 
 | Comprueba | Muerde si |
 |---|---|
@@ -128,11 +129,12 @@ Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`
 | El volcado de depuración va apagado | Se enciende a fuego, se ata al entorno, o se sobreescribe `isDebuggingEnabled` |
 | Un error inesperado no devuelve su mensaje | Se deja de interceptar el `5xx` y vuelve el `{ message }` del framework, que en la base de datos es el SQL |
 | Toda operación documenta el error que no estaba previsto | Una operación del contrato se queda sin su `500`, o deja de usar el esquema de errores del proyecto |
+| La versión navegable dice lo mismo que el reporte | Un artefacto HTML se queda sin la tabla de arrastre, o declara un número de comprobaciones que ya no es |
 | El reporte de cada módulo declara lo que arrastra | Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas |
 | Las pruebas no pueden escribir sobre la base de desarrollo | La elección por entorno se deshace o deja de aplicarse |
 | Los documentos que el README enlaza existen | Un enlace apunta a un fichero que no está |
 
-Las catorce se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
+Las quince se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
 
 **Y dos de ellas dieron luz verde a mutaciones reales antes de endurecerse.** La quinta revisión encendió el volcado con `|| !app.inTest` y sustituyó la tabla de arrastre por la frase «esta vez no hace falta la tabla de Lo que se arrastra»: el verificador pasó las dos veces. Es la quinta pasada consecutiva en que la mutación con la que se probó una comprobación era la que esa comprobación ya cubría por construcción. Lo que ata el comportamiento es una prueba que lo provoca; el contraste sobre el texto del código es aviso temprano, no garantía.
 
@@ -205,7 +207,7 @@ Tabla obligatoria en el reporte de cada módulo, desde ahora. Sirve para que nad
 | H-14 | `updatedAt` distinto según el endpoint | Módulo 3, cerrado en `s3/start` | **Estaba vivo aquí**, y en una escritura más que en `s3/start` | Nada. Portado el 2026-09-02 con tres pruebas |
 | H-22 | La tabla de arrastre dio por cerrados tres hallazgos sin comprobarlos | Módulo 4, esta misma tabla | **Cerrado el 2026-09-02** | Nada. Las tres filas de arriba son su corrección |
 | H-21 | El orden de validación difiere entre controladores | Módulo 4 | **Abierto** | Ningún escenario lo fija. Decidirlo antes de construir encima |
-| — | «Las tareas exigen sesión» solo tiene prueba en una de las cinco rutas | Módulo 4 | **Abierto** | Cuatro pruebas |
+| — | «Las tareas exigen sesión» no tenía prueba en todas las rutas | Módulo 4 | **Cerrado el 2026-09-02** | Nada. Al mirarlo el hueco era mayor: la prueba decía «todas las rutas protegidas» y cubría **tres de siete**, todas de lectura. Ahora recorre las siete |
 | — | Los 15 requisitos de pantalla sin verificar | Módulo 4 | **Declarado** | Un runner de navegador, si deja de ser un hueco aceptable |
 
 **Y lo que hay que comprobar al saltar a `s5/start`**: esa rama todavía trae **H-15** y **H-16** sin arreglar. Están cerrados aquí y hay que portarlos, con sus pruebas, antes de construir nada encima.

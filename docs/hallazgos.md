@@ -111,7 +111,7 @@ En el frontend hay que montarlo de cero. Es la razón de que `FS-118.6` esté es
 | Backend | 25 pruebas funcionales en `tests/functional/`, derivadas de las specs vivas de `auth` y `tasks` |
 | Frontend | Vitest instalado, script `npm test`, 17 pruebas sobre `src/lib/api.ts` |
 
-> **En `s4/start` el estado es otro**: 57 pruebas funcionales de backend, y el frontend **sigue sin runner de tests**.
+> **En `s4/start` el estado es otro**: 71 pruebas funcionales de backend y 28 de frontend. El runner de frontend tampoco había cruzado de rama, y se recuperó el 2026-09-02.
 > Vitest, `src/lib/api.test.ts` y el change `add-test-foundation` no existen en esta rama.
 > Qué escenario cubre cada prueba, y cuáles siguen sin cubrir, en [`trazabilidad.md`](trazabilidad.md).
 
@@ -234,7 +234,7 @@ POST /api/v1/auth/signup  {"email":"malformado","password":"123"}
 
 | | Estado |
 |---|---|
-| Que el diccionario del frontend no cambie por accidente | Cubierto **en `s3/start`**. `src/lib/api.test.ts` falla si se toca un mensaje. En `s4/start` no hay runner de frontend, así que ahí sigue sin vigilar |
+| Que el diccionario del frontend no cambie por accidente | Cubierto. `src/lib/api.test.ts` falla si se toca un mensaje. Estuvo sin vigilar en `s4/start` hasta el 2026-09-02, porque el runner no había cruzado de rama |
 | Que los nombres de regla que emite el backend sigan siendo esos | Cubierto desde el 2026-08-26. Las pruebas funcionales de `auth` asertan `rule` en cada rechazo |
 
 Las dos mitades juntas cierran el fallo silencioso: si VineJS renombra `minLength`, rompe la suite del backend; si alguien toca la traducción, rompe la del frontend.
@@ -420,7 +420,9 @@ El arreglo tampoco cruzó, y la rama del curso añadió una tercera escritura -l
 
 **Cómo se verificó**: lectura de los tres controladores de escritura, 2026-09-02.
 
-**Resuelto el 2026-09-02**: `Task.releerConResponsable(id)` devuelve lo persistido con el responsable en una sola consulta, y lo usan las tres escrituras. Está en el modelo y no repetido en cada controlador, para que la cuarta lo herede.
+**Resuelto el 2026-09-02**: `Task.releerConResponsable(id)` devuelve lo persistido con el responsable, y lo usan las tres escrituras. Está en el modelo y no repetido en cada controlador, para que la cuarta lo herede.
+
+Cuesta **dos consultas** por escritura -una por la tarea y otra por el responsable, que es lo que `preload` emite siempre- frente a la que costaba antes. Se paga a cambio de que la respuesta diga lo que hay en la base. La sexta revisión adversarial lo midió con `DEBUG=knex:query` y encontró cuatro documentos afirmando que era una sola; corregidos.
 
 **Cómo se verificó**: tres pruebas en `tests/functional/tasks/escritura_lectura.spec.ts` comparan el objeto entero que devuelve cada escritura con el de la lectura siguiente. Devolver el objeto en memoria en una sola de las tres tumba su prueba; comprobado.
 
@@ -594,7 +596,7 @@ Es la forma más incómoda del patrón: **el hueco no se ve cuando lo que falta 
 | **H-15** · Alta | Una tarea hecha con la fecha pasada llega marcada como vencida | `backend/app/models/task.ts:52-56`: `isOverdueOn` son tres líneas, `if (this.dueDate === null) return false` y `return this.dueDate < referenceDay`. **Falta la condición del estado.** La pantalla anuncia «Vencida» en rojo debajo de una cabecera que dice «Hecho» | Añadir `if (this.status === 'done') return false` como segunda guarda. Portar `tests/functional/tasks/vencimiento.spec.ts` (8 pruebas), que cubre además el borde del `<` estricto: vencer hoy todavía no es estar vencida. **Verificar por mutación** las dos cosas: quitar la condición del estado, y cambiar `<` por `<=`. Cada una tiene que tumbar su prueba |
 | **H-16** · Alta | Un estado inventado en el filtro devuelve 200 con lista vacía | `backend/app/validators/task.ts:29-31`: `listTasksValidator` declara `status: vine.string().optional()`, una cadena suelta. `/tasks?status=archivado` responde `200` con `[]`, que en la pantalla se lee como «el equipo no tiene nada en ese estado» en vez de «ese estado no existe». Es el fallo silencioso, no un error | Cambiar a `vine.enum(TASK_STATUSES).optional()`, importando la constante del modelo para que no haya dos listas de estados. Portar `tests/functional/tasks/filtro.spec.ts` (7 pruebas), incluida la que fija que el `422` lleva `meta.choices` con los tres estados válidos, que es de lo que el frontend construye el mensaje. **Verificar por mutación**: volver a `vine.string()` tiene que tumbarlas |
 | **H-13** · Media | Una sesión que caduca con la lista abierta deja al usuario sin salida | `frontend/src/lib/api.ts:188-190` es `if (!response.ok) { throw toApiError(...) }`, sin ningún punto de suscripción: **cero apariciones de `onUnauthorized`** en todo `frontend/src/`. El proveedor de sesión solo limpia el token al rehidratar, así que un 401 posterior deja el estado en `authenticated`, el aviso pide volver a entrar y el guard de rutas públicas rebota `/login` de vuelta a `/tasks`. Solo recargar lo desatasca | Portar el punto de suscripción a `lib/api.ts` -`onUnauthorized`, el `Set` de manejadores y la opción `silenciarRechazo`- y engancharlo desde `auth-provider.tsx` con un `useEffect`. Solo el 401 dispara: un 500 o un corte de red no pueden cerrar la sesión de nadie. El cierre de sesión a propósito pasa `silenciarRechazo: true`, o salir aterriza en el acceso con un «tu sesión ha caducado» que no viene a cuento. **Verificar en navegador**, no leyendo: revocar la credencial contra el backend por fuera y pulsar algo en la lista tiene que llevar a `/login` sin recargar y con el token ya borrado |
-| **H-14** · Baja | `updatedAt` vale distinto según el endpoint que lo devuelve | `backend/app/controllers/tasks_controller.ts` hace `await task.load('assignee')` y serializa el objeto en memoria, tanto en `store` como en `show`; `task_statuses_controller.ts` y `task_due_dates_controller.ts` repiten el patrón. El modelo recién guardado trae milisegundos y la base guarda con precisión de segundo, así que la escritura y la lectura siguiente dicen valores distintos del mismo campo sin que nada cambie en medio | Portar `Task.releerConResponsable(id)` al modelo -una sola consulta con `preload`, no `refresh()` más `load()`- y usarlo en las **tres** escrituras. Va en el modelo y no repetido en cada controlador para que la cuarta lo herede. Portar `tests/functional/tasks/escritura_lectura.spec.ts` (3 pruebas), que compara el objeto **entero** y no el campo sospechoso: comparar solo `updatedAt` deja de morder en cuanto el desajuste se mude a otro campo, y ya pasó una vez |
+| **H-14** · Baja | `updatedAt` vale distinto según el endpoint que lo devuelve | `backend/app/controllers/tasks_controller.ts` hace `await task.load('assignee')` y serializa el objeto en memoria, tanto en `store` como en `show`; `task_statuses_controller.ts` y `task_due_dates_controller.ts` repiten el patrón. El modelo recién guardado trae milisegundos y la base guarda con precisión de segundo, así que la escritura y la lectura siguiente dicen valores distintos del mismo campo sin que nada cambie en medio | Portar `Task.releerConResponsable(id)` al modelo -con `preload`, que cuesta dos consultas y no una- y usarlo en las **tres** escrituras. Va en el modelo y no repetido en cada controlador para que la cuarta lo herede. Portar `tests/functional/tasks/escritura_lectura.spec.ts` (3 pruebas), que compara el objeto **entero** y no el campo sospechoso: comparar solo `updatedAt` deja de morder en cuanto el desajuste se mude a otro campo, y ya pasó una vez |
 
 ### El que sí viene arreglado
 
@@ -608,8 +610,8 @@ Ninguno de los seis tiene nada en la rama que lo detecte.
 
 | Qué falta | Evidencia | Plan de acción |
 |---|---|---|
-| Las pruebas | `backend/tests/` tiene **cinco** ficheros: los cuatro de `auth` y `tasks/assignee.spec.ts`. Nosotros llevamos doce y 71 pruebas | Portar los siete que faltan más `tests/helpers/api.ts`, del que dependen todos. Sin el helper, cualquier prueba que lea un cuerpo de error o mande un payload inválido no compila: el registro tipado de Tuyau solo modela la respuesta de éxito |
-| El verificador | No existe `scripts/`. Cero comprobaciones deterministas | Portar `scripts/verificar-docs.mjs` con sus trece comprobaciones, y **volver a demostrar cada una mutando el código**. No vale darlas por buenas porque pasaban en `s4/start`: la rama tiene otro contrato -documento OpenAPI generado desde `app/openapi/schemas.ts`, no escrito a mano- y varias comprobaciones van a chocar con eso |
+| Las pruebas | `backend/tests/` tiene **cinco** ficheros: los cuatro de `auth` y `tasks/assignee.spec.ts`. Nosotros llevamos **catorce** y 71 pruebas | Portar los **nueve** que faltan más `tests/helpers/api.ts`, del que dependen todos. Sin el helper, cualquier prueba que lea un cuerpo de error o mande un payload inválido no compila: el registro tipado de Tuyau solo modela la respuesta de éxito |
+| El verificador | No existe `scripts/`. Cero comprobaciones deterministas | Portar `scripts/verificar-docs.mjs` con sus **quince** comprobaciones, y **volver a demostrar cada una mutando el código**. No vale darlas por buenas porque pasaban en `s4/start`: la rama tiene otro contrato -documento OpenAPI generado desde `app/openapi/schemas.ts`, no escrito a mano- y varias comprobaciones van a chocar con eso |
 | La integración continua | No existe `.github/`. Nuestro `verificacion.yml` es nuestro | Portarlo, y comprobar que **falla de verdad** empujando una mutación a una rama, no solo que sale verde |
 | El registro de hallazgos | No existen `docs/hallazgos.md` ni `docs/trazabilidad.md` | Traerlos antes de tocar código. Es el punto 1 de la regla de arrastre, y es el que se saltó al pasar de `s3` a `s4` |
 
@@ -707,9 +709,9 @@ Tres módulos abierto, dos intentos de cierre, y lo caro nunca fue el código.
 
 ---
 
-# Lo que enseñaron cuatro revisiones adversariales seguidas
+# Lo que enseñaron seis revisiones adversariales seguidas
 
-Sobre el mismo trabajo se lanzaron cuatro revisiones. Las cuatro encontraron algo real. Vale la pena mirar el conjunto, porque el patrón dice más que los hallazgos sueltos.
+Sobre el mismo trabajo se lanzaron seis revisiones. Las seis encontraron algo real, incluidas las dos últimas, que revisaron el trabajo hecho para cerrar lo que encontraron las anteriores. Vale la pena mirar el conjunto, porque el patrón dice más que los hallazgos sueltos.
 
 | | Qué destapó |
 |---|---|

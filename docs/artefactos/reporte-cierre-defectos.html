@@ -620,6 +620,32 @@
   </section>
 
   <section>
+    <h2>Lo que se arrastra</h2>
+
+    <p class="intro">Estado al cerrar el Módulo 3, sobre <code>s3/start</code>. Sección añadida el 2026-09-02, cuando se estableció la regla de arrastrar el registro de hallazgos entre módulos.</p>
+
+    <div class="nota">
+      <span class="rotulo">Corregida el mismo día</span>
+      <p>La primera versión marcaba H-11, H-13 y H-14 como <code>Cerrado</code>. Lo estaban en <code>s3/start</code> y <b>no en <code>s4/start</code></b>, donde seguían vivos: el arreglo nunca cruzó de rama. Es H-22, y la columna dice ahora en qué rama se miró.</p>
+    </div>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Qué</th><th>Desde</th><th>Al cerrar el Módulo 3</th><th>Qué pasó después, en <code>s4/start</code></th></tr></thead>
+        <tbody>
+          <tr><td class="num">H-19</td><td>Las respuestas de error revelan internals</td><td>Módulo 3, lo destapó <code>/verify</code></td><td><b>Arreglado solo en una ruta.</b> D12 diagnosticó la causa general y aplicó un arreglo local</td><td>Reapareció. Cerrado del todo el 2026-09-02, en dos pasos</td></tr>
+          <tr><td class="num">H-11</td><td>El email distingue mayúsculas</td><td>Módulo 3</td><td>Cerrado en <code>s3/start</code></td><td><b>Vivo.</b> Comprobado por API. Portado el 2026-09-02</td></tr>
+          <tr><td class="num">H-13</td><td>Sesión caducada sin salida</td><td>Módulo 3</td><td>Cerrado en <code>s3/start</code></td><td><b>Vivo.</b> Portado, y con él el runner de frontend que tampoco había cruzado</td></tr>
+          <tr><td class="num">H-14</td><td><code>updatedAt</code> distinto según el endpoint</td><td>Módulo 3</td><td>Cerrado en <code>s3/start</code></td><td><b>Vivo</b>, y en tres escrituras. Portado el 2026-09-02</td></tr>
+          <tr><td class="num">—</td><td>La condición de carrera de <code>unique</code> sigue dando 500</td><td>Módulo 3</td><td><b>Declarado, no arreglado</b></td><td>Sigue dando 500, pero el 500 ya no filtra nada</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><b>La lección de esta tabla es H-19</b>: se dio por resuelto un defecto cuyo arreglo era local, teniendo escrito en el propio diseño que la causa era general. <b>Y la segunda la dio la tabla misma</b>: sus tres filas de «Cerrado» repitieron el error que existía para evitar, el mismo día en que se escribió la regla.</p>
+  </section>
+
+  <section>
     <h2>Lo que queda fuera, y por qué</h2>
     <p class="intro">Declarado para que sea un hueco conocido y no una omisión silenciosa.</p>
 

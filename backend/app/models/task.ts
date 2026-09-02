@@ -29,7 +29,7 @@ export default class Task extends TaskSchema {
   declare assignee: BelongsTo<typeof User>
 
   /**
-   * Lo persistido, con el responsable, en una sola consulta.
+   * Lo persistido, con el responsable.
    *
    * Toda escritura devuelve esto en vez del objeto que tiene en memoria. El
    * modelo recién guardado trae `updatedAt` con milisegundos y la base lo
@@ -38,8 +38,14 @@ export default class Task extends TaskSchema {
    * campo. Es H-14: hoy no duele porque la interfaz no pinta esas marcas, y
    * dolería en cuanto algo las compare o cachee por ellas.
    *
-   * Se relee y se trae el responsable en una consulta, no con `refresh()` más
-   * `load()`, que son dos.
+   * Cuesta **dos consultas**: una por la tarea y otra por el responsable, que
+   * es lo que emite `preload` siempre. Antes era una -`load()` sobre el objeto
+   * ya en memoria-, así que releer no sale gratis: se paga una consulta por
+   * escritura a cambio de que la respuesta diga lo que hay en la base.
+   *
+   * El comentario anterior decía «una sola consulta, no `refresh()` más
+   * `load()`, que son dos». Era falso, y lo era en cuatro documentos a la vez.
+   * Medido con `DEBUG=knex:query`.
    */
   static releerConResponsable(id: number) {
     return Task.query().where('id', id).preload('assignee').firstOrFail()
