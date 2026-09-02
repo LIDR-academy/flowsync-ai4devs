@@ -125,8 +125,7 @@ export default class TasksController {
   })
   async show({ params, request, serialize }: HttpContext) {
     const { today } = await request.validateUsing(taskReferenceDayValidator)
-    const task = await Task.findOrFail(params.id)
-    await task.load('assignee')
+    const task = await Task.releerConResponsable(params.id)
 
     return serialize(TaskDetailTransformer.transform(task, toCalendarDay(today)))
   }
@@ -165,12 +164,11 @@ export default class TasksController {
     // el modelo recién creado no vuelve a leerse de la base de datos, así que
     // ese defecto no llegaría a la respuesta.
     const task = await Task.create({ title, status: 'pending', assigneeId: user.id })
-    await task.load('assignee')
 
     // El estado se marca aparte y el cuerpo se devuelve: `serialize()` entrega
     // una promesa que resuelve el pipeline al devolverla, y pasársela a
     // `response.created()` deja la respuesta con el cuerpo vacío.
     response.status(201)
-    return serialize(TaskTransformer.transform(task))
+    return serialize(TaskTransformer.transform(await Task.releerConResponsable(task.id)))
   }
 }

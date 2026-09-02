@@ -53,17 +53,22 @@ export default class TaskDueDatesController {
     type: () => ValidationErrorResponse,
   })
   async update({ params, request, serialize }: HttpContext) {
-    const task = await Task.findOrFail(params.id)
+    // Validar antes de resolver (ADR-0004), igual que las otras cuatro.
     const { today, dueDate } = await request.validateUsing(setTaskDueDateValidator)
+    const task = await Task.findOrFail(params.id)
 
     // El `DateTime` del validador se queda aquí: hacia dentro, una fecha de
     // vencimiento es un día en texto y nunca un instante.
     task.dueDate = dueDate === null ? null : toCalendarDay(dueDate)
     await task.save()
-    await task.load('assignee')
 
     // Se devuelve ya resuelta contra el día de quien pide, para que aplazar una
     // tarea vencida deje de mostrarla vencida en esta misma respuesta.
-    return serialize(TaskDetailTransformer.transform(task, toCalendarDay(today)))
+    return serialize(
+      TaskDetailTransformer.transform(
+        await Task.releerConResponsable(task.id),
+        toCalendarDay(today)
+      )
+    )
   }
 }

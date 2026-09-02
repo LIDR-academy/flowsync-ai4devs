@@ -1,6 +1,19 @@
 import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
 
+/**
+ * Los tests usan su propio fichero (ADR-0001).
+ *
+ * Sin esto, la suite functional escribe sobre la misma base que el servidor de
+ * desarrollo, y el aislamiento queda dependiendo de que cada fichero de prueba
+ * recuerde declarar su hook de transacción. Está reproducido: un fichero sin el
+ * hook deja filas de test en la base de desarrollo con la suite en verde.
+ *
+ * `bin/test.ts` fuerza `NODE_ENV=test` incondicionalmente, así que desde la
+ * suite no hay forma de apuntar al fichero de desarrollo.
+ */
+const databaseFile = app.inTest ? 'db-test.sqlite3' : 'db.sqlite3'
+
 const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
@@ -15,7 +28,7 @@ const dbConfig = defineConfig({
       client: 'better-sqlite3',
 
       connection: {
-        filename: app.tmpPath('db.sqlite3'),
+        filename: app.tmpPath(databaseFile),
       },
 
       /**
