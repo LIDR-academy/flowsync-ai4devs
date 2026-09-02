@@ -221,7 +221,7 @@
 
   <div class="estado">
     <div><span class="cifra roja">0</span><span class="rotulo">Pruebas de tasks al empezar</span></div>
-    <div><span class="cifra verde">16</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
+    <div><span class="cifra verde">20</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
     <div><span class="cifra">3</span><span class="rotulo">Defectos con la suite en verde</span></div>
     <div><span class="cifra">7</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
   </div>
@@ -330,6 +330,29 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
     <div class="nota">
       <span class="rotulo">La lección más útil</span>
       <p>La primera versión del verificador daba luz verde mientras tres documentos afirmaban comportamientos que la API no tenía, porque comprobaba lo cómodo. Un verificador que solo comprueba lo fácil es peor que no tenerlo: da una garantía que no existe.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>El hallazgo que el prework anuncia y no es un bug</h2>
+    <p class="intro">Contrastar el prework contra la transcripción del directo dejó el hallazgo más incómodo de los dos módulos, y no está en el código: está en el material de apoyo.</p>
+
+    <p>La lección asíncrona presenta tres hallazgos de ejemplo. Dos son reales y son exactamente H-15 y H-16. El tercero, marcado como <strong>crítico</strong>, es un IDOR: «el listado no filtra por el usuario autenticado y devuelve tareas de otros».</p>
+
+    <p>Y no se queda en anunciarlo. <strong>Da la instrucción de arreglo</strong>:</p>
+
+    <blockquote>Arregla el hallazgo crítico: filtra las tareas por el usuario autenticado y añade un test que cubra el aislamiento por usuario.</blockquote>
+
+    <p>Aplicada al pie de la letra, esa instrucción <strong>rompe el producto</strong>. El requisito «Una sola lista compartida del espacio» dice que el contenido no depende de quién la consulta, y la aplicación existe precisamente para ver en qué anda el equipo.</p>
+
+    <p>La sesión en directo lo monta como el clímax de su tercera demo: abre ese material en pantalla, señala que el IDOR <strong>no</strong> aparece en el informe del revisor, y explica por qué no aparecer es lo correcto.</p>
+
+    <blockquote>El adversario no decide qué es un bug. Lo decide la spec.</blockquote>
+
+    <div class="nota">
+      <span class="rotulo">Lo grave</span>
+      <p>Nada lo fijaba. Ningún escenario tenía prueba que cubriera «el contenido no depende de quién mira», así que aplicar la instrucción del prework dejaba la suite entera en verde.</p>
+      <p>Ahora cuatro pruebas lo cierran. Verificado aplicando la instrucción literalmente: <strong>tres caen</strong>. Es la lección convertida en guardarraíl, que es lo único que sobrevive a que nadie se acuerde.</p>
     </div>
   </section>
 
