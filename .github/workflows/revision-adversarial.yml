@@ -120,7 +120,14 @@ jobs:
 
       - name: Instalar Claude Code
         if: steps.puerta.outputs.seguir == 'si'
-        run: npm install -g @anthropic-ai/claude-code
+        # Versión fijada, por el mismo motivo que `openspec` en
+        # `verificacion.yml` y por uno más grave que allí: este paquete corre
+        # **en el mismo entorno donde vive la credencial**. Sin fijar, cada
+        # ejecución instala lo último que haya en npm, y una versión
+        # comprometida -suya o de cualquier dependencia transitiva- tendría el
+        # token delante. Fijarla no elimina el riesgo, pero lo convierte en algo
+        # que se decide al subirla en vez de ocurrir solo.
+        run: npm install -g @anthropic-ai/claude-code@2.1.252
 
       - name: Revisar
         id: revision
