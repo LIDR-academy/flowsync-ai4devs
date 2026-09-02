@@ -2,7 +2,9 @@
 
 ## Estado
 
-Aceptada · 2026-08-26
+Aceptada · 2026-08-26. Vigente.
+
+El párrafo «Segundo límite» de las consecuencias se añadió el 2026-08-26 al descubrirlo aplicando la decisión. No cambia la decisión: registra una consecuencia. Un ADR no se edita cuando **la decisión** cambia; entonces se crea uno nuevo que lo reemplaza.
 
 ## Contexto
 

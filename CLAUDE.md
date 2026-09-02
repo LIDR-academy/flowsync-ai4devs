@@ -142,3 +142,5 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 - Al cerrar la tarea: usar la skill `/commit`, luego `gh pr create` con una descripción completa de los cambios en el cuerpo del PR.
 - Después de abrir el PR: usar el subagente `adversarial-reviewer` sobre él, antes de darlo por terminado.
 - No repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
+- **Cuando un cambio toque rutas, controladores o validadores**: actualizar `docs/api/openapi.yaml` y el README si corresponde, y ejecutar `node scripts/verificar-docs.mjs` antes de cerrar. La documentación de este repo se **contrasta**, no se regenera (ADR-0002), así que el contraste solo sirve si se ejecuta.
+- Verificar por **código de salida**, nunca por lo que imprime la última línea. Un `| tail -1` se come el error y deja pasar un lint en rojo como si estuviera limpio.
