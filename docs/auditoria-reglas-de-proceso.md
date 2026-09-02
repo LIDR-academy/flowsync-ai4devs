@@ -31,7 +31,7 @@ Las tres salen de `~/.claude/CLAUDE.md` y `~/OPINIONS.md`. **No están en el REA
 
 ## 2 · Todas las reglas del repositorio
 
-Trece en total: siete del ciclo de trabajo, que venían del curso o salieron de los módulos anteriores, y seis de calidad del cambio, traídas de los proyectos de renelo para poder contrastarlas.
+Catorce en total: siete del ciclo de trabajo, que venían del curso o salieron de los módulos anteriores, y siete de calidad del cambio -seis traídas de los proyectos de renelo para poder contrastarlas, y una que sale de la cicatriz de este repositorio.
 
 ### Ciclo de trabajo
 
@@ -55,12 +55,13 @@ Trece en total: siete del ciclo de trabajo, que venían del curso o salieron de 
 | R-11 | Todo atajo se escribe como deuda técnica | **Silencioso**, y el que más decae | Nada hoy | *pendiente* |
 | R-12 | Un lint, test fallando o flaky se arreglan aunque no los hayas causado | **Silencioso** | CI lo ejecuta para lo que corre en CI, y nada para lo demás | *pendiente* |
 | R-13 | La documentación desactualizada es peor que no tenerla | **No comprobable** | Nada puede. Ver abajo | **No se puede comprobar** |
+| R-14 | Una comprobación cuenta cuando se la ha visto fallar | **Peor que silencioso**: da una garantía que no existe | Nada automático. Se ejecuta mutando a mano y mirando el rojo | *pendiente* |
 
 ## 3 · La tercera categoría, que es la que se olvida
 
 R-13 no está pendiente de comprobar: **no se puede comprobar**, y decirlo es más honesto que dejarla como aspiración.
 
-Ninguna comprobación sabe si un documento sigue siendo útil. Sabe si sigue **coincidiendo con el código**, que es otra cosa, y es exactamente lo que hace `scripts/verificar-docs.mjs` con sus trece contrastes. Un documento puede coincidir con el código al milímetro y no servirle a nadie.
+Ninguna comprobación sabe si un documento sigue siendo útil. Sabe si sigue **coincidiendo con el código**, que es otra cosa, y es exactamente lo que hace `scripts/verificar-docs.mjs` con sus trece comprobaciones -trece comprobaciones del verificador, que no tienen que ver con las catorce reglas de la tabla de arriba. Un documento puede coincidir con el código al milímetro y no servirle a nadie.
 
 Lo mismo vale para R-04, en pequeño: «no repitas el resumen en el chat» es una regla sobre lo que se dice, y no hay repositorio donde mirarlo.
 
@@ -73,6 +74,10 @@ Bajar una regla a un guardarraíl **no la garantiza tampoco**.
 El 2026-09-02, la quinta revisión adversarial demostró que dos de las comprobaciones de `verificar-docs.mjs` daban luz verde a mutaciones reales: encender el volcado de depuración con `|| !app.inTest` y sustituir la tabla de arrastre entera por la frase «esta vez no hace falta la tabla». Las dos pasaban en verde. Era la quinta pasada consecutiva en que la mutación con la que se había probado una comprobación era la que esa comprobación ya cubría por construcción.
 
 Así que la columna «Qué la ejecutaría» tiene una condición que no se ve en la tabla: **una comprobación cuenta cuando se la ha visto fallar a propósito**, no cuando existe. Es lo que [ADR-0002](adr/0002-la-documentacion-se-verifica-no-se-regenera.md) dice desde el Módulo 4, escrito antes de saber cuántas veces íbamos a necesitarlo.
+
+Esa condición es ahora **R-14**, y es la única regla de la tabla que no viene ni del curso ni de los proyectos de renelo: sale de esta cicatriz. Estaba escrita en un ADR como consecuencia de una decisión, que es un sitio donde nadie va a buscarla al añadir una comprobación nueva. Subirla a las reglas de proceso es, literalmente, el movimiento que el módulo describe: coger lo que falla en silencio y ponerlo donde se ejecuta.
+
+Su modo de fallo es el peor de los catorce. Las demás, cuando fallan, dejan el trabajo sin hacer. Esta, cuando falla, deja el trabajo **aparentemente hecho**: una comprobación en verde que no comprueba nada es peor que no tenerla, porque quien la ve deja de mirar.
 
 ## 5 · Cómo se rellena la columna de estado
 

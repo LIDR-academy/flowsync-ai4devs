@@ -156,7 +156,7 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 
 ### Calidad del cambio
 
-Las seis de esta sección no son del curso: son las que renelo aplica en sus proyectos, y viven en `~/.claude/CLAUDE.md` y `~/OPINIONS.md`, heredadas por todos ellos sin que ninguno las declare. Se copian aquí para poder **contrastarlas contra un repositorio de verdad**, que es el ejercicio del Módulo 5.
+Siete reglas, y ninguna viene del curso. Las **seis primeras** son las que renelo aplica en sus proyectos, y viven en `~/.claude/CLAUDE.md` y `~/OPINIONS.md`, heredadas por todos ellos sin que ninguno las declare: se copian aquí para poder **contrastarlas contra un repositorio de verdad**, que es el ejercicio del Módulo 5. La **séptima** no viene de ningún fichero: sale de la cicatriz de este repositorio.
 
 - **Un bug no se cierra sin reproducirlo.** · *Fallo silencioso.*
   Primero se reproduce en un entorno E2E lo más parecido posible a como lo vive el usuario final, y se confirma que el arreglo ataca el problema real y no el síntoma.
@@ -180,3 +180,8 @@ Las seis de esta sección no son del curso: son las que renelo aplica en sus pro
 - **La documentación desactualizada es peor que no tenerla.** · *No se puede comprobar automáticamente.*
   Se documenta cuando aporta valor -ADR, integraciones, variables de entorno, supuestos de seguridad, modos de fallo- y nunca como ritual.
   Ninguna comprobación sabe si un documento sigue siendo útil. Solo sabe si sigue coincidiendo con el código, que es otra cosa y es lo que hace `scripts/verificar-docs.mjs`.
+
+- **Una comprobación cuenta cuando se la ha visto fallar.** · *Fallo peor que silencioso: da una garantía que no existe.*
+  Toda comprobación que se añada -al verificador, a CI, a la suite- se demuestra **mutando el código a propósito** y viendo que se pone en rojo. Si no se ha visto fallar, no cuenta como comprobación: cuenta como una segunda regla escrita, y encima con la apariencia de estar ejecutada.
+  No es una precaución teórica. Cinco revisiones adversariales seguidas encontraron el verificador en verde sobre mutaciones reales, siempre por el mismo motivo: la mutación con la que se había probado cada comprobación era la que esa comprobación ya cubría por construcción.
+  Viene de [ADR-0002](docs/adr/0002-la-documentacion-se-verifica-no-se-regenera.md), donde estaba escrita como consecuencia de una decisión y no como regla de proceso. Se sube aquí porque es lo que sostiene la columna «Qué la ejecutaría» de la auditoría: sin ella, esa columna es una lista de comprobaciones que nadie sabe si muerden.
