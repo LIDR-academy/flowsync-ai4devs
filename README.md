@@ -64,7 +64,7 @@ Escrito aquí porque un README que promete lo que no hay es peor que no tener RE
 
 **Escrito en el backlog y no implementado:** borrar tarea, editar el título, reasignar responsable y lista viva sin recargar.
 
-**Cobertura:** 36 pruebas. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado y lo que se expone del responsable. 108 de los 124 escenarios de la spec de `tasks` siguen sin verificar, enumerados por prioridad en [`docs/trazabilidad.md`](docs/trazabilidad.md).
+**Cobertura:** 40 pruebas. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado, lo que se expone del responsable y que la lista es del espacio y no de quien la mira. 104 de los 124 escenarios de la spec de `tasks` siguen sin verificar, enumerados por prioridad en [`docs/trazabilidad.md`](docs/trazabilidad.md).
 
 ## Cómo se trabaja aquí
 

@@ -13,8 +13,8 @@
 | | Al empezar | Al terminar |
 |---|---:|---:|
 | Pruebas de `auth` | 20 | 20 |
-| Pruebas de `tasks` | **0** | 16 |
-| Escenarios de `tasks` verificados | 0 de 124 | 16 de 124 |
+| Pruebas de `tasks` | **0** | 20 |
+| Escenarios de `tasks` verificados | 0 de 124 | 20 de 124 |
 | Defectos conocidos y abiertos | 0 (no se sabía de ninguno) | 3, anotados |
 | Documentos que contrastan contra el código | 0 | 7 comprobaciones en CI |
 
@@ -131,6 +131,28 @@ Las siete se verificaron mutando el código y comprobando que fallan. Dos de ell
 
 ---
 
+## 4 bis · El hallazgo que el prework anuncia y no es un bug
+
+Contrastar el prework contra la transcripción del directo dejó el hallazgo más incómodo de los dos módulos, y no está en el código: está en el material de apoyo.
+
+La lección asíncrona presenta tres hallazgos de ejemplo. Dos son reales y son exactamente H-15 y H-16. El tercero, marcado como **crítico**, es un IDOR: «el listado no filtra por el usuario autenticado y devuelve tareas de otros».
+
+Y no se queda en anunciarlo. **Da la instrucción de arreglo**:
+
+> «Arregla el hallazgo crítico: filtra las tareas por el usuario autenticado y añade un test que cubra el aislamiento por usuario.»
+
+Aplicada al pie de la letra, esa instrucción **rompe el producto**. El requisito «Una sola lista compartida del espacio» dice que el contenido no depende de quién la consulta, y la aplicación existe precisamente para ver en qué anda el equipo.
+
+La sesión en directo lo monta como el clímax de su tercera demo: abre ese material en pantalla, señala que el IDOR **no** aparece en el informe del revisor, y explica por qué no aparecer es lo correcto. De ahí sale la frase que resume el módulo: **el adversario no decide qué es un bug, lo decide la spec**.
+
+**Lo grave era que nada lo fijaba.** Ningún escenario de `tasks` tenía prueba que cubriera «el contenido no depende de quién mira», así que aplicar la instrucción del prework dejaba la suite entera en verde.
+
+Ahora sí: `tests/functional/tasks/lista_compartida.spec.ts` fija cuatro cosas -dos personas ven el mismo conjunto campo por campo, cada una ve la tarea de la otra con su responsable, una tarea ajena se consulta suelta igual que una propia, y ningún parámetro recorta la lista-. Verificado aplicando literalmente la instrucción del prework: **tres pruebas caen**.
+
+Es la lección del módulo convertida en guardarraíl, que es lo único que sobrevive a que nadie se acuerde.
+
+---
+
 ## 5 · Módulo 3 frente a Módulo 4
 
 Los dos módulos atacan el mismo problema desde extremos opuestos.
@@ -164,4 +186,4 @@ El segundo encuentra lo que el primero no puede encontrar, porque el primero sol
 | H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | En producción no ocurre. Apagarlo cambia el comportamiento del framework para todo el equipo y merece su propia decisión |
 | H-21 | El orden de validación difiere entre controladores | Ningún escenario lo fija. Conviene decidirlo antes de construir encima |
 
-Y 108 de los 124 escenarios de `tasks` siguen sin prueba. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
+Y 104 de los 124 escenarios de `tasks` siguen sin prueba. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
