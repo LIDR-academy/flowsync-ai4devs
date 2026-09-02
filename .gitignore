@@ -27,3 +27,7 @@ coverage/
 
 # Planes de sesion: material de trabajo propio, no del proyecto
 docs/plans/
+
+# Propuestas y notas propias: que se propuso, donde acabo y por que.
+# Material de trabajo, no documentacion del producto.
+docs/propuestas-rene-lopez.md
