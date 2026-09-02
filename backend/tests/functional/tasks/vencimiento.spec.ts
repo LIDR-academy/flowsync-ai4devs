@@ -10,7 +10,7 @@ import { errores, tarea } from '#tests/helpers/api'
  *
  * Es la única regla de negocio no trivial del MVP y no la comprobaba nada. Una
  * de sus tres condiciones faltaba en el código: una tarea hecha con la fecha
- * pasada llegaba marcada como vencida, con las 24 pruebas de la suite en verde.
+ * pasada llegaba marcada como vencida, con las 20 pruebas de la suite en verde.
  */
 let contador = 0
 

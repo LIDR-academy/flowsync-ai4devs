@@ -81,6 +81,109 @@ test.group('Tasks | la lista es del espacio, no de quien la mira', (group) => {
     assert.equal(tarea(respuesta).assignee.id, grace.id)
   })
 
+  test('tampoco se recorta cuando se acota por estado', async ({ client, assert }) => {
+    const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
+    const grace = await cuenta('grace@flowsync.test', 'Grace Hopper')
+
+    await Task.create({ title: 'La lleva Ada', status: 'pending', assigneeId: ada.id })
+    await Task.create({ title: 'La lleva Grace', status: 'pending', assigneeId: grace.id })
+
+    // El camino con filtro es una consulta distinta del camino sin filtro, y
+    // filtrar por usuario solo en este dejaba la suite en verde.
+    const laDeAda = await client.get('/api/v1/tasks').qs({ status: 'pending' }).loginAs(ada)
+    const laDeGrace = await client.get('/api/v1/tasks').qs({ status: 'pending' }).loginAs(grace)
+
+    assert.deepEqual(tareas(laDeAda), tareas(laDeGrace))
+    assert.lengthOf(tareas(laDeAda), 2)
+  })
+
+  test('cambiar el estado de una tarea ajena se aplica igual', async ({ client, assert }) => {
+    const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
+    const grace = await cuenta('grace@flowsync.test', 'Grace Hopper')
+
+    const deGrace = await Task.create({
+      title: 'La lleva Grace',
+      status: 'pending',
+      assigneeId: grace.id,
+    })
+
+    const respuesta = await client
+      .patch(`/api/v1/tasks/${deGrace.id}/status`)
+      .json({ status: 'done' })
+      .loginAs(ada)
+
+    respuesta.assertStatus(200)
+    assert.equal(tarea(respuesta).status, 'done')
+    // Tocarla no la reasigna.
+    assert.equal(tarea(respuesta).assignee.id, grace.id)
+  })
+
+  test('fijar la fecha de una tarea ajena se aplica igual', async ({ client, assert }) => {
+    const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
+    const grace = await cuenta('grace@flowsync.test', 'Grace Hopper')
+
+    const deGrace = await Task.create({
+      title: 'La lleva Grace',
+      status: 'pending',
+      assigneeId: grace.id,
+    })
+
+    const respuesta = await client
+      .put(`/api/v1/tasks/${deGrace.id}/due-date`)
+      .json({ today: '2026-08-26', dueDate: '2026-09-30' })
+      .loginAs(ada)
+
+    respuesta.assertStatus(200)
+    assert.equal(tarea(respuesta).dueDate, '2026-09-30')
+  })
+
+  test('el orden de la lista es el acordado, no el que quiera la base', async ({
+    client,
+    assert,
+  }) => {
+    const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
+
+    // Con fechas distintas. Creadas en el mismo segundo, el desempate por `id`
+    // decide y la prueba pasa aunque se invierta el orden por fecha, que es
+    // justo el mutante que se escapaba.
+    for (const [title, dia] of [
+      ['La más vieja', '2026-08-01'],
+      ['La de en medio', '2026-08-10'],
+      ['La más nueva', '2026-08-20'],
+    ] as const) {
+      const creada = await Task.create({ title, status: 'pending', assigneeId: ada.id })
+      await Task.query()
+        .where('id', creada.id)
+        .update({ created_at: `${dia} 09:00:00` })
+    }
+
+    const respuesta = await client.get('/api/v1/tasks').loginAs(ada)
+
+    // Descendente por creación: lo último anotado encabeza.
+    assert.deepEqual(
+      tareas(respuesta).map((t) => t.title),
+      ['La más nueva', 'La de en medio', 'La más vieja']
+    )
+  })
+
+  test('dos tareas del mismo instante desempatan de forma estable', async ({ client, assert }) => {
+    const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
+
+    const primera = await Task.create({ title: 'Primera', status: 'pending', assigneeId: ada.id })
+    const segunda = await Task.create({ title: 'Segunda', status: 'pending', assigneeId: ada.id })
+    await Task.query()
+      .whereIn('id', [primera.id, segunda.id])
+      .update({ created_at: '2026-08-15 09:00:00' })
+
+    const respuesta = await client.get('/api/v1/tasks').loginAs(ada)
+
+    // Sin el desempate por identificador, el orden lo elegiría la base de datos.
+    assert.deepEqual(
+      tareas(respuesta).map((t) => t.title),
+      ['Segunda', 'Primera']
+    )
+  })
+
   test('no existe ninguna vista de «mis tareas»', async ({ client, assert }) => {
     const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
     const grace = await cuenta('grace@flowsync.test', 'Grace Hopper')

@@ -13,10 +13,10 @@
 | | Al empezar | Al terminar |
 |---|---:|---:|
 | Pruebas de `auth` | 20 | 20 |
-| Pruebas de `tasks` | **0** | 20 |
-| Escenarios de `tasks` verificados | 0 de 124 | 20 de 124 |
+| Pruebas de `tasks` | **0** | 30 |
+| Requisitos de `tasks` con alguna prueba | 0 de 32 | 11 de 32 |
 | Defectos conocidos y abiertos | 0 (no se sabía de ninguno) | 3, anotados |
-| Documentos que contrastan contra el código | 0 | 7 comprobaciones en CI |
+| Documentos que contrastan contra el código | 0 | 9 comprobaciones en CI |
 
 ---
 
@@ -113,19 +113,21 @@ También deja anotado que **tres de los doce ficheros del backlog no son histori
 
 Arquitectura con diagramas, contrato OpenAPI, ADR y README, escritos a partir de lo que existe.
 
-Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Siete comprobaciones que corren en CI:
+Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Nueve comprobaciones que corren en CI:
 
 | Comprueba | Muerde si |
 |---|---|
 | El contrato cubre exactamente las rutas del código | Se añade una ruta sin documentarla, o se documenta una que no existe |
+| La tabla de rutas de `CLAUDE.md` corresponde con el código | Esa tabla se queda atrás |
 | Los estados documentados son los del dominio | Alguien añade o renombra un estado |
-| La regla de vencimiento tiene sus tres condiciones | Se quita cualquiera de las tres |
-| La comparación del vencimiento es estricta | Un `<` se vuelve `<=` |
+| La regla de vencimiento tiene sus tres condiciones, y la comparación es estricta | Se quita cualquiera, o un `<` se vuelve `<=` |
 | El filtro está acotado al enum | Vuelve a ser una cadena suelta |
 | El responsable no expone la cuenta | La lista vuelve al transformer que filtraba el email |
+| Toda operación que resuelve un id documenta su `404` | Se añade una ruta con `findOrFail` sin documentar el rechazo |
+| Las pruebas no pueden escribir sobre la base de desarrollo | La elección por entorno se deshace o deja de aplicarse |
 | Los documentos que el README enlaza existen | Un enlace apunta a un fichero que no está |
 
-Las siete se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
+Las nueve se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
 
 **La primera versión del verificador daba luz verde mientras tres documentos afirmaban comportamientos que la API no tenía**, porque comprobaba lo fácil. Lo señaló la misma revisión adversarial, y es la lección más útil sobre este tipo de herramienta: un verificador que solo comprueba lo cómodo es peor que no tenerlo, porque da una garantía que no existe.
 
@@ -186,4 +188,4 @@ El segundo encuentra lo que el primero no puede encontrar, porque el primero sol
 | H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | En producción no ocurre. Apagarlo cambia el comportamiento del framework para todo el equipo y merece su propia decisión |
 | H-21 | El orden de validación difiere entre controladores | Ningún escenario lo fija. Conviene decidirlo antes de construir encima |
 
-Y 104 de los 124 escenarios de `tasks` siguen sin prueba. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
+Y 21 de los 32 requisitos de `tasks` siguen sin ninguna prueba. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.

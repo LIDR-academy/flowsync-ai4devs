@@ -11,11 +11,11 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 45 | — | — | 20 | parcial, ver §2 |
-| `tasks` | 32 | 124 | 12 | 118 | 20 | parcial, ver §3 |
+| `tasks` | 32 | 124 | 12 | 118 | 30 | parcial, ver §3 |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
 
-La suite estaba en verde, y escondía tres defectos que la revisión adversarial destapó: la regla de vencimiento incumplía una de sus tres condiciones, un estado inventado en el filtro respondía `200` con lista vacía, y la lista filtraba el email de cada responsable. Los tres están corregidos y cubiertos. Con las cuatro que fijan la lista compartida, son las 20 pruebas nuevas de esta tabla.
+La suite estaba en verde, y escondía tres defectos que la revisión adversarial destapó: la regla de vencimiento incumplía una de sus tres condiciones, un estado inventado en el filtro respondía `200` con lista vacía, y la lista filtraba el email de cada responsable. Los tres están corregidos y cubiertos. Con las que fijan la lista compartida y la creación, son las 30 pruebas nuevas de esta tabla.
 
 Sigue habiendo mucho hueco. Lo que cambia es que ahora está enumerado.
 
@@ -67,7 +67,7 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 32 requisitos, 124 escenarios, 20 pruebas
+## 3 · `tasks` · 32 requisitos, 124 escenarios, 30 pruebas
 
 Se agrupa por lo que hay que hacer y se ordena por lo que más cuesta si se rompe en silencio.
 

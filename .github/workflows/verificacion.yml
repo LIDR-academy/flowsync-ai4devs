@@ -64,7 +64,10 @@ jobs:
 
       - name: Validar las specs vivas
         run: |
-          npm install -g @fission-ai/openspec@latest
+          # Version fijada a proposito: ADR-0002 descarta el generador de
+          # OpenAPI por anadir una dependencia, asi que esta no puede entrar
+          # sin fijar y moverse sola bajo los pies de la build.
+          npm install -g @fission-ai/openspec@1.10.0
           openspec validate --specs
         env:
           OPENSPEC_TELEMETRY: '0'

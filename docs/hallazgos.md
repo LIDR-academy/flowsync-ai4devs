@@ -6,7 +6,10 @@
 >
 > Ramas de referencia: `s3/start` (H-01 a H-14) y `s4/start` (H-15 en adelante). Última revisión: 2026-08-26.
 >
-> Las entradas H-01 a H-14 se resolvieron sobre `s3/start`, nuestra rama del Módulo 3. Varias describen código que en `s4/start` es distinto, porque el curso llegó a la misma funcionalidad por otro camino: se conservan porque el hallazgo y cómo se verificó siguen siendo el registro de lo que pasó.
+> **Aviso de rama.** Las entradas H-01 a H-14 se trabajaron sobre `s3/start`, nuestra rama del Módulo 3, y **sus apartados «Resuelto» describen esa rama, no esta**.
+> El cambio `add-test-foundation` que citan no existe en `s4/start`; el curso llegó a la misma funcionalidad por otro camino.
+> Donde una entrada afecta también a `s4/start`, lleva una nota explícita que dice qué vale aquí.
+> Se conservan enteras porque el hallazgo y cómo se verificó son el registro de lo que pasó, y reescribirlos borraría esa historia.
 
 ## Índice por severidad
 
@@ -61,7 +64,7 @@ Lo peor es que falla de forma **intermitente**, que es la categoría de fallo m�
 
 Conviene resolverlo **antes** de escribir el primer test, no después.
 
-**Resuelto el 2026-08-25** por el cambio `add-test-foundation`, y en efecto antes del primer test.
+**Resuelto el 2026-08-25 sobre `s3/start`** por el cambio `add-test-foundation`, y en efecto antes del primer test.
 
 Se tomó el camino 2, el fichero separado por entorno, y no el 1.
 La razón está en `design.md` D1: los hooks funcionan, pero dejan el aislamiento dependiendo de que cada fichero de prueba recuerde ponerlos.
@@ -69,10 +72,15 @@ Un test nuevo que olvidara el hook borraría los datos de desarrollo, y ese fall
 Con el fichero separado, olvidarlo es imposible.
 
 Los hooks se usan igualmente, pero para lo que sirven bien: dejar limpio entre casos dentro de la misma ejecución.
-Se enganchan una sola vez en `tests/bootstrap.ts` vía `suite.onGroup`, no fichero a fichero.
+En `s3/start` se enganchan una sola vez en `tests/bootstrap.ts` vía `suite.onGroup`.
 
 **Cómo se verificó**: se anotó la fecha de modificación de `backend/tmp/db.sqlite3`, se ejecutó la suite completa dos veces seguidas y se volvió a leer.
 Idéntica. La base de test vive aparte, en `tmp/db-test.sqlite3`, y no está versionada.
+
+> **Y en `s4/start`, la rama del curso.** El mismo hallazgo volvió a aparecer, porque el curso lo sortea con `withGlobalTransaction()` declarado en cada fichero en vez de resolverlo.
+> Se reprodujo la fuga: un fichero de prueba **sin** el hook dejó una fila en la base de desarrollo con 21 pruebas en verde.
+> Resuelto aquí por [ADR-0001](adr/0001-aislamiento-de-la-base-de-datos-en-pruebas.md), con la misma decisión y una diferencia: **los hooks por fichero se mantienen tal cual**, no se centralizan en `suite.onGroup`.
+> Y a diferencia de `s3/start`, aquí lo fija una prueba: `tests/functional/aislamiento.spec.ts` le pregunta a la conexión viva por su fichero.
 
 ---
 
@@ -91,12 +99,16 @@ Idéntica. La base de test vive aparte, en `tmp/db-test.sqlite3`, y no está ver
 
 En el frontend hay que montarlo de cero. Es la razón de que `FS-118.6` esté estimado en talla M y `FS-142.6` en S: el primero incluye el montaje.
 
-**Resuelto el 2026-08-25** por el cambio `add-test-foundation`.
+**Resuelto el 2026-08-25 sobre `s3/start`** por el cambio `add-test-foundation`.
 
-| | Estado hoy |
+| | Estado en `s3/start` |
 |---|---|
 | Backend | 25 pruebas funcionales en `tests/functional/`, derivadas de las specs vivas de `auth` y `tasks` |
 | Frontend | Vitest instalado, script `npm test`, 17 pruebas sobre `src/lib/api.ts` |
+
+> **En `s4/start` el estado es otro**: 52 pruebas funcionales de backend, y el frontend **sigue sin runner de tests**.
+> Vitest, `src/lib/api.test.ts` y el change `add-test-foundation` no existen en esta rama.
+> Qué escenario cubre cada prueba, y cuáles siguen sin cubrir, en [`trazabilidad.md`](trazabilidad.md).
 
 El runner del frontend es **Vitest** (`design.md` D5): comparte configuración y transformación con Vite, que el proyecto ya usa, así que resuelve el alias `@/*` sin configurarlo aparte y no introduce una segunda cadena de compilación.
 Es la única dependencia nueva del cambio.
@@ -205,12 +217,12 @@ POST /api/v1/auth/signup  {"email":"malformado","password":"123"}
 
 | | Estado |
 |---|---|
-| Que el diccionario del frontend no cambie por accidente | Cubierto. `src/lib/api.test.ts` falla si se toca un mensaje |
+| Que el diccionario del frontend no cambie por accidente | Cubierto **en `s3/start`**. `src/lib/api.test.ts` falla si se toca un mensaje. En `s4/start` no hay runner de frontend, así que ahí sigue sin vigilar |
 | Que los nombres de regla que emite el backend sigan siendo esos | Cubierto desde el 2026-08-26. Las pruebas funcionales de `auth` asertan `rule` en cada rechazo |
 
 Las dos mitades juntas cierran el fallo silencioso: si VineJS renombra `minLength`, rompe la suite del backend; si alguien toca la traducción, rompe la del frontend.
 
-**Cómo se verificó**: renombrando `sameAs` en `api.ts` (rompe el frontend, 1 de 17) y asertando `rule` contra respuestas reales del backend en `tests/functional/auth.spec.ts`.
+**Cómo se verificó, sobre `s3/start`**: renombrando `sameAs` en `api.ts` (rompe el frontend, 1 de 17) y asertando `rule` contra respuestas reales del backend en su `tests/functional/auth.spec.ts`.
 
 **Lo que sigue sin vigilar**: los nombres de regla de `tasks` que el frontend traduce (`enum`) no se asertan en la suite del backend. Es un hueco pequeño y conocido.
 
@@ -346,7 +358,7 @@ Es un cambio de comportamiento de producto, así que va en su propio cambio, no 
 Poner un botón en el aviso de la lista habría arreglado la pantalla que ya conocíamos y dejado el defecto en las que vinieran.
 
 **Cómo se verificó**: en navegador real. Con la lista abierta, se revocó la credencial contra el backend por fuera de la aplicación y se pulsó un cambio de estado. La aplicación pasó a `/login` **sin recargar**, mostrando «Tu sesión ha caducado», y con el token ya borrado.
-Que un fallo que no es de credencial (500, corte de red, 422) no cierre la sesión lo cubre una prueba de Vitest.
+Que un fallo que no es de credencial (500, corte de red, 422) no cierre la sesión lo cubre una prueba de Vitest **en `s3/start`**.
 
 ---
 
@@ -387,7 +399,7 @@ Lo llamativo es que el comentario inmediatamente encima del método decía, lite
 
 **Consecuencia visible**: `task-page.tsx` pinta la señal con `task.isOverdue && task.dueDate !== null`, así que una tarea cuya cabecera decía «Hecho» mostraba debajo, en rojo, que el plazo terminó y «la tarea sigue sin estar hecha».
 
-**Es la única regla de negocio no trivial del MVP**, y no la comprobaba nada. Las 24 pruebas de la suite estaban en verde.
+**Es la única regla de negocio no trivial del MVP**, y no la comprobaba nada. Las 20 pruebas de la suite estaban en verde.
 
 **Cómo se resolvió**: añadida la tercera condición, y seis pruebas nuevas en `tests/functional/tasks/vencimiento.spec.ts`. Quitar la condición tumba dos de ellas; cambiar el `<` por `<=` tumba una.
 

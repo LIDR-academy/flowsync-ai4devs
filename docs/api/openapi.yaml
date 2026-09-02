@@ -236,6 +236,7 @@ paths:
                 properties:
                   data: { $ref: "#/components/schemas/TareaConDetalle" }
         "401": { $ref: "#/components/responses/SinCredencial" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
         "422": { $ref: "#/components/responses/ErrorValidacion" }
 
   /api/v1/tasks/{id}/status:
@@ -268,6 +269,7 @@ paths:
                 properties:
                   data: { $ref: "#/components/schemas/TareaDeLista" }
         "401": { $ref: "#/components/responses/SinCredencial" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
         "422": { $ref: "#/components/responses/ErrorValidacion" }
 
   /api/v1/tasks/{id}/due-date:
@@ -310,6 +312,7 @@ paths:
                 properties:
                   data: { $ref: "#/components/schemas/TareaConDetalle" }
         "401": { $ref: "#/components/responses/SinCredencial" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
         "422": { $ref: "#/components/responses/ErrorValidacion" }
 
 components:
@@ -404,6 +407,15 @@ components:
               meta: { type: object }
 
   responses:
+    NoEncontrada:
+      description: |
+        No existe ninguna tarea con ese identificador. Un identificador mal
+        formado se rechaza igual, sin revelar nada sobre cómo está construido el
+        sistema por dentro.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Errores" }
+
     SinCredencial:
       description: |
         Sin credencial, o con una que el sistema no reconoce. Las dos respuestas
