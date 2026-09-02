@@ -13,11 +13,11 @@
 | | Al empezar | Al terminar |
 |---|---:|---:|
 | Pruebas de `auth` | 20 | 26 |
-| Pruebas de `tasks` | **0** | 38 |
+| Pruebas de `tasks` | **0** | 42 |
 | Pruebas de frontend | 0 | 28 |
 | Requisitos de sistema de `tasks` con prueba | 0 de 17 | **17 de 17** |
 | Defectos encontrados | 0 (no se sabía de ninguno) | 9, de los que 7 quedaron cerrados |
-| Documentos que contrastan contra el código | 0 | 15 comprobaciones en CI |
+| Documentos que contrastan contra el código | 0 | 17 comprobaciones en CI |
 
 ---
 
@@ -114,7 +114,7 @@ También deja anotado que **tres de los doce ficheros del backlog no son histori
 
 Arquitectura con diagramas, contrato OpenAPI, ADR y README, escritos a partir de lo que existe.
 
-Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Quince comprobaciones que corren en CI:
+Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Diecisiete comprobaciones que corren en CI:
 
 | Comprueba | Muerde si |
 |---|---|
@@ -130,11 +130,13 @@ Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`
 | Un error inesperado no devuelve su mensaje | Se deja de interceptar el `5xx` y vuelve el `{ message }` del framework, que en la base de datos es el SQL |
 | Toda operación documenta el error que no estaba previsto | Una operación del contrato se queda sin su `500`, o deja de usar el esquema de errores del proyecto |
 | La versión navegable dice lo mismo que el reporte | Un artefacto HTML se queda sin la tabla de arrastre, o declara un número de comprobaciones que ya no es |
+| Ningún change se archiva con casillas mudas | Un change archivado deja casillas sin marcar y no declara cuáles ni qué costaron |
+| La petición se valida antes de resolver el identificador | Una acción invierte el orden y pone `findOrFail` antes de `validateUsing` |
 | El reporte de cada módulo declara lo que arrastra | Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas |
 | Las pruebas no pueden escribir sobre la base de desarrollo | La elección por entorno se deshace o deja de aplicarse |
 | Los documentos que el README enlaza existen | Un enlace apunta a un fichero que no está |
 
-Las quince se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
+Las diecisiete se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
 
 **Y dos de ellas dieron luz verde a mutaciones reales antes de endurecerse.** La quinta revisión encendió el volcado con `|| !app.inTest` y sustituyó la tabla de arrastre por la frase «esta vez no hace falta la tabla de Lo que se arrastra»: el verificador pasó las dos veces. Es la quinta pasada consecutiva en que la mutación con la que se probó una comprobación era la que esa comprobación ya cubría por construcción. Lo que ata el comportamiento es una prueba que lo provoca; el contraste sobre el texto del código es aviso temprano, no garantía.
 
@@ -243,8 +245,10 @@ El segundo encuentra lo que el primero no puede encontrar, porque el primero sol
 
 | # | Qué | Por qué no se cierra ahora |
 |---|---|---|
-| H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Es de proceso. Se arregla cambiando cómo se archiva, no tocando código |
-| H-21 | El orden de validación difiere entre controladores | Ningún escenario lo fija. Conviene decidirlo antes de construir encima |
+| — | Los 15 requisitos de `tasks` que solo se observan en pantalla | No hay runner de navegador. Vitest cubre `lib/api.ts`; lo que falta es el que ve la pantalla |
+| — | El revisor adversarial en CI, escrito y sin verificar | Falta la credencial. Hasta que se le vea encontrar algo no cuenta (R-14) |
+
+> **H-18 y H-21 estaban aquí y salieron el 2026-09-02.** H-21 no era un bug sino una decisión que nadie había escrito, y es [ADR-0004](adr/0004-validar-antes-de-resolver.md). H-18 se cerró de otra forma que la prevista: «una casilla marcada tiene que significar que se ejecutó algo» **no se puede comprobar**, y perseguirlo habría producido otra regla escrita sin nada que la ejecute. Lo que sí se exige es que una casilla sin marcar no sea muda.
 
 > H-19 estaba en esta tabla y salió de ella el 2026-09-02, cerrado por ADR-0003 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: ver la sección 4 ter.
 

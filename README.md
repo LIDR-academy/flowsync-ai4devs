@@ -65,7 +65,7 @@ Escrito aquí porque un README que promete lo que no hay es peor que no tener RE
 
 **Escrito en el backlog y no implementado:** borrar tarea, editar el título, reasignar responsable y lista viva sin recargar.
 
-**Cobertura:** 72 pruebas de backend y 28 de frontend. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado, lo que se expone del responsable y que la lista es del espacio y no de quien la mira. Los 17 requisitos de sistema de `tasks` tienen prueba; los 15 que solo se ven en pantalla no, porque no hay runner de navegador. El detalle en [`docs/trazabilidad.md`](docs/trazabilidad.md).
+**Cobertura:** 76 pruebas de backend y 28 de frontend. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado, lo que se expone del responsable y que la lista es del espacio y no de quien la mira. Los 17 requisitos de sistema de `tasks` tienen prueba; los 15 que solo se ven en pantalla no, porque no hay runner de navegador. El detalle en [`docs/trazabilidad.md`](docs/trazabilidad.md).
 
 ## Cómo se trabaja aquí
 

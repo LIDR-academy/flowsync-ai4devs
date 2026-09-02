@@ -20,7 +20,7 @@ Lo que empujó hacia esta: durante este trabajo, **la primera versión del verif
 
 La documentación se escribe a mano y **se comprueba automáticamente**.
 
-`scripts/verificar-docs.mjs` corre en CI y falla la build cuando el documento y el código dejan de decir lo mismo. Hoy comprueba quince cosas, y dos de ellas -que la regla de vencimiento tenga sus tres condiciones y que el filtro esté acotado al conjunto de estados- corresponden a defectos reales que estuvieron en el repositorio.
+`scripts/verificar-docs.mjs` corre en CI y falla la build cuando el documento y el código dejan de decir lo mismo. Hoy comprueba diecisiete cosas, y dos de ellas -que la regla de vencimiento tenga sus tres condiciones y que el filtro esté acotado al conjunto de estados- corresponden a defectos reales que estuvieron en el repositorio.
 
 Toda comprobación que se añada tiene que **demostrarse mutando el código** y viendo que falla. Una comprobación que no se ha visto fallar no cuenta.
 

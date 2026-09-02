@@ -34,10 +34,10 @@
 | H-15 | Una tarea hecha con la fecha pasada seguía llegando marcada como vencida | Alta | **Resuelto (2026-08-26)** |
 | H-16 | Un estado inventado en el filtro devolvía 200 con lista vacía | Alta | **Resuelto (2026-08-26)** |
 | H-17 | La lista filtraba el email del responsable | Alta | **Resuelto (2026-08-26)** |
-| H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Alta | Abierto |
+| H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Alta | **Resuelto (2026-09-02)** |
 | H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Alta | **Resuelto (2026-09-02)** · arrastrado desde el Módulo 3, cerrado en dos pasos |
 | H-20 | Dos requisitos de la spec viva se contradecían sobre `today` | Media | **Resuelto (2026-08-26)** |
-| H-21 | El orden de validación difiere entre controladores | Baja | Abierto |
+| H-21 | El orden de validación difiere entre controladores | Baja | **Resuelto (2026-09-02)** · ADR-0004 |
 | H-22 | La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama | Alta | **Resuelto (2026-09-02)** |
 
 > **Al abrir el Módulo 5**, la comprobación contra `s5/start` dice que **seis de los siete** vuelven rotos: H-11, H-13, H-14, H-15, H-16 y H-19. Solo H-17 llega arreglado. Evidencia y plan de acción de cada uno en la sección «Al abrir el Módulo 5», más abajo.
@@ -490,7 +490,27 @@ y el change se archivó igualmente. Su `design.md` había predicho el fallo con 
 
 Peor en el change del filtro: `2026-08-13-add-task-status-filter/tasks.md` marca **`[x]`** la casilla «Verificar que un estado inventado devuelve 422 y no una lista vacía» sobre código que nunca lo ha hecho, y su `design.md` afirma que el validador declara `vine.enum(TASK_STATUSES).optional()`, que no era cierto.
 
-**Qué hacer**: una casilla marcada tiene que significar que se ejecutó algo. Mientras la verificación sea una afirmación de quien archiva, el archivo es una lista de buenas intenciones. `scripts/verificar-docs.mjs` y el CI empiezan a atacarlo, pero solo cubren lo comprobable automáticamente.
+**Resuelto el 2026-09-02**, y no como se esperaba.
+
+La idea original era «una casilla marcada tiene que significar que se ejecutó algo». **Eso no se puede comprobar**: nada automático sabe si alguien recorrió una pantalla a mano. Perseguirlo habría producido otra regla escrita sin nada que la ejecute, que es el defecto que este hallazgo describe.
+
+Lo que sí se puede exigir es que una casilla sin marcar **no sea muda**. Una casilla vacía en un change archivado es hoy indistinguible de una que nadie tuvo que hacer, y esa ambigüedad **es** el defecto: no es que la verificación falte, es que su ausencia no se ve.
+
+Así que la regla es otra: un change se archiva con las casillas que quiera sin marcar, y el fichero declara cuáles y qué costaron. Lo ejecuta una comprobación del verificador, que falla si un archivado tiene casillas sin marcar y no trae su sección «Lo que no se ejecutó».
+
+Los tres archivados llevan ya esa sección, escrita con lo que de verdad pasó:
+
+| Change | Casillas | Lo que costó |
+|---|---|---|
+| `add-task-list` | 4 sin marcar | La 6.3 era «verificar que ninguna respuesta incluye el email del responsable». Es **H-17**, y el `design.md` del propio change lo había predicho con nombre y apellidos |
+| `add-task-due-date` | 5 sin marcar | Dos de ellas describían exactamente **H-15**. Estaban escritas, en el sitio correcto, y sin ejecutar |
+| `add-task-status-filter` | 1, y estaba marcada `[x]` | Marcada sobre código que nunca lo hizo. Es **H-16**. Desmarcada: era falsa |
+
+**La casilla del filtro se deja sin marcar a propósito**, aunque el comportamiento exista desde el 2026-08-26 y lo fije `filtro.spec.ts`. Marcarla ahora afirmaría una verificación que nadie hizo entonces, que es repetir el defecto para taparlo.
+
+**Cómo se verificó**: mutación. Renombrar la sección de un archivado tumba la comprobación nombrando el change.
+
+**Lo que sigue sin cubrir, y se dice**: una casilla marcada que miente. Nada automático la distingue de una cierta. Lo único que hay contra eso es que ahora el coste de las tres que fallaron está escrito al lado, en el mismo fichero que la próxima persona va a leer antes de marcar la suya.
 
 ---
 
@@ -543,11 +563,21 @@ El manejador intercepta todo `5xx` y responde `{ errors: [{ message: 'Error inte
 
 ## H-21 · El orden de validación difiere entre controladores
 
-**Severidad: baja.** Abierto.
+**Rama: `s4/start`. Severidad: baja. Resuelto el 2026-09-02** por [ADR-0004](adr/0004-validar-antes-de-resolver.md).
 
-`TaskStatusesController.update` y `TaskDueDatesController.update` resuelven la tarea **antes** de validar; `TasksController.show` valida antes. Los dos caminos cumplen la spec, pero significa que un `PATCH` con estado inventado sobre una tarea inexistente da 404, mientras un `GET` sin `today` sobre una tarea inexistente da 422.
+`TaskStatusesController.update` y `TaskDueDatesController.update` resolvían la tarea **antes** de validar; `TasksController.show` validaba antes. Los dos caminos cumplían la spec, pero significaba que un `PATCH` con estado inventado sobre una tarea inexistente daba 404, mientras un `GET` sin `today` sobre una tarea inexistente daba 422.
 
-Ningún escenario lo fija. Conviene fijarlo antes de que alguien construya encima.
+**Cómo se verificó**: lectura de los tres controladores. Cuarta revisión adversarial del Módulo 4.
+
+**Por qué no era un bug sino una decisión**: ningún escenario de la spec lo fijaba, así que no había contra qué contrastarlo. Se dejó abierto a propósito, con la nota de que convenía cerrarlo antes de que alguien construyera encima.
+
+**Resuelto**: se valida primero. Un `404` afirma «te entendí y ese recurso no está», y esa afirmación no se puede hacer sobre una petición que no se ha entendido. Cuando la petición sí se entiende, el `404` vuelve a ser lo correcto.
+
+Se descartó el orden contrario, que era el mayoritario -dos rutas de tres-, y con él su argumento habitual: aquí no vale, porque la lista de tareas es del espacio entero y la existencia de una tarea no es secreto para nadie con sesión.
+
+**Cómo se verificó**: cuatro pruebas en `tests/functional/tasks/orden_de_validacion.spec.ts`, que fijan los dos lados. Invertir el orden en **una sola** acción tumba una; comprobado. Y una comprobación del verificador recorre cada acción de cada controlador, no cada fichero, y falla nombrando la acción concreta.
+
+La spec lo recoge ahora como requisito con tres escenarios. Sin eso seguiría siendo una costumbre.
 
 ---
 
@@ -611,7 +641,7 @@ Ninguno de los seis tiene nada en la rama que lo detecte.
 | Qué falta | Evidencia | Plan de acción |
 |---|---|---|
 | Las pruebas | `backend/tests/` tiene **cinco** ficheros: los cuatro de `auth` y `tasks/assignee.spec.ts`. Nosotros llevamos **catorce** y 71 pruebas | Portar los **nueve** que faltan más `tests/helpers/api.ts`, del que dependen todos. Sin el helper, cualquier prueba que lea un cuerpo de error o mande un payload inválido no compila: el registro tipado de Tuyau solo modela la respuesta de éxito |
-| El verificador | No existe `scripts/`. Cero comprobaciones deterministas | Portar `scripts/verificar-docs.mjs` con sus **quince** comprobaciones, y **volver a demostrar cada una mutando el código**. No vale darlas por buenas porque pasaban en `s4/start`: la rama tiene otro contrato -documento OpenAPI generado desde `app/openapi/schemas.ts`, no escrito a mano- y varias comprobaciones van a chocar con eso |
+| El verificador | No existe `scripts/`. Cero comprobaciones deterministas | Portar `scripts/verificar-docs.mjs` con sus **diecisiete** comprobaciones, y **volver a demostrar cada una mutando el código**. No vale darlas por buenas porque pasaban en `s4/start`: la rama tiene otro contrato -documento OpenAPI generado desde `app/openapi/schemas.ts`, no escrito a mano- y varias comprobaciones van a chocar con eso |
 | La integración continua | No existe `.github/`. Nuestro `verificacion.yml` es nuestro | Portarlo, y comprobar que **falla de verdad** empujando una mutación a una rama, no solo que sale verde |
 | El registro de hallazgos | No existen `docs/hallazgos.md` ni `docs/trazabilidad.md` | Traerlos antes de tocar código. Es el punto 1 de la regla de arrastre, y es el que se saltó al pasar de `s3` a `s4` |
 

@@ -26,7 +26,7 @@ npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **72 pruebas functional**: 26 de `auth` (registro, acceso, sesión, iniciales y mayúsculas del email), 38 de `tasks` (responsable, vencimiento, filtro, lista compartida, creación, tarea inexistente y escritura contra lectura), 6 de errores y 2 de aislamiento de la base. **`tests/unit/` no existe.** Qué escenario de la spec cubre cada una, y cuáles siguen sin cubrir, en `docs/trazabilidad.md`.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **76 pruebas functional**: 26 de `auth` (registro, acceso, sesión, iniciales y mayúsculas del email), 42 de `tasks` (responsable, vencimiento, filtro, lista compartida, creación, tarea inexistente, escritura contra lectura y orden de validación), 6 de errores y 2 de aislamiento de la base. **`tests/unit/` no existe.** Qué escenario de la spec cubre cada una, y cuáles siguen sin cubrir, en `docs/trazabilidad.md`.
 
 ```bash
 node ace test unit                    # una suite
@@ -153,6 +153,8 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 - Después de abrir el PR: usar el subagente `adversarial-reviewer` sobre él, antes de darlo por terminado.
 - No repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
 - **Cuando un cambio toque rutas, controladores o validadores**: actualizar `docs/api/openapi.yaml` y el README si corresponde, y ejecutar `node scripts/verificar-docs.mjs` antes de cerrar. La documentación de este repo se **contrasta**, no se regenera (ADR-0002), así que el contraste solo sirve si se ejecuta.
+- **Un change se archiva declarando lo que no ejecutó.** · *Fallo silencioso.* Las casillas que queden sin marcar van nombradas en una sección «Lo que no se ejecutó» del propio `tasks.md`, con lo que costaron. Una casilla vacía en un archivo es indistinguible de una que nadie tuvo que hacer, y esa ambigüedad produjo H-15, H-16 y H-17. Nada puede comprobar si una verificación a mano se hizo; sí se puede exigir que su ausencia se vea (H-18).
+- **La petición se valida antes de resolver el identificador** (ADR-0004). `validateUsing` va en la primera línea de la acción, antes de `findOrFail`. Un `404` afirma «te entendí y no está», y eso no se puede decir de una petición que no se entendió.
 - Verificar por **código de salida**, nunca por lo que imprime la última línea. Un `| tail -1` se come el error y deja pasar un lint en rojo como si estuviera limpio.
 - **`docs/hallazgos.md` se arrastra entre ramas.** Al empezar un módulo, traerlo antes de tocar nada y comprobar una a una si sus entradas abiertas siguen vivas en la rama nueva: el curso llega a la misma funcionalidad por otro camino, así que algunas se arreglan solas y otras reaparecen. Cada apartado dice **qué rama describe**. Al cerrar el módulo, su reporte lleva una sección «Lo que se arrastra». Detalle en el propio `hallazgos.md`.
 

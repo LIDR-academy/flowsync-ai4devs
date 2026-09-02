@@ -65,7 +65,7 @@ Catorce en total: siete del ciclo de trabajo, que venían del curso o salieron d
 
 R-13 no está pendiente de comprobar: **no se puede comprobar**, y decirlo es más honesto que dejarla como aspiración.
 
-Ninguna comprobación sabe si un documento sigue siendo útil. Sabe si sigue **coincidiendo con el código**, que es otra cosa, y es exactamente lo que hace `scripts/verificar-docs.mjs` con sus quince comprobaciones -las del verificador, que no tienen que ver con las catorce reglas de la tabla de arriba. Un documento puede coincidir con el código al milímetro y no servirle a nadie.
+Ninguna comprobación sabe si un documento sigue siendo útil. Sabe si sigue **coincidiendo con el código**, que es otra cosa, y es exactamente lo que hace `scripts/verificar-docs.mjs` con sus diecisiete comprobaciones -las del verificador, que no tienen que ver con las catorce reglas de la tabla de arriba. Un documento puede coincidir con el código al milímetro y no servirle a nadie.
 
 Lo mismo vale para R-04, en pequeño: «no repitas el resumen en el chat» es una regla sobre lo que se dice, y no hay repositorio donde mirarlo.
 

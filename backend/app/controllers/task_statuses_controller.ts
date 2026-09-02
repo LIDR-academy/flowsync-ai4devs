@@ -16,8 +16,11 @@ export default class TaskStatusesController {
    * un clic dado por error.
    */
   async update({ params, request, serialize }: HttpContext) {
-    const task = await Task.findOrFail(params.id)
+    // Validar antes de resolver (ADR-0004). Un 404 afirma «te entendí y no
+    // existe», y esa afirmación no se puede hacer sobre una petición que no se
+    // ha entendido.
     const { status } = await request.validateUsing(updateTaskStatusValidator)
+    const task = await Task.findOrFail(params.id)
 
     task.status = status
     await task.save()

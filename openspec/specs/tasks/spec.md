@@ -452,6 +452,27 @@ El sistema SHALL resolver el vencimiento en el momento de cada consulta y contra
 - **WHEN** se indica un `today` mal formado o imposible
 - **THEN** la respuesta es `422` con un error sobre ese parámetro, y no se devuelve ninguna tarea
 
+### Requirement: Una petición mal formada se rechaza antes de buscar nada
+
+El sistema SHALL validar la petición antes de resolver el identificador de la ruta, de modo que una petición mal formada sobre un identificador inexistente SHALL responder `422` y no `404`.
+
+Un `404` afirma que la petición se entendió y que el recurso no está. Esa afirmación NO SHALL hacerse sobre una petición que el sistema no ha podido entender.
+
+#### Scenario: Estado inventado sobre una tarea que no existe
+
+- **WHEN** se envía `PATCH /api/v1/tasks/:id/status` con un estado que no pertenece al dominio y un identificador que no corresponde a ninguna tarea
+- **THEN** la respuesta es `422` señalando el campo del estado, y no `404`
+
+#### Scenario: Fecha inválida sobre una tarea que no existe
+
+- **WHEN** se envía `PUT /api/v1/tasks/:id/due-date` con una fecha que no existe en el calendario y un identificador que no corresponde a ninguna tarea
+- **THEN** la respuesta es `422` señalando el campo de la fecha, y no `404`
+
+#### Scenario: Petición bien formada sobre una tarea que no existe
+
+- **WHEN** la petición es válida y el identificador no corresponde a ninguna tarea
+- **THEN** la respuesta es `404`, porque ahí sí se entendió lo que se pedía
+
 ### Requirement: Consulta de una tarea suelta
 
 El sistema SHALL devolver una tarea concreta en `GET /api/v1/tasks/:id`, con su título, su responsable, su estado, su fecha de vencimiento y su condición de vencida, respondiendo `404` si esa tarea no existe. Esta consulta SHALL exigir sesión iniciada, igual que el resto del espacio, y NO SHALL comprobar quién es el responsable de la tarea.

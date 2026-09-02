@@ -17,8 +17,9 @@ export default class TaskDueDatesController {
    * el estado. No se comprueba quién es el responsable.
    */
   async update({ params, request, serialize }: HttpContext) {
-    const task = await Task.findOrFail(params.id)
+    // Validar antes de resolver (ADR-0004), igual que las otras cuatro.
     const { today, dueDate } = await request.validateUsing(setTaskDueDateValidator)
+    const task = await Task.findOrFail(params.id)
 
     // El `DateTime` del validador se queda aquí: hacia dentro, una fecha de
     // vencimiento es un día en texto y nunca un instante.

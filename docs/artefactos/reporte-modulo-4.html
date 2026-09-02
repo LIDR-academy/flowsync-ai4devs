@@ -223,7 +223,7 @@
     <div><span class="cifra roja">0</span><span class="rotulo">Pruebas de tasks al empezar</span></div>
     <div><span class="cifra verde">38</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
     <div><span class="cifra">9</span><span class="rotulo">Defectos encontrados, 7 cerrados</span></div>
-    <div><span class="cifra">15</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
+    <div><span class="cifra">17</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
   </div>
 
   <section>
@@ -326,6 +326,8 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
           <tr><td>Un error inesperado no devuelve su mensaje</td><td>Se deja de interceptar el <code>5xx</code> y vuelve el <code>{ message }</code> del framework, que en la base de datos es el SQL</td></tr>
           <tr><td>Toda operación documenta el error que no estaba previsto</td><td>Una operación del contrato se queda sin su <code>500</code>, o deja de usar el esquema de errores del proyecto</td></tr>
           <tr><td>La versión navegable dice lo mismo que el reporte</td><td>Un artefacto HTML se queda sin la tabla de arrastre, o declara un número de comprobaciones que ya no es</td></tr>
+          <tr><td>Ningún change se archiva con casillas mudas</td><td>Un change archivado deja casillas sin marcar y no declara cuáles ni qué costaron</td></tr>
+          <tr><td>La petición se valida antes de resolver el identificador</td><td>Una acción invierte el orden y pone <code>findOrFail</code> antes de <code>validateUsing</code></td></tr>
           <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla, con la tabla vacía, o con filas incompletas</td></tr>
           <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
           <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
@@ -333,7 +335,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       </table>
     </div>
 
-    <p>Las quince se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+    <p>Las diecisiete se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
 
     <div class="nota">
       <span class="rotulo">La lección más útil</span>
@@ -402,12 +404,12 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       <table>
         <thead><tr><th>#</th><th>Qué</th><th>Desde</th><th>Estado en <code>s4/start</code></th><th>Qué falta</th></tr></thead>
         <tbody>
-          <tr><td class="num">H-18</td><td>Changes archivados con verificaciones marcadas sin ejecutar</td><td>Módulo 3</td><td><b>Abierto</b></td><td>No se arregla con código. Una casilla marcada tiene que significar que se ejecutó algo</td></tr>
+          <tr><td class="num">H-18</td><td>Changes archivados con verificaciones marcadas sin ejecutar</td><td>Módulo 3</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Los tres archivados declaran lo que no ejecutaron, y una comprobación lo exige</td></tr>
           <tr><td class="num">H-19</td><td>Las respuestas de error revelan internals</td><td>Módulo 3</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Se cerró en dos pasos: el primero no bastaba</td></tr>
           <tr><td class="num">H-11</td><td>El email distingue mayúsculas</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado con seis pruebas</td></tr>
           <tr><td class="num">H-13</td><td>Sesión caducada sin salida</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado, y con él el runner de frontend que tampoco había cruzado</td></tr>
           <tr><td class="num">H-14</td><td><code>updatedAt</code> distinto según el endpoint</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b>, y en una escritura más</td><td>Nada. Portado con tres pruebas</td></tr>
-          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Módulo 4</td><td><b>Abierto</b></td><td>Ningún escenario lo fija. Decidirlo antes de construir encima</td></tr>
+          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Módulo 4</td><td><b>Cerrado el 2026-09-02</b> (ADR-0004)</td><td>Nada. Se valida primero, con tres escenarios en la spec</td></tr>
           <tr><td class="num">H-22</td><td>La tabla de arrastre dio por cerrados tres hallazgos sin comprobarlos</td><td>Módulo 4, esta misma tabla</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Las tres filas de arriba son su corrección</td></tr>
         </tbody>
       </table>
@@ -423,8 +425,8 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       <table>
         <thead><tr><th>#</th><th>Qué</th><th>Por qué no se cierra ahora</th></tr></thead>
         <tbody>
-          <tr><td class="num">H-18</td><td>Changes archivados con verificaciones marcadas sin hacer</td><td>Es de proceso: se arregla cambiando cómo se archiva, no tocando código</td></tr>
-          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Ningún escenario lo fija. Conviene decidirlo antes de construir encima</td></tr>
+          <tr><td class="num">—</td><td>Los 15 requisitos de <code>tasks</code> que solo se observan en pantalla</td><td>No hay runner de navegador. Vitest cubre <code>lib/api.ts</code>; lo que falta es el que ve la pantalla</td></tr>
+          <tr><td class="num">—</td><td>El revisor adversarial en CI, escrito y sin verificar</td><td>Falta la credencial. Hasta que se le vea encontrar algo, no cuenta (R-14)</td></tr>
         </tbody>
       </table>
     </div>

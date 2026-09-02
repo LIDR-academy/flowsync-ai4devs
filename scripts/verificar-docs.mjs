@@ -349,6 +349,86 @@ comprobar('Toda operación documenta el error que no estaba previsto', () => {
   return `${operaciones.length} operaciones con 500`
 })
 
+comprobar('Ningún change se archiva con casillas mudas', () => {
+  // H-18. Un change se archivó con la casilla «verificar que ninguna respuesta
+  // incluye el email del responsable» sin marcar, y ocurrió exactamente eso:
+  // es H-17. Otro la marcó `[x]` sobre código que nunca lo hizo: es H-16.
+  //
+  // Nada automático puede saber si una verificación a mano se hizo de verdad.
+  // Lo que sí se puede exigir es que una casilla sin marcar **no sea muda**:
+  // si el change se archiva con trabajo sin hacer, el propio fichero tiene que
+  // decir cuál y qué costó. Una casilla vacía en un archivo es indistinguible
+  // de una que nadie tuvo que hacer, y esa ambigüedad es el defecto.
+  const raiz = 'openspec/changes/archive'
+  if (!existsSync(join(RAIZ, raiz))) return 'no hay changes archivados'
+
+  const archivados = readdirSync(join(RAIZ, raiz), { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+
+  const mudos = []
+  let conPendientes = 0
+
+  for (const change of archivados) {
+    const ruta = `${raiz}/${change}/tasks.md`
+    if (!existsSync(join(RAIZ, ruta))) continue
+
+    const tareas = leer(ruta)
+    if (!/^- \[ \]/m.test(tareas)) continue
+
+    conPendientes += 1
+    if (!/^#{2,3} .*Lo que no se ejecutó/m.test(tareas)) mudos.push(change)
+  }
+
+  if (mudos.length) {
+    throw new Error(
+      `archivados con casillas sin marcar y sin declararlas: ${mudos.join(', ')} (H-18)`
+    )
+  }
+
+  return `${archivados.length} archivados, ${conPendientes} declaran lo que no ejecutaron`
+})
+
+comprobar('La petición se valida antes de resolver el identificador', () => {
+  // ADR-0004. Antes dependía de la ruta: `show` validaba primero y las dos
+  // escrituras resolvían primero, así que la misma clase de petición daba
+  // `422` o `404` según a cuál llegaras. Ninguna de las dos órdenes estaba
+  // mal; tener las dos, sí.
+  //
+  // Se mira el orden dentro de cada acción, no que las dos llamadas existan:
+  // exigir solo que coexistan es lo que dejaba pasar el defecto.
+  const controladores = readdirSync(join(RAIZ, 'backend/app/controllers')).filter((f) =>
+    f.endsWith('.ts')
+  )
+
+  const invertidos = []
+  let revisadas = 0
+
+  for (const fichero of controladores) {
+    const codigo = leerCodigo(`backend/app/controllers/${fichero}`)
+
+    // Cada acción por separado: un controlador con dos acciones podía tener
+    // una bien y otra mal, y mirar el fichero entero las mezclaba.
+    for (const accion of codigo.split(/\n {2}async /).slice(1)) {
+      const resolver = accion.indexOf('findOrFail')
+      if (resolver === -1) continue
+
+      revisadas += 1
+      const validar = accion.indexOf('validateUsing')
+      if (validar === -1 || validar > resolver) {
+        invertidos.push(`${fichero}:${accion.split('(')[0]}`)
+      }
+    }
+  }
+
+  if (!revisadas) throw new Error('ningún controlador resuelve un identificador')
+  if (invertidos.length) {
+    throw new Error(`resuelven antes de validar: ${invertidos.join(', ')} (ADR-0004)`)
+  }
+
+  return `${revisadas} acciones resuelven un id, todas validan antes`
+})
+
 comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', () => {
   // El contrato documenta `{ errors: [...] }` en los tres 404, y quien lo hace
   // cierto es el handler. Sin esto, quitarlo devolvería el volcado de
