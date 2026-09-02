@@ -167,6 +167,22 @@ Y en navegador real, sobre el sistema levantado:
 
 ---
 
+## 5 bis. Lo que se arrastra
+
+> Sección añadida el 2026-09-02, cuando se estableció la regla de arrastrar el registro de hallazgos entre módulos. Refleja el estado **al cerrar el Módulo 3**, sobre `s3/start`.
+
+| # | Hallazgo | Desde | Estado al cerrar el Módulo 3 | Qué pasó después |
+|---|---|---|---|---|
+| H-19 | Las respuestas de error revelan internals | Módulo 3, lo destapó `/verify` | **Arreglado solo en una ruta.** D12 diagnosticó la causa general y aplicó un arreglo local | Reapareció en `s4/start`. Cerrado del todo el 2026-09-02 con ADR-0003 |
+| H-11 | El email distingue mayúsculas | Módulo 3 | Cerrado | — |
+| H-13 | Sesión caducada sin salida | Módulo 3 | Cerrado | — |
+| H-14 | `updatedAt` distinto según el endpoint | Módulo 3 | Cerrado | — |
+| — | La condición de carrera de `unique` sigue dando 500 | Módulo 3 | **Declarado, no arreglado** | Sigue igual |
+
+**La lección de esta tabla es H-19.** Se dio por resuelto un defecto cuyo arreglo era local, teniendo escrito en el propio diseño que la causa era general. Esa es exactamente la forma en que un hallazgo sobrevive a un módulo: no por olvido, sino por darlo por cerrado antes de tiempo.
+
+---
+
 ## 6. Lo que queda fuera, y por qué
 
 | Qué | Motivo |

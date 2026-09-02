@@ -33,7 +33,7 @@
 | H-16 | Un estado inventado en el filtro devolvía 200 con lista vacía | Alta | **Resuelto (2026-08-26)** |
 | H-17 | La lista filtraba el email del responsable | Alta | **Resuelto (2026-08-26)** |
 | H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Alta | Abierto |
-| H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Media | **Abierto · arrastrado desde el Módulo 3** |
+| H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Media | **Resuelto (2026-09-02)** · arrastrado desde el Módulo 3 |
 | H-20 | Dos requisitos de la spec viva se contradecían sobre `today` | Media | **Resuelto (2026-08-26)** |
 | H-21 | El orden de validación difiere entre controladores | Baja | Abierto |
 
@@ -465,7 +465,15 @@ Peor en el change del filtro: `2026-08-13-add-task-status-filter/tasks.md` marca
 
 **Qué hacer si se decide atacar**: apagarlo salvo con una variable explícita. No se hace ahora porque cambia el comportamiento del framework para todo el equipo y merece su propia decisión.
 
-> **Este es el defecto que arrastramos.** Su recorrido completo, desde que apareció en el Módulo 3 hasta hoy, está en la sección «El defecto que arrastramos» al final de este documento.
+**Resuelto el 2026-09-02** por [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md), tras tres módulos abierto.
+
+El volcado va apagado por defecto **en todos los entornos**, no solo en producción, y quien lo quiera lo enciende con `DEBUG_HTTP_ERRORS=true`.
+
+Lo que hizo defendible la decisión, comprobado antes de tomarla: **el diagnóstico no se pierde, cambia de sitio**. `ExceptionHandler.report()` sigue registrando el error con su objeto completo en el log del servidor. El desarrollador tiene lo mismo en su terminal; quien deja de tenerlo es cualquiera que alcance el puerto.
+
+**Cómo se verificó**: `tests/functional/errores.spec.ts` comprueba el cuerpo entero de cuatro clases de error contra siete rastros distintos. Encender el volcado tumba dos.
+
+> Su recorrido completo, desde que apareció en el Módulo 3 hasta que se cerró, está en la sección «El defecto que arrastramos» al final de este documento.
 
 ---
 
@@ -547,11 +555,15 @@ Tres razones, y ninguna es que fuera difícil de arreglar.
 
 **3. En producción no ocurre.** `debug` es `false` allí, así que el framework responde genérico. Eso lo baja de prioridad cada vez que se mira, y por eso lleva tres módulos bajándose de prioridad.
 
-### Qué falta para cerrarlo
+### Cómo se cerró, el 2026-09-02
 
-Escribir la decisión, no el código. El código son dos líneas.
+Lo que faltaba no era código, era la decisión. Está en [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md).
 
-La pregunta abierta es si se apaga el modo depuración fuera de producción a cambio de perder el volcado que ayuda a depurar, o si se acepta convivir con la fuga en entornos que no son producción, sabiendo que basta acceso de red a una máquina de desarrollo para leerla. Hasta que eso se decida, H-19 se queda abierto **a propósito**, que es distinto de olvidado.
+**El volcado va apagado por defecto en todos los entornos**, con `DEBUG_HTTP_ERRORS=true` para encenderlo a propósito. El falso dilema era «apagarlo y perder el diagnóstico»: se comprobó leyendo el framework que `report()` sigue registrando el error completo en el log del servidor, así que el diagnóstico **cambia de sitio, no desaparece**. El desarrollador lo tiene en su terminal; quien deja de tenerlo es quien alcanza el puerto sin credenciales.
+
+Se descartó apagarlo solo en `test`, que habría puesto la suite en verde sobre un defecto vivo. Es justo el error que este módulo entero enseña a no cometer.
+
+Tres módulos abierto, y el arreglo fueron dos líneas. Lo caro no era hacerlo: era decidirlo, y nadie lo había escrito.
 
 ---
 
@@ -591,3 +603,24 @@ Conviene decirlo, porque el listado de fallos oculta que el método entero funci
 - **La defensa en profundidad.** Cuando el verificador fallaba, las pruebas cazaban el defecto igualmente. Cuando el operador del 404 se invirtió sin que el verificador se enterara, cayeron diecinueve pruebas.
 
 **Y el hallazgo de proceso que explica todo lo demás**: la única forma de saber que una comprobación comprueba algo es verla fallar. Escrita, revisada y razonada no basta. Es H-18, y sigue abierto.
+
+---
+
+# Cómo se arrastra este registro
+
+> Regla de proceso, desde 2026-09-02.
+
+Este documento **viaja con el proyecto**, no con la rama. Ya se perdió una vez al saltar de `s3/start` a `s4/start`, y sus entradas describieron durante un tiempo el estado de otra rama como si fuera el de esta.
+
+**Al empezar cada módulo:**
+
+1. Traer `docs/hallazgos.md` a la rama nueva antes de tocar nada.
+2. Releer las entradas abiertas y comprobar **una a una** si el defecto sigue vivo en esa rama. No suponerlo: la rama del curso llega a la misma funcionalidad por otro camino, así que algunas se arreglan solas y otras reaparecen.
+3. Marcar en cada entrada **qué rama describe** cada apartado. Un «Resuelto» sin rama es una afirmación falsa esperando a que alguien la lea.
+
+**Al cerrar cada módulo**, el reporte de análisis incluye una sección **«Lo que se arrastra»** con esta tabla:
+
+| # | Hallazgo | Desde | Estado en esta rama | Qué falta |
+|---|---|---|---|---|
+
+**Lo que no vale**: dar un hallazgo por resuelto porque se arregló en otra rama, o porque el síntoma no se ve. H-19 sobrevivió tres módulos precisamente así, bajándose de prioridad cada vez con el argumento de que en producción no ocurre.

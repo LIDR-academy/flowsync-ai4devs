@@ -1,12 +1,24 @@
-import app from '@adonisjs/core/services/app'
+import env from '#start/env'
 import { type HttpContext, ExceptionHandler } from '@adonisjs/core/http'
 
 export default class HttpExceptionHandler extends ExceptionHandler {
   /**
-   * In debug mode, the exception handler will display verbose errors
-   * with pretty printed stack traces.
+   * El volcado de depuración va **apagado por defecto en todos los entornos**
+   * (ADR-0003), no solo en producción.
+   *
+   * Encendido devolvía en el cuerpo de la respuesta la traza, el nombre de la
+   * excepción, rutas absolutas del disco y, si el error venía de la base, la
+   * sentencia SQL ejecutada. Bastaba alcanzar el puerto para leerlo, sin
+   * sesión. Es H-19, que se arrastraba desde el Módulo 3.
+   *
+   * No se pierde nada al apagarlo: `report()` sigue registrando el error con su
+   * objeto completo en el log del servidor, que es donde se mira mientras se
+   * desarrolla. La información cambia de sitio, no desaparece.
+   *
+   * Quien quiera el volcado en el navegador lo enciende a propósito con
+   * `DEBUG_HTTP_ERRORS=true` en su `.env`.
    */
-  protected debug = !app.inProduction
+  protected debug = env.get('DEBUG_HTTP_ERRORS', false)
 
   /**
    * The method is used for handling errors and returning

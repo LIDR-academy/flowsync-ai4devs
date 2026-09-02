@@ -223,7 +223,7 @@
     <div><span class="cifra roja">0</span><span class="rotulo">Pruebas de tasks al empezar</span></div>
     <div><span class="cifra verde">35</span><span class="rotulo">Pruebas de tasks al terminar</span></div>
     <div><span class="cifra">3</span><span class="rotulo">Defectos con la suite en verde</span></div>
-    <div><span class="cifra">10</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
+    <div><span class="cifra">12</span><span class="rotulo">Comprobaciones de doc en CI</span></div>
   </div>
 
   <section>
@@ -322,13 +322,15 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
           <tr><td>El responsable no expone la cuenta, ni en la lista ni en la tarea suelta</td><td>Cualquiera de las dos vuelve al transformer que filtraba el email</td></tr>
           <tr><td>Toda operación con un parámetro de ruta documenta su <code>404</code></td><td>Se añade una ruta que resuelve un identificador sin documentar el rechazo</td></tr>
           <tr><td>El rechazo por recurso inexistente sale con la forma del proyecto</td><td>El <code>404</code> vuelve al volcado de depuración del framework</td></tr>
+          <tr><td>El volcado de depuración va apagado</td><td>Se enciende a fuego o se ata al entorno (ADR-0003)</td></tr>
+          <tr><td>El reporte de cada módulo declara lo que arrastra</td><td>Un reporte se cierra sin esa tabla</td></tr>
           <tr><td>Las pruebas no pueden escribir sobre la base de desarrollo</td><td>La elección por entorno se deshace, se invierte o deja de aplicarse</td></tr>
           <tr><td>Los documentos que el README enlaza existen</td><td>Un enlace apunta a un fichero que no está</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Las diez se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
+    <p>Las doce se verificaron mutando el código y comprobando que fallan. Dos habrían cazado H-15 y H-16 el día que se escribieron.</p>
 
     <div class="nota">
       <span class="rotulo">La lección más útil</span>

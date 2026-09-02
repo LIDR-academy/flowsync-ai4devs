@@ -320,6 +320,36 @@ comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', (
   return '404 normalizado'
 })
 
+comprobar('El volcado de depuración va apagado salvo que se encienda', () => {
+  // ADR-0003. Fue H-19, abierto tres módulos. Encenderlo devuelve traza, rutas
+  // absolutas y el SQL ejecutado a cualquiera que alcance el puerto, sin sesión.
+  const handler = leerCodigo('backend/app/exceptions/handler.ts')
+  const debug = handler.match(/protected debug = (.+)/)
+  if (!debug) throw new Error('el handler no declara `debug`')
+
+  const valor = debug[1].trim()
+  if (/^true/.test(valor)) throw new Error('el volcado está encendido a fuego')
+  if (/inProduction/.test(valor)) {
+    throw new Error('el volcado depende del entorno, y debe ir apagado en todos (ADR-0003)')
+  }
+  if (!/env\.get\('DEBUG_HTTP_ERRORS', false\)/.test(valor)) {
+    throw new Error(`\`debug\` vale \`${valor}\`, y debe salir de DEBUG_HTTP_ERRORS con false por defecto`)
+  }
+  return 'apagado, con DEBUG_HTTP_ERRORS para encenderlo'
+})
+
+comprobar('El reporte del módulo declara lo que se arrastra', () => {
+  // La regla de proceso solo sirve si algo la hace cumplir.
+  const reportes = readdirSync(join(RAIZ, 'docs')).filter((f) => /^reporte-.*\.md$/.test(f))
+  if (!reportes.length) throw new Error('no hay ningún reporte de módulo en docs/')
+
+  const sinTabla = reportes.filter((f) => !/Lo que se arrastra/.test(leer(`docs/${f}`)))
+  if (sinTabla.length) {
+    throw new Error(`sin sección «Lo que se arrastra»: ${sinTabla.join(', ')}`)
+  }
+  return `${reportes.length} reportes`
+})
+
 comprobar('El filtro de la lista solo admite estados del dominio', () => {
   const validador = leerCodigo('backend/app/validators/task.ts')
   const lista = validador.match(/listTasksValidator = vine\.create\(\{([\s\S]*?)\}\)/)

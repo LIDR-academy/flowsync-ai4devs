@@ -16,7 +16,7 @@
 | Pruebas de `tasks` | **0** | 35 |
 | Requisitos de sistema de `tasks` con prueba | 0 de 17 | **17 de 17** |
 | Defectos conocidos y abiertos | 0 (no se sabía de ninguno) | 3, anotados |
-| Documentos que contrastan contra el código | 0 | 10 comprobaciones en CI |
+| Documentos que contrastan contra el código | 0 | 12 comprobaciones en CI |
 
 ---
 
@@ -113,7 +113,7 @@ También deja anotado que **tres de los doce ficheros del backlog no son histori
 
 Arquitectura con diagramas, contrato OpenAPI, ADR y README, escritos a partir de lo que existe.
 
-Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Diez comprobaciones que corren en CI:
+Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`](../scripts/verificar-docs.mjs), que **no genera: contrasta y falla**. Doce comprobaciones que corren en CI:
 
 | Comprueba | Muerde si |
 |---|---|
@@ -125,10 +125,12 @@ Lo que sostiene todo eso no son los documentos, es [`scripts/verificar-docs.mjs`
 | El responsable no expone la cuenta | La lista vuelve al transformer que filtraba el email |
 | Toda operación con un parámetro de ruta documenta su `404` | Se añade una ruta que resuelve un identificador sin documentar el rechazo |
 | El rechazo por recurso inexistente sale con la forma del proyecto | El `404` vuelve al volcado de depuración del framework |
+| El volcado de depuración va apagado | Se enciende a fuego o se ata al entorno (ADR-0003) |
+| El reporte de cada módulo declara lo que arrastra | Un reporte se cierra sin esa tabla |
 | Las pruebas no pueden escribir sobre la base de desarrollo | La elección por entorno se deshace o deja de aplicarse |
 | Los documentos que el README enlaza existen | Un enlace apunta a un fichero que no está |
 
-Las diez se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
+Las doce se verificaron mutando el código y comprobando que fallan. Dos de ellas habrían cazado H-15 y H-16 el día que se escribieron.
 
 **La primera versión del verificador daba luz verde mientras tres documentos afirmaban comportamientos que la API no tenía**, porque comprobaba lo fácil. Lo señaló la misma revisión adversarial, y es la lección más útil sobre este tipo de herramienta: un verificador que solo comprueba lo cómodo es peor que no tenerlo, porque da una garantía que no existe.
 
@@ -169,11 +171,29 @@ De todo lo encontrado, uno no se cerró, y es el que más enseña: **H-19, las r
 | Módulo 4, el arreglo | Normalizado en el manejador de excepciones, que es el sitio general que D12 ya había señalado |
 | Hoy | **Sigue abierto** para cualquier otra excepción no controlada. La cuarta revisión lo evidenció con un `500` de SQLite que devolvía el SQL ejecutado |
 
-**Por qué sobrevivió tres módulos**: el primer arreglo fue local aunque el diagnóstico fuera general; cerrarlo del todo no es un arreglo sino una decisión, porque significa apagar el modo depuración para todo el equipo; y en producción no ocurre, lo que lo baja de prioridad cada vez que se mira.
+**Por qué sobrevivió tres módulos**: el primer arreglo fue local aunque el diagnóstico fuera general; cerrarlo del todo no era un arreglo sino una decisión; y en producción no ocurre, lo que lo bajaba de prioridad cada vez que se miraba.
+
+**Cerrado el 2026-09-02** por [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md). El volcado va apagado por defecto en todos los entornos. El falso dilema era perder el diagnóstico: `report()` sigue registrando el error completo en el log del servidor, así que cambia de sitio en vez de desaparecer. El arreglo fueron dos líneas; lo caro era decidirlo.
 
 El recorrido completo, con la evidencia de cada paso, está en [`hallazgos.md`](hallazgos.md), sección «El defecto que arrastramos».
 
 **Lo que hay que hacer no es código, son dos líneas.** Es escribir la decisión: se apaga el modo depuración fuera de producción y se pierde el volcado que ayuda a depurar, o se convive con la fuga sabiendo que basta acceso de red a una máquina de desarrollo para leerla. Hasta entonces queda abierto **a propósito**, que es distinto de olvidado.
+
+---
+
+## 4 quater · Lo que se arrastra
+
+Tabla obligatoria en el reporte de cada módulo, desde ahora. Sirve para que nada se dé por resuelto porque se arregló en otra rama o porque el síntoma no se ve.
+
+| # | Hallazgo | Desde | Estado en `s4/start` | Qué falta |
+|---|---|---|---|---|
+| H-18 | Changes archivados con verificaciones marcadas sin ejecutar | Módulo 3 (changes del curso) | **Abierto** | No se arregla con código. Una casilla marcada tiene que significar que se ejecutó algo |
+| H-19 | Las respuestas de error revelan internals | Módulo 3 | **Cerrado el 2026-09-02** (ADR-0003) | Nada |
+| H-21 | El orden de validación difiere entre controladores | Módulo 4 | **Abierto** | Ningún escenario lo fija. Decidirlo antes de construir encima |
+| — | «Las tareas exigen sesión» solo tiene prueba en una de las cinco rutas | Módulo 4 | **Abierto** | Cuatro pruebas |
+| — | Los 15 requisitos de pantalla sin verificar | Módulo 4 | **Declarado** | Un runner de navegador, si deja de ser un hueco aceptable |
+
+**Y lo que hay que comprobar al saltar a `s5/start`**: esa rama todavía trae **H-15** y **H-16** sin arreglar. Están cerrados aquí y hay que portarlos, con sus pruebas, antes de construir nada encima.
 
 ---
 
