@@ -53,17 +53,31 @@ jobs:
         id: puerta
         env:
           GH_TOKEN: ${{ github.token }}
-          TIENE_CLAVE: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          # Dos formas de autenticar, y se prefiere la primera:
+          #
+          # - `CLAUDE_CODE_OAUTH_TOKEN`, que sale de `claude setup-token` y va
+          #   contra la suscripción. No hay factura por token, pero **el gasto
+          #   sale de la misma cuota que se usa para trabajar**.
+          # - `ANTHROPIC_API_KEY`, facturada aparte.
+          #
+          # Aceptar las dos evita tener que tocar este fichero el día que el CI
+          # deje de ir contra la cuenta personal.
+          TIENE_CREDENCIAL: ${{ (secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '') }}
         run: |
           set -euo pipefail
 
-          # Sin clave no se revisa, y **no se falla**. Un job en rojo por un
-          # secreto que falta enseña a la gente a ignorar el rojo, que es la
+          # Sin credencial no se revisa, y **no se falla**. Un job en rojo por
+          # un secreto que falta enseña a la gente a ignorar el rojo, que es la
           # forma más rápida de matar un guardarraíl. Los PR desde un fork no
           # reciben secretos, y eso es una decisión de seguridad de GitHub, no
           # un fallo nuestro.
-          if [ "$TIENE_CLAVE" != "true" ]; then
-            echo "sin ANTHROPIC_API_KEY: se omite la revisión" >> "$GITHUB_STEP_SUMMARY"
+          #
+          # Ojo a la asimetría, que es deliberada: **no configurado sale verde;
+          # configurado y roto sale rojo.** Son cosas distintas. Lo primero es
+          # un estado esperado; lo segundo significa que alguien está confiando
+          # en una revisión que no se está ejecutando, y eso tiene que doler.
+          if [ "$TIENE_CREDENCIAL" != "true" ]; then
+            echo "sin credencial de Claude: se omite la revisión" >> "$GITHUB_STEP_SUMMARY"
             echo "seguir=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -112,6 +126,7 @@ jobs:
         id: revision
         if: steps.puerta.outputs.seguir == 'si'
         env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BASE: ${{ steps.puerta.outputs.base }}
         run: |
@@ -141,11 +156,29 @@ jobs:
             echo "umbral, dilo en una línea y termina."
           } > /tmp/prompt.md
 
-          claude -p "$(cat /tmp/prompt.md)" \
+          # Si esto falla -token caducado, error del CLI, cuota agotada- el job
+          # se pone en **rojo**, y es lo correcto. La credencial está
+          # configurada, así que alguien cuenta con esta revisión. Un fallo
+          # silencioso aquí es un guardarraíl que dejó de existir sin avisar.
+          if ! claude -p "$(cat /tmp/prompt.md)" \
             --allowed-tools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)" \
             --permission-mode bypassPermissions \
             --max-turns 40 \
-            > /tmp/informe.md
+            > /tmp/informe.md 2> /tmp/error.txt
+          then
+            {
+              echo "## La revisión adversarial no pudo ejecutarse"
+              echo
+              echo "La credencial está configurada, así que esto **no** es el caso"
+              echo "de «sin configurar». Mira si el token de \`claude setup-token\`"
+              echo "ha caducado, o si la cuota de la suscripción está agotada."
+              echo
+              echo '```'
+              tail -c 2000 /tmp/error.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
           echo "--- informe ---"
           cat /tmp/informe.md

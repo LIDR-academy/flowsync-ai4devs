@@ -63,6 +63,28 @@ Una ejecución por cambio propuesto, no por commit. `concurrency` cancela la rev
 
 `--max-turns 40` es el tope duro. Si una revisión lo agota, el problema es el tamaño del diff, no el tope.
 
+### De dónde sale el gasto
+
+El job acepta dos credenciales, y **no son equivalentes**:
+
+| Secreto | De dónde sale | Contrapartida |
+|---|---|---|
+| `CLAUDE_CODE_OAUTH_TOKEN` | `claude setup-token`, contra la suscripción | No hay factura por token. **Pero el gasto sale de la misma cuota que usas para trabajar**: una revisión larga en CI te deja con menos sesión interactiva ese día |
+| `ANTHROPIC_API_KEY` | Consola de Anthropic | Se factura aparte y no toca la cuota personal. Es lo correcto el día que esto deje de ser un proyecto de una persona |
+
+Con la suscripción, el presupuesto de este fichero deja de ser una cuestión de dinero y pasa a ser una de **atención propia**, que es más escasa. Por eso el tope de tres sugerencias menores y la puerta que evita revisar ramas sin PR importan más aquí que con una API key: cada revisión inútil se paga en cuota que ibas a usar tú.
+
+### El token caduca
+
+`claude setup-token` da un token de larga duración, no eterno. Cuando expire, la credencial seguirá **presente** en el repositorio y dejará de valer.
+
+El job distingue los dos casos a propósito:
+
+- **Sin credencial** → se omite, verde, una línea en el resumen. Es un estado esperado.
+- **Con credencial y fallando** → **rojo**, con el error en el resumen.
+
+La asimetría es deliberada. Un rojo por algo que nunca se configuró enseña a ignorar el rojo. Un verde silencioso cuando la revisión que sí configuraste dejó de ejecutarse es peor: es un guardarraíl que desapareció sin avisar, y alguien sigue contando con él.
+
 ## Cómo se mide si esto sirve
 
 Una sola métrica: **cuántos hallazgos acaban en un cambio de código.**
@@ -92,13 +114,14 @@ Todo lo demás, y es la mayor parte:
 |---|---|
 | La detección del PR abierto en el repositorio del curso | La puerta sale antes, por falta de clave |
 | La invocación de `claude -p` con sus flags | Nunca se ha ejecutado. Los flags están escritos con cuidado y el YAML valida, pero la primera ejecución real puede pedir ajustes |
+| Que `CLAUDE_CODE_OAUTH_TOKEN` autentique al CLI en el runner | `claude setup-token` existe y lo dice el propio CLI, pero el nombre exacto de la variable no se ha comprobado contra una ejecución. Si falla, el resumen del job lo dirá y se ajusta |
 | La extracción del prompt desde `.claude/agents/` | Probada en local, no en el runner |
 | La publicación del informe, y su caída al resumen cuando el PR vive en otro repositorio | Nunca se ha llegado ahí |
 | **Que el revisor encuentre algo** | Lo importante, y lo que falta entero |
 
 ### Qué falta, en orden
 
-1. **El secreto `ANTHROPIC_API_KEY`** en Settings → Secrets and variables → Actions. Sin eso no hay nada más que verificar.
+1. **La credencial** en Settings → Secrets and variables → Actions. Con suscripción: `claude setup-token` en local, y el valor que imprima va como `CLAUDE_CODE_OAUTH_TOKEN`. Sin eso no hay nada más que verificar.
 2. **Verla morder.** Una rama con un defecto plantado de una de las cinco categorías graves -por ejemplo, quitar la tercera condición de `isOverdueOn`, que es H-15- y comprobar que el informe lo nombra. Si no lo nombra, el problema está en el prompt o en esta calibración, y hay que arreglarlo **antes** de fiarse de un verde.
 
 Hasta entonces, `R-03` sigue siendo una petición con un job al lado.
