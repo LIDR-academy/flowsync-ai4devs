@@ -11,7 +11,7 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 45 | — | — | 20 | parcial, ver §2 |
-| `tasks` | 32 | 124 | 12 | 118 | 35 | 18 de 18 requisitos de API, ver §3 |
+| `tasks` | 32 | 124 | 12 | 118 | 35 | 17 de 17 requisitos de sistema, ver §3 |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
 
@@ -69,9 +69,11 @@ Es la única capability con verificación automática.
 
 ## 3 · `tasks` · 32 requisitos, 124 escenarios, 35 pruebas
 
-Los 32 requisitos se parten en dos grupos que no se pueden tratar igual: **18 son observables desde la API** y **14 solo se observan en pantalla**. La cuenta de cobertura se hace sobre los 18, porque el proyecto no tiene runner de navegador y los otros 14 no son un hueco que estas pruebas puedan llenar.
+La spec se parte sola por sujeto: **17 requisitos empiezan por «El sistema SHALL»** y **15 por «La interfaz SHALL»**. La cuenta de cobertura se hace sobre los 17, porque el proyecto no tiene runner de navegador y los otros 15 no son un hueco que estas pruebas puedan llenar.
 
-**18 de 18 requisitos observables por API tienen al menos una prueba.**
+**17 de 17 requisitos de sistema tienen al menos una prueba.**
+
+> El reparto que decía 18 y 14 era mío y estaba mal, en el sentido cómodo. Salía de dos errores que se cancelaban: contaba «Aviso ante una fecha que no vale» como observable por API cuando su texto dice «La interfaz SHALL explicar el problema junto al propio campo», y dejaba fuera de la cuenta escenarios de «Una sola vista de tareas» que sí están cubiertos. Lo destapó la tercera revisión adversarial.
 
 ### 3.1 · Reglas de dominio y contrato
 
@@ -86,12 +88,11 @@ Los 32 requisitos se parten en dos grupos que no se pueden tratar igual: **18 so
 | Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna |
 | Las tareas exigen sesión | `creacion.spec.ts` · crear sin sesión. **Parcial**: solo cubre una de las cinco rutas |
 | Fecha de vencimiento opcional | `vencimiento.spec.ts` y `creacion.spec.ts` · nace sin fecha, y sin fecha no vence |
-| Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar y retirar; `lista_compartida.spec.ts` · sobre una tarea ajena |
+| Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar, retirar, y una fecha imposible que se rechaza conservando la anterior; `lista_compartida.spec.ts` · sobre una tarea ajena |
 | Cuándo una tarea está vencida | `vencimiento.spec.ts` · las tres condiciones y el borde estricto |
 | El día de referencia lo pone quien mira | `vencimiento.spec.ts` · obligatorio, y validado contra el calendario |
 | Consulta de una tarea suelta | `vencimiento.spec.ts`, `assignee.spec.ts`, `inexistente.spec.ts` |
 | La lista no lleva el vencimiento | `vencimiento.spec.ts` · ni `dueDate` ni `isOverdue` en la lista |
-| Aviso ante una fecha que no vale | `vencimiento.spec.ts` · `2026-02-31` y `30/09/2026`, y la fecha anterior se conserva |
 | Acotar la lista por estado | `filtro.spec.ts` · cada estado devuelve el suyo, y acotar es solo lectura |
 | Un filtro válido sin resultados es una lista vacía legítima | `filtro.spec.ts` |
 | Un estado que no existe se rechaza, no se responde vacío | `filtro.spec.ts` · se distingue de no encontrar nada |
@@ -100,7 +101,7 @@ Los tres escenarios «Tarea inexistente», que viven repartidos entre tres de es
 
 ### 3.2 · Lo que sigue sin cubrir, y por qué
 
-**Los 14 requisitos de pantalla**: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, no tener fecha no se penaliza, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, una sola vista sin señales de presencia, y el aviso al intentar crear sin un título válido.
+**Los 15 requisitos de pantalla**: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, no tener fecha no se penaliza, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, una sola vista sin señales de presencia, el aviso al intentar crear sin un título válido, y el aviso ante una fecha que no vale.
 
 No hay runner de navegador en el proyecto y este trabajo no añade uno. Es un hueco declarado, no una omisión.
 
@@ -130,7 +131,7 @@ Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD;
 Por orden de lo que más protege:
 
 1. «Las tareas exigen sesión» sobre las cinco rutas, no solo sobre la creación. Es la única barrera entre los datos del espacio y cualquiera que pase por ahí, y un descuido en el middleware la abre sin que ninguna pantalla cambie de aspecto.
-2. Un runner de navegador, si en algún momento los 14 requisitos de pantalla dejan de ser un hueco aceptable.
+2. Un runner de navegador, si en algún momento los 15 requisitos de pantalla dejan de ser un hueco aceptable.
 4. La validación acumulada de `auth`, que es el único hueco de esa capability que no tiene excusa.
 5. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
 6. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.

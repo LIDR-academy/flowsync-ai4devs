@@ -106,7 +106,7 @@ En el frontend hay que montarlo de cero. Es la razón de que `FS-118.6` esté es
 | Backend | 25 pruebas funcionales en `tests/functional/`, derivadas de las specs vivas de `auth` y `tasks` |
 | Frontend | Vitest instalado, script `npm test`, 17 pruebas sobre `src/lib/api.ts` |
 
-> **En `s4/start` el estado es otro**: 52 pruebas funcionales de backend, y el frontend **sigue sin runner de tests**.
+> **En `s4/start` el estado es otro**: 57 pruebas funcionales de backend, y el frontend **sigue sin runner de tests**.
 > Vitest, `src/lib/api.test.ts` y el change `add-test-foundation` no existen en esta rama.
 > Qué escenario cubre cada prueba, y cuáles siguen sin cubrir, en [`trazabilidad.md`](trazabilidad.md).
 

@@ -14,14 +14,20 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    */
   async handle(error: unknown, ctx: HttpContext) {
     /**
-     * `E_ROW_NOT_FOUND` es la única excepción del sistema que no se auto-maneja
-     * y cae al renderizador de depuración, así que fuera de producción devolvía
-     * el nombre de la excepción, la traza, la línea del ORM y rutas absolutas
-     * del disco. Todos los demás errores del proyecto viajan como
-     * `{ errors: [...] }`.
+     * `E_ROW_NOT_FOUND` no se auto-maneja y cae al renderizador de depuración,
+     * así que fuera de producción devolvía el nombre de la excepción, la traza,
+     * la línea del ORM y rutas absolutas del disco. Todos los errores que el
+     * proyecto sí controla viajan como `{ errors: [...] }`, y el contrato lo
+     * documenta así para las tres rutas que resuelven un identificador.
      *
      * Se normaliza aquí y no en cada controlador porque son tres rutas hoy y
      * cualquiera que se añada mañana heredaría el mismo agujero.
+     *
+     * **No es la única que se filtra.** `E_ROUTE_NOT_FOUND` hace lo mismo ante
+     * una ruta desconocida, y sin exigir sesión. Queda fuera a propósito: es
+     * H-19 en `docs/hallazgos.md`, se acepta como deuda, y cerrarlo es apagar
+     * el modo depuración, que cambia el comportamiento del framework para todo
+     * el equipo y merece su propia decisión.
      */
     if (error instanceof Error && 'code' in error && error.code === 'E_ROW_NOT_FOUND') {
       return ctx.response

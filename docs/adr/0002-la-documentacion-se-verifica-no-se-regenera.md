@@ -20,7 +20,7 @@ Lo que empujó hacia esta: durante este trabajo, **la primera versión del verif
 
 La documentación se escribe a mano y **se comprueba automáticamente**.
 
-`scripts/verificar-docs.mjs` corre en CI y falla la build cuando el documento y el código dejan de decir lo mismo. Hoy comprueba nueve cosas, y dos de ellas -que la regla de vencimiento tenga sus tres condiciones y que el filtro esté acotado al conjunto de estados- corresponden a defectos reales que estuvieron en el repositorio.
+`scripts/verificar-docs.mjs` corre en CI y falla la build cuando el documento y el código dejan de decir lo mismo. Hoy comprueba diez cosas, y dos de ellas -que la regla de vencimiento tenga sus tres condiciones y que el filtro esté acotado al conjunto de estados- corresponden a defectos reales que estuvieron en el repositorio.
 
 Toda comprobación que se añada tiene que **demostrarse mutando el código** y viendo que falla. Una comprobación que no se ha visto fallar no cuenta.
 
@@ -45,3 +45,15 @@ A cambio, el contraste puede afirmar cosas que un generador no puede: que la reg
 Queda un hueco conocido: el proyecto no sirve documentación navegable en ninguna URL. Si eso se vuelve un requisito, la decisión hay que revisarla, y entonces sí correspondería un ADR nuevo que reemplace a este.
 
 `CLAUDE.md` recoge la regla de proceso que se deriva de aquí: al tocar rutas, controladores o validadores, actualizar el contrato y ejecutar el verificador antes de cerrar.
+
+## Corolario · la forma del error también es contrato
+
+Escribir un contrato obliga a decidir cosas que la spec deja abiertas, y conviene registrarlas donde se decidieron.
+
+La spec exige `404` ante un recurso que no existe, y **no dice nada del cuerpo**. Al documentarlo se eligió que salga como `{ errors: [{ message }] }`, igual que todos los errores que el proyecto controla, en lugar del volcado de depuración que devolvía el framework. Se normaliza en el manejador de excepciones y no en cada controlador, porque son tres rutas hoy y cualquiera que se añada mañana heredaría el mismo agujero.
+
+Ese 404 no lleva `field` ni `rule`: no viene de validar un campo, y ponerlos sería inventar una causa.
+
+Queda atado por una comprobación del verificador y por `tests/functional/tasks/inexistente.spec.ts`, que mira el cuerpo y no solo el código de estado. Sin las dos cosas, el contrato volvería a mentir en silencio, que es exactamente lo que ya pasó una vez.
+
+**Lo que no cubre**: una ruta desconocida sigue devolviendo el volcado de depuración fuera de producción. Es H-19, aceptado como deuda, y cerrarlo significa apagar el modo depuración para todo el equipo.

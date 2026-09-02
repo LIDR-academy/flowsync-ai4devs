@@ -58,3 +58,14 @@ export function tareas(respuesta: Respuesta): TareaSerializada[] {
 export function invalido<T>(payload: Record<string, unknown>): T {
   return payload as T
 }
+
+/**
+ * Atraviesa el tipado del registro para un cuerpo que **sí** es válido.
+ *
+ * Existe para que `invalido()` no se use como casting genérico: si se usara
+ * para todo, su nombre dejaría de significar «esto prueba un borde a
+ * propósito», que es justo lo que lo hace útil de leer.
+ */
+export function cuerpo<T>(payload: Record<string, unknown>): T {
+  return payload as T
+}

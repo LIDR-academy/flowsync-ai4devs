@@ -1,7 +1,7 @@
 import User from '#models/user'
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
-import { errores, invalido } from '#tests/helpers/api'
+import { cuerpo, errores } from '#tests/helpers/api'
 
 /**
  * Cubre los tres escenarios «Tarea inexistente» de
@@ -48,7 +48,7 @@ test.group('Tasks | tarea inexistente', (group) => {
       for (const id of ['999999', 'no-es-un-id']) {
         const peticion = client[ruta.metodo](ruta.camino(id)).loginAs(ada)
         if (ruta.metodo === 'get') peticion.qs({ today: '2026-08-26' })
-        else peticion.json(invalido(CUERPOS[ruta.nombre]))
+        else peticion.json(cuerpo(CUERPOS[ruta.nombre]))
 
         const respuesta = await peticion
 
@@ -59,10 +59,7 @@ test.group('Tasks | tarea inexistente', (group) => {
     }
   })
 
-  test('la respuesta no revela cómo está construido el sistema por dentro', async ({
-    client,
-    assert,
-  }) => {
+  test('el rechazo de una tarea inexistente no revela internals', async ({ client, assert }) => {
     const ada = await User.create({
       fullName: 'Ada Lovelace',
       email: 'ada@flowsync.test',
@@ -76,6 +73,9 @@ test.group('Tasks | tarea inexistente', (group) => {
 
     // El cuerpo entero. Es lo que devolvía el renderizador de depuración y lo
     // que ninguna prueba miraba, porque todas se conformaban con el código.
+    //
+    // Cubre las rutas de tareas, no el sistema entero: una ruta desconocida
+    // sigue filtrando la traza, y eso es H-19, aceptado como deuda.
     const crudo = JSON.stringify(respuesta.body())
     for (const rastro of ['frames', 'fileName', 'lineNumber', 'node_modules', 'E_ROW_NOT_FOUND']) {
       assert.notInclude(crudo, rastro, `la respuesta filtra «${rastro}»`)

@@ -58,6 +58,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # El verificador pregunta las rutas a `node ace list:routes --json` en vez
+      # de parsear el fuente, así que necesita el backend instalado.
+      - name: Instalar el backend
+        run: npm ci
+        working-directory: backend
+
+      - name: Preparar entorno del backend
+        run: cp .env.example .env && node ace generate:key
+        working-directory: backend
 
       - name: Contrastar documentación contra código
         run: node scripts/verificar-docs.mjs
