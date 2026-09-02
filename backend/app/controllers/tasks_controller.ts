@@ -64,6 +64,12 @@ export default class TasksController {
     description: 'Falta el token o no es válido. No se devuelve ninguna tarea.',
     type: () => ErrorResponse,
   })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
+  })
   async index({ request, serialize }: HttpContext) {
     const { status } = await request.validateUsing(listTasksValidator)
 
@@ -123,9 +129,16 @@ export default class TasksController {
     description: 'Falta `today` o no es una fecha válida. No se devuelve ninguna tarea.',
     type: () => ValidationErrorResponse,
   })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
+  })
   async show({ params, request, serialize }: HttpContext) {
     const { today } = await request.validateUsing(taskReferenceDayValidator)
-    const task = await Task.releerConResponsable(params.id)
+    const task = await Task.findOrFail(params.id)
+    await task.load('assignee')
 
     return serialize(TaskDetailTransformer.transform(task, toCalendarDay(today)))
   }
@@ -155,6 +168,12 @@ export default class TasksController {
     description:
       'El título falta, está vacío, es solo espacios o pasa de 200 caracteres. No se crea ninguna tarea ni se guarda una versión recortada.',
     type: () => ValidationErrorResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
   })
   async store({ request, response, auth, serialize }: HttpContext) {
     const { title } = await request.validateUsing(createTaskValidator)

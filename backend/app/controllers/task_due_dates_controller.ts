@@ -52,6 +52,12 @@ export default class TaskDueDatesController {
       '`dueDate` es una fecha imposible o mal formada, o falta `today` o no vale. La tarea conserva intacta la fecha que tuviera.',
     type: () => ValidationErrorResponse,
   })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
+  })
   async update({ params, request, serialize }: HttpContext) {
     // Validar antes de resolver (ADR-0004), igual que las otras cuatro.
     const { today, dueDate } = await request.validateUsing(setTaskDueDateValidator)

@@ -98,6 +98,16 @@ Rutas actuales (`start/routes.ts`), todas bajo `/api/v1`:
 | POST | `/api/v1/auth/login` | `AccessTokensController.store` | no |
 | GET | `/api/v1/account/profile` | `ProfileController.show` | sí |
 | POST | `/api/v1/account/logout` | `AccessTokensController.destroy` | sí |
+| GET | `/api/v1/tasks` | `TasksController.index` | sí |
+| POST | `/api/v1/tasks` | `TasksController.store` | sí |
+| GET | `/api/v1/tasks/:id` | `TasksController.show` | sí |
+| PATCH | `/api/v1/tasks/:id/status` | `TaskStatusesController.update` | sí |
+| PUT | `/api/v1/tasks/:id/due-date` | `TaskDueDatesController.update` | sí |
+| GET | `/api` | documento OpenAPI navegable | no |
+| GET | `/api.json` | el mismo documento, en JSON | no |
+| GET | `/api.yaml` | el mismo documento, en YAML | no |
+
+Las tres últimas las sirve `@foadonis/openapi` desde los decoradores de los controladores, y son de esta rama: el Módulo 4 nuestro había decidido lo contrario -contrato escrito a mano y contrastado- por los motivos que quedaron en un ADR. Las dos aproximaciones conviven hoy en el repositorio y **eso hay que resolverlo**, no dejarlo.
 
 ### Validación
 
