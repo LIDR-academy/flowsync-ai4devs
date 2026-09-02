@@ -33,7 +33,7 @@
 | H-16 | Un estado inventado en el filtro devolvía 200 con lista vacía | Alta | **Resuelto (2026-08-26)** |
 | H-17 | La lista filtraba el email del responsable | Alta | **Resuelto (2026-08-26)** |
 | H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Alta | Abierto |
-| H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Media | Deuda aceptada |
+| H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Media | **Abierto · arrastrado desde el Módulo 3** |
 | H-20 | Dos requisitos de la spec viva se contradecían sobre `today` | Media | **Resuelto (2026-08-26)** |
 | H-21 | El orden de validación difiere entre controladores | Baja | Abierto |
 
@@ -465,6 +465,8 @@ Peor en el change del filtro: `2026-08-13-add-task-status-filter/tasks.md` marca
 
 **Qué hacer si se decide atacar**: apagarlo salvo con una variable explícita. No se hace ahora porque cambia el comportamiento del framework para todo el equipo y merece su propia decisión.
 
+> **Este es el defecto que arrastramos.** Su recorrido completo, desde que apareció en el Módulo 3 hasta hoy, está en la sección «El defecto que arrastramos» al final de este documento.
+
 ---
 
 ## H-20 · Dos requisitos de la spec viva se contradecían sobre `today`
@@ -486,3 +488,106 @@ Peor en el change del filtro: `2026-08-13-add-task-status-filter/tasks.md` marca
 `TaskStatusesController.update` y `TaskDueDatesController.update` resuelven la tarea **antes** de validar; `TasksController.show` valida antes. Los dos caminos cumplen la spec, pero significa que un `PATCH` con estado inventado sobre una tarea inexistente da 404, mientras un `GET` sin `today` sobre una tarea inexistente da 422.
 
 Ningún escenario lo fija. Conviene fijarlo antes de que alguien construya encima.
+
+---
+
+# El defecto que arrastramos, y desde dónde
+
+## H-19 · Las respuestas de error revelan cómo está construido el sistema
+
+Es el único defecto que ha sobrevivido a tres módulos, a dos ramas y a dos arreglos. Merece su propia trazabilidad porque enseña más que ninguno de los que se cerraron.
+
+### La cadena, con fechas
+
+**Módulo 3, 2026-08-25. Se encuentra por primera vez.**
+
+`/opsx:verify` destapó que `PATCH /api/v1/tasks/:id` con un identificador inexistente devolvía la traza completa del framework, con rutas absolutas del servidor y fragmentos de `node_modules`.
+
+El diagnóstico fue correcto y va más allá del síntoma: **no era solo un bug, era un hueco de la spec**. Ningún requisito cubría «la tarea no existe». Primero se arregló el contrato, con un requisito nuevo y dos escenarios, y después el código.
+
+El primer intento de arreglo falló, y eso también quedó escrito. Se creó una clase de excepción propia y el manejador la seguía renderizando con traza. Quedó registrado en `design.md` del change `add-task-list` como **D12**:
+
+> «Se probó, y el manejador la renderizaba igualmente con traza: **el problema no era el tipo del error, sino que se lanzara**.»
+
+El arreglo definitivo fue no lanzar: `Task.find` seguido de `response.notFound({ errors: [...] })`.
+
+**Y ahí está el fallo de fondo, escrito por nosotros mismos.** D12 identificó la causa general -que el manejador renderiza con traza cualquier cosa que se lance- y aplicó un arreglo **local a una ruta**. La conclusión general no se llevó al sitio general.
+
+**Módulo 4, 2026-08-26. Vuelve, en la rama del curso.**
+
+`s4/start` resuelve los identificadores con `findOrFail`, que lanza. El defecto reaparece idéntico en las tres rutas que resuelven un identificador, y la revisión adversarial lo encuentra otra vez. Se registra como **H-19**.
+
+No es que se hubiera reintroducido: es que el arreglo del Módulo 3 nunca salió de nuestra rama, y la del curso llegó a la misma funcionalidad por otro camino.
+
+**Módulo 4, más tarde. Se arregla a medias, y el contrato miente por el camino.**
+
+Al documentar el contrato se escribieron tres `404` con la forma de error del proyecto. La API devolvía otra cosa. **El documento pasó a mentir en el mismo commit que pretendía hacerlo cierto**, y ninguna prueba lo vio porque todas se conformaban con el código de estado y ninguna miraba el cuerpo.
+
+Se normalizó entonces en el manejador de excepciones, que es el sitio general que D12 ya había señalado tres semanas antes. Ahora sí: cualquier ruta que se añada mañana lo hereda.
+
+**Hoy. Sigue abierto, y más ancho de lo que decíamos.**
+
+Fuera de producción, **cualquier** excepción que el proyecto no controle sigue saliendo con el volcado completo. La cuarta revisión adversarial lo evidenció con un `500` de SQLite que devolvía la sentencia ejecutada y rutas absolutas del disco:
+
+```
+PUT /api/v1/tasks/10/due-date
+{"message":"update `tasks` set … - no such column: due_date","name":"SqliteError",
+ "frames":[… "fileName":"C:/Users/renel/…/node_modules/better-sqlite3/…"],"stack":"…"}
+```
+
+Y lo que es peor para la honestidad del registro: durante un tiempo el comentario del manejador y el ADR afirmaban que lo único que quedaba fuera era «una ruta desconocida». No era cierto. Corregido.
+
+### Por qué ha sobrevivido
+
+Tres razones, y ninguna es que fuera difícil de arreglar.
+
+**1. El primer arreglo fue local a una ruta, aunque el diagnóstico fuera general.** Es el patrón que más veces se repite en este proyecto: se entiende bien la causa y se ataca donde escuece. Lo mismo pasó con el email del responsable, arreglado en el detalle y no en la lista.
+
+**2. Cerrarlo del todo no es un arreglo, es una decisión.** Significa apagar el modo depuración fuera de producción, que cambia el comportamiento del framework para todo el equipo y quita información útil mientras se desarrolla. Eso merece su propio ADR, y nadie lo ha escrito.
+
+**3. En producción no ocurre.** `debug` es `false` allí, así que el framework responde genérico. Eso lo baja de prioridad cada vez que se mira, y por eso lleva tres módulos bajándose de prioridad.
+
+### Qué falta para cerrarlo
+
+Escribir la decisión, no el código. El código son dos líneas.
+
+La pregunta abierta es si se apaga el modo depuración fuera de producción a cambio de perder el volcado que ayuda a depurar, o si se acepta convivir con la fuga en entornos que no son producción, sabiendo que basta acceso de red a una máquina de desarrollo para leerla. Hasta que eso se decida, H-19 se queda abierto **a propósito**, que es distinto de olvidado.
+
+---
+
+# Lo que enseñaron cuatro revisiones adversariales seguidas
+
+Sobre el mismo trabajo se lanzaron cuatro revisiones. Las cuatro encontraron algo real. Vale la pena mirar el conjunto, porque el patrón dice más que los hallazgos sueltos.
+
+| | Qué destapó |
+|---|---|
+| Primera | Pruebas que pasaban por el motivo equivocado, y dos hallazgos del registro que describían código inexistente |
+| Segunda | Cuatro de siete comprobaciones del verificador se satisfacían con un comentario |
+| Tercera | El parseo de rutas era ciego a `router.any()`, a las comillas dobles y a un `.prefix()` encadenado |
+| Cuarta | La comprobación recién añadida no mordía al invertir un operador |
+
+## El patrón: verificar lo cómodo
+
+En las cuatro, el fallo tiene la misma forma. **Quien escribe una comprobación elige también la mutación con la que la prueba, y esa mutación nunca es la que la rompe.**
+
+Cada ronda yo endurecía el verificador y comprobaba que fallaba, mutando. Y cada ronda el revisor encontraba la mutación contigua, la que no se me había ocurrido porque era la misma cabeza la que escribía el código y el ataque.
+
+La tercera vez dejó de ser un fallo puntual y pasó a ser un dato sobre el método. La respuesta no fue endurecer mejor: fue **dejar de parsear**. Las rutas se preguntan ahora a `node ace list:routes --json`, que es quien de verdad sabe qué rutas hay, y toda esa clase de fallo desaparece de golpe en vez de una variante por ronda.
+
+## Los tres números de cobertura, todos mal, todos en el mismo sentido
+
+Dije «0 de 124 escenarios», después «11 de 32 requisitos», después «18 de 18». Los tres eran falsos, y **los tres erraban en el sentido cómodo**: el primero exageraba el problema encontrado, los dos siguientes exageraban el trabajo hecho.
+
+El número honesto, contado requisito a requisito y verificado de forma independiente, es **17 de 17 requisitos de sistema y 15 solo de pantalla**.
+
+La lección no es que hubiera que contar mejor. Es que **un número que resume el propio trabajo no debería escribirlo quien lo hizo**, o al menos no sin que alguien lo recuente.
+
+## Lo que sí funcionó
+
+Conviene decirlo, porque el listado de fallos oculta que el método entero funcionó.
+
+- **La spec como árbitro.** Ninguno de los defectos habría sido demostrable sin ella. Sin spec, el revisor opina sobre estilo; con spec, dice qué escenario se incumple y con qué petición.
+- **La verificación por mutación.** Todo lo que hoy está atado se comprobó revirtiéndolo. Las comprobaciones y pruebas que no se vieron fallar no contaban, y varias veces eso destapó que no servían.
+- **La defensa en profundidad.** Cuando el verificador fallaba, las pruebas cazaban el defecto igualmente. Cuando el operador del 404 se invirtió sin que el verificador se enterara, cayeron diecinueve pruebas.
+
+**Y el hallazgo de proceso que explica todo lo demás**: la única forma de saber que una comprobación comprueba algo es verla fallar. Escrita, revisada y razonada no basta. Es H-18, y sigue abierto.

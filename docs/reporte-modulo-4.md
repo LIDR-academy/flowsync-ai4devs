@@ -156,6 +156,27 @@ Es la lección del módulo convertida en guardarraíl, que es lo único que sobr
 
 ---
 
+## 4 ter · El defecto que arrastramos desde el Módulo 3
+
+De todo lo encontrado, uno no se cerró, y es el que más enseña: **H-19, las respuestas de error revelan cómo está construido el sistema por dentro**.
+
+| Cuándo | Qué pasó |
+|---|---|
+| Módulo 3 | `/verify` lo encuentra: un `PATCH` sobre una tarea inexistente devuelve la traza completa con rutas absolutas. Se diagnostica como hueco de la spec, se arregla el contrato y después el código |
+| Módulo 3, el arreglo | `Task.find` más `response.notFound`. **Local a una ruta**, aunque el diagnóstico escrito en D12 ya decía que la causa era general: «el problema no era el tipo del error, sino que se lanzara» |
+| Módulo 4, `s4/start` | La rama del curso resuelve identificadores con `findOrFail`, que lanza. El defecto reaparece idéntico en tres rutas |
+| Módulo 4, al documentar | Se escriben tres `404` en el contrato con una forma que la API no devolvía. **El documento pasó a mentir en el mismo commit que pretendía hacerlo cierto** |
+| Módulo 4, el arreglo | Normalizado en el manejador de excepciones, que es el sitio general que D12 ya había señalado |
+| Hoy | **Sigue abierto** para cualquier otra excepción no controlada. La cuarta revisión lo evidenció con un `500` de SQLite que devolvía el SQL ejecutado |
+
+**Por qué sobrevivió tres módulos**: el primer arreglo fue local aunque el diagnóstico fuera general; cerrarlo del todo no es un arreglo sino una decisión, porque significa apagar el modo depuración para todo el equipo; y en producción no ocurre, lo que lo baja de prioridad cada vez que se mira.
+
+El recorrido completo, con la evidencia de cada paso, está en [`hallazgos.md`](hallazgos.md), sección «El defecto que arrastramos».
+
+**Lo que hay que hacer no es código, son dos líneas.** Es escribir la decisión: se apaga el modo depuración fuera de producción y se pierde el volcado que ayuda a depurar, o se convive con la fuga sabiendo que basta acceso de red a una máquina de desarrollo para leerla. Hasta entonces queda abierto **a propósito**, que es distinto de olvidado.
+
+---
+
 ## 5 · Módulo 3 frente a Módulo 4
 
 Los dos módulos atacan el mismo problema desde extremos opuestos.
