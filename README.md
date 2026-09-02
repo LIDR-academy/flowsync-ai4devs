@@ -48,6 +48,7 @@ El frontend **no tiene runner de tests** en esta rama.
 | [`docs/trazabilidad.md`](docs/trazabilidad.md) | Qué criterio de aceptación tiene prueba y cuál no |
 | [`docs/adr/`](docs/adr/) | Las decisiones técnicas que costó tomar, con sus alternativas descartadas |
 | [`docs/hallazgos.md`](docs/hallazgos.md) | Los problemas encontrados trabajando, con cómo se verificó cada uno |
+| [`docs/auditoria-reglas-de-proceso.md`](docs/auditoria-reglas-de-proceso.md) | Qué reglas declara el repo, cuáles se cumplen y cuáles no se pueden comprobar |
 | [`docs/reporte-modulo-4.md`](docs/reporte-modulo-4.md) | Qué destapó la verificación, y qué se hizo con ello |
 | [`docs/artefactos/`](docs/artefactos/) | Los reportes de cada módulo en versión navegable |
 | [`docs/backlog/`](docs/backlog/) | Historias de usuario y criterios de aceptación |
@@ -64,7 +65,7 @@ Escrito aquí porque un README que promete lo que no hay es peor que no tener RE
 
 **Escrito en el backlog y no implementado:** borrar tarea, editar el título, reasignar responsable y lista viva sin recargar.
 
-**Cobertura:** 57 pruebas. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado, lo que se expone del responsable y que la lista es del espacio y no de quien la mira. Los 17 requisitos de sistema de `tasks` tienen prueba; los 15 que solo se ven en pantalla no, porque no hay runner de navegador. El detalle en [`docs/trazabilidad.md`](docs/trazabilidad.md).
+**Cobertura:** 71 pruebas. Cubren `auth` entero por API, y de `tasks` la regla de vencimiento, el filtro por estado, lo que se expone del responsable y que la lista es del espacio y no de quien la mira. Los 17 requisitos de sistema de `tasks` tienen prueba; los 15 que solo se ven en pantalla no, porque no hay runner de navegador. El detalle en [`docs/trazabilidad.md`](docs/trazabilidad.md).
 
 ## Cómo se trabaja aquí
 

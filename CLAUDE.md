@@ -138,6 +138,14 @@ Organización de `src/`:
 La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defecto `http://localhost:3333`.
 
 ## Reglas de proceso
+
+> Cada regla lleva su **modo de fallo**, porque es lo que decide dónde tiene que vivir.
+> Lo que falla ruidoso puede quedarse escrito aquí: se nota solo. Lo que falla en silencio hay que bajarlo a algo que lo ejecute, o se cumplirá lo justo para que dejes de comprobarlo. Y lo que no se puede comprobar se dice, en vez de fingir que se cumple.
+>
+> **El modo de fallo es una propiedad de la regla y se declara aquí. Si la regla se cumple o no es otra cosa, es empírico, y va en [`docs/auditoria-reglas-de-proceso.md`](docs/auditoria-reglas-de-proceso.md).** Confundir las dos es la forma de acabar con un fichero de reglas que nadie ha contrastado nunca.
+
+### Ciclo de trabajo
+
 - Antes de tocar código: crear una rama nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main`/`s1/start`.
 - Al cerrar la tarea: usar la skill `/commit`, luego `gh pr create` con una descripción completa de los cambios en el cuerpo del PR.
 - Después de abrir el PR: usar el subagente `adversarial-reviewer` sobre él, antes de darlo por terminado.
@@ -145,3 +153,30 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 - **Cuando un cambio toque rutas, controladores o validadores**: actualizar `docs/api/openapi.yaml` y el README si corresponde, y ejecutar `node scripts/verificar-docs.mjs` antes de cerrar. La documentación de este repo se **contrasta**, no se regenera (ADR-0002), así que el contraste solo sirve si se ejecuta.
 - Verificar por **código de salida**, nunca por lo que imprime la última línea. Un `| tail -1` se come el error y deja pasar un lint en rojo como si estuviera limpio.
 - **`docs/hallazgos.md` se arrastra entre ramas.** Al empezar un módulo, traerlo antes de tocar nada y comprobar una a una si sus entradas abiertas siguen vivas en la rama nueva: el curso llega a la misma funcionalidad por otro camino, así que algunas se arreglan solas y otras reaparecen. Cada apartado dice **qué rama describe**. Al cerrar el módulo, su reporte lleva una sección «Lo que se arrastra». Detalle en el propio `hallazgos.md`.
+
+### Calidad del cambio
+
+Las seis de esta sección no son del curso: son las que renelo aplica en sus proyectos, y viven en `~/.claude/CLAUDE.md` y `~/OPINIONS.md`, heredadas por todos ellos sin que ninguno las declare. Se copian aquí para poder **contrastarlas contra un repositorio de verdad**, que es el ejercicio del Módulo 5.
+
+- **Un bug no se cierra sin reproducirlo.** · *Fallo silencioso.*
+  Primero se reproduce en un entorno E2E lo más parecido posible a como lo vive el usuario final, y se confirma que el arreglo ataca el problema real y no el síntoma.
+  Todo bug arreglado deja detrás una prueba que lo reproduce.
+  Nadie nota que no se reprodujo: el bug se cierra igual y el commit se ve idéntico.
+
+- **Al índice se va por nombre.** · *Fallo silencioso, pero auditable.*
+  `git add <fichero>`, nunca `git add -A` ni `git add .`. Lo que entra en un commit se decide, no se barre.
+  El commit lo registra para siempre, aunque nadie lo mire.
+
+- **Los hooks no se saltan.** · *Fallo ruidoso.*
+  Nada de `--no-verify`. Si un hook falla, se investiga la causa.
+  Saltarlo convierte la comprobación en decorado, y es un acto deliberado que hay que teclear.
+
+- **Todo atajo tomado por velocidad se escribe como deuda técnica.** · *Fallo silencioso, y el que más decae.*
+  Explícito, con su motivo, en el sitio donde alguien lo vaya a leer. Un atajo sin registrar deja de ser una decisión y pasa a ser cómo funciona el sistema.
+
+- **Un lint en rojo, un test que falla o uno flaky se arreglan aunque no los hayas causado.** · *Fallo silencioso.*
+  Es la más fácil de contrastar contra un repositorio en vivo, y la que más rápido se erosiona: cada excepción hace la siguiente más barata.
+
+- **La documentación desactualizada es peor que no tenerla.** · *No se puede comprobar automáticamente.*
+  Se documenta cuando aporta valor -ADR, integraciones, variables de entorno, supuestos de seguridad, modos de fallo- y nunca como ritual.
+  Ninguna comprobación sabe si un documento sigue siendo útil. Solo sabe si sigue coincidiendo con el código, que es otra cosa y es lo que hace `scripts/verificar-docs.mjs`.
