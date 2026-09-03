@@ -29,7 +29,9 @@ Las tres que se llevan al directo, con la intuición **antes** de comprobar nada
 | Al índice se va por nombre: nunca `git add -A` ni `git add .` | Silencioso, pero auditable | `casi siempre` |
 | Los hooks no se saltan: nada de `--no-verify` | Ruidoso | `siempre` |
 
-La intuición es de renelo y se anotó sin mirar el repositorio, que es la condición del ejercicio.
+Cómo se anotaron, que en este documento importa: las tres palabras **las propuso Claude** a partir de los ficheros de renelo, y renelo las aceptó tal cual el 2026-09-02. Ninguno de los dos miró el repositorio antes, que es la condición del ejercicio.
+
+Se dice porque una intuición prestada y una propia se contrastan igual pero **no enseñan lo mismo**: si al comprobar coinciden, no sabremos si acertó la intuición o el modelo. Anotarlo ahora es lo que permite decirlo después.
 
 Las tres salen de `~/.claude/CLAUDE.md` y `~/OPINIONS.md`. **No están en el README de ningún proyecto suyo**, y eso ya es un hallazgo: son reglas de proceso reales, aplicadas a todos sus repositorios, escritas una sola vez en un fichero global que ninguno de esos repositorios declara ni comprueba. Una petición, heredada en silencio, verificada en ninguna parte.
 
