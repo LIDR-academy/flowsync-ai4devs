@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "./components/ui/button";
 import {
@@ -16,7 +16,6 @@ type Mode = "login" | "signup";
 type User = { fullName?: string; email: string; initials?: string };
 type AuthData = { user: User; token: string };
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
-const TOKEN_KEY = "flowsync_token";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -42,16 +41,6 @@ function App() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return;
-    request<{ data: User }>("/api/v1/account/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(({ data }) => setProfile(data))
-      .catch(() => localStorage.removeItem(TOKEN_KEY));
-  }, []);
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -74,8 +63,11 @@ function App() {
         `/api/v1/auth/${mode === "login" ? "login" : "signup"}`,
         { method: "POST", body: JSON.stringify(payload) },
       );
-      localStorage.setItem(TOKEN_KEY, data.token);
-      setProfile(data.user);
+      const { data: profileData } = await request<{ data: User }>(
+        "/api/v1/account/profile",
+        { headers: { Authorization: `Bearer ${data.token}` } },
+      );
+      setProfile(profileData);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -88,7 +80,6 @@ function App() {
   }
 
   function logout() {
-    localStorage.removeItem(TOKEN_KEY);
     setProfile(null);
     setMode("login");
   }
