@@ -1,0 +1,55 @@
+name: OpenAPI
+
+# El contrato versionado tiene que seguir siendo el que genera el código: se
+# comprueba en cada cambio propuesto y en cada push a la rama principal.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Nada por defecto: el único job declara abajo lo que necesita.
+permissions: {}
+
+jobs:
+  contract:
+    name: El documento versionado sigue al día
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Leer el código y nada más. Este job no comenta en el PR, no escribe en el
+    # repositorio y no publica nada: si el contrato se ha quedado atrás, falla.
+    permissions:
+      contents: read
+
+    # `openapi:check` arranca la aplicación para leer el router, y `start/env.ts`
+    # valida su esquema antes de nada. Ninguno de estos valores es un secreto ni
+    # tiene que serlo: no se abre ningún puerto, no se toca la base de datos y
+    # `APP_KEY` no llega a firmar nada. Están para que la validación pase.
+    env:
+      NODE_ENV: development
+      PORT: '3333'
+      HOST: localhost
+      LOG_LEVEL: info
+      APP_URL: http://localhost:3333
+      APP_KEY: openapi-check-no-firma-nada
+      SESSION_DRIVER: memory
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar las dependencias del backend
+        working-directory: backend
+        run: npm ci
+
+      # Solo compara. Regenera en `backend/tmp/`, que es efímero en el runner, y
+      # deja `docs/api/openapi.json` como estaba: si difieren, el arreglo es
+      # `npm run openapi:generate` en local y commitear el resultado.
+      - name: Comprobar docs/api/openapi.json contra el documento generado
+        working-directory: backend
+        run: npm run openapi:check
