@@ -6,7 +6,7 @@ import { Input } from "./components/ui/input";
 import { Label } from "./components/ui/label";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1";
+const API_URL = import.meta.env.VITE_API_URL ?? "/api/v1";
 const TOKEN_KEY = "flowsync.auth-token";
 
 type Mode = "login" | "signup";
@@ -14,6 +14,15 @@ type User = { id: number; fullName: string; email: string; initials: string };
 type AuthResponse = { user: User; token: string };
 type ApiEnvelope<T> = { data: T };
 type ApiError = { message?: string; errors?: Array<{ message?: string }> };
+
+class RequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
 
 function messageFrom(error: ApiError, fallback: string) {
   return error.errors?.[0]?.message ?? error.message ?? fallback;
@@ -27,8 +36,12 @@ async function request<T>(path: string, options: RequestInit = {}) {
   const body = (await response.json().catch(() => ({}))) as ApiEnvelope<T> &
     ApiError;
 
-  if (!response.ok)
-    throw new Error(messageFrom(body, "No pudimos completar la solicitud."));
+  if (!response.ok) {
+    throw new RequestError(
+      messageFrom(body, "No pudimos completar la solicitud."),
+      response.status,
+    );
+  }
   return body.data;
 }
 
@@ -39,17 +52,30 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  async function loadProfile(token: string) {
+    const profile = await request<User>("/account/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setUser(profile);
+  }
+
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
       setLoading(false);
       return;
     }
-    void request<User>("/account/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(setUser)
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
+    void loadProfile(token)
+      .catch((caught) => {
+        if (
+          caught instanceof RequestError &&
+          [401, 403].includes(caught.status)
+        ) {
+          localStorage.removeItem(TOKEN_KEY);
+          return;
+        }
+        setError("No pudimos restaurar tu sesión. Inténtalo de nuevo.");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -77,7 +103,7 @@ function App() {
         body: JSON.stringify(payload),
       });
       localStorage.setItem(TOKEN_KEY, auth.token);
-      setUser(auth.user);
+      await loadProfile(auth.token);
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "No pudimos iniciar sesión.",
