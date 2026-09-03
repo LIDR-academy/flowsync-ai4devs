@@ -195,7 +195,7 @@ comprobar('Toda operación que resuelve un id declara su 404', () => {
   return `${revisadas} operaciones con 404 declarado`
 })
 comprobar('Toda operación decorada declara el error que no estaba previsto', () => {
-  // ADR-0003 decidió que cualquier 5xx responde una forma cerrada, y eso es
+  // ADR-0005 decidió que cualquier 5xx responde una forma cerrada, y eso es
   // contrato. Ninguna operación de esta rama lo declaraba, igual que pasaba con
   // el contrato escrito a mano del Módulo 4: el hueco no depende de si el
   // documento se escribe o se genera.
@@ -203,22 +203,66 @@ comprobar('Toda operación decorada declara el error que no estaba previsto', ()
     f.endsWith('.ts')
   )
 
+  // **Operación a operación, no cuentas por fichero.** La versión anterior
+  // comparaba `declarados < acciones` sobre el fichero entero, y la séptima
+  // revisión la pasó por encima de dos formas: moviendo el `500` de `index` a
+  // `show` como duplicado -la cuenta seguía cuadrando y `GET /tasks` perdía su
+  // `500` en el contrato servido-, y borrando todos los `@ApiResponse` de un
+  // controlador, porque el `continue` de abajo saltaba el fichero entero.
+  //
+  // Lo segundo no es hipotético: signup, login, logout y profile están hoy sin
+  // decorar y salen con `"responses": {}` en `/api.json`, mientras la
+  // comprobación informaba «5 operaciones» como si cubriera la API.
   const sinDeclarar = []
+  const sinDecorar = []
   let revisadas = 0
 
   for (const fichero of controladores) {
     const codigo = leer(`backend/app/controllers/${fichero}`)
-    if (!codigo.includes('@ApiResponse')) continue
-
-    revisadas += (codigo.match(/\n {2}async /g) ?? []).length
-
-    const declarados = (codigo.match(/status: 500/g) ?? []).length
     const acciones = (codigo.match(/\n {2}async /g) ?? []).length
-    if (declarados < acciones) sinDeclarar.push(`${fichero} (${declarados}/${acciones})`)
+    if (!acciones) continue
+
+    if (!codigo.includes('@ApiOperation')) {
+      sinDecorar.push(`${fichero} (${acciones})`)
+      continue
+    }
+
+    for (const operacion of codigo.split(/\n {2}@ApiOperation/).slice(1)) {
+      revisadas += 1
+      if (!/status: 500/.test(operacion)) sinDeclarar.push(fichero)
+    }
   }
 
   if (!revisadas) throw new Error('ningún controlador está decorado')
-  if (sinDeclarar.length) throw new Error(`sin 500 declarado: ${sinDeclarar.join(', ')}`)
+  if (sinDeclarar.length) {
+    throw new Error(`sin 500 declarado: ${[...new Set(sinDeclarar)].join(', ')}`)
+  }
+  // Un controlador sin decorar sale del contrato **entero** sin que nada avise,
+  // y eso es peor que una respuesta sin declarar: `/api.json` lo devuelve con
+  // `"responses": {}` o directamente sin la ruta.
+  //
+  // Cuatro operaciones de `auth` están hoy así, y es un hueco de esta rama que
+  // el port no introdujo ni arregla: decorarlas exige esquemas de respuesta que
+  // `app/openapi/schemas.ts` no tiene, y eso es trabajo del módulo, no de un
+  // traslado. Es H-23.
+  //
+  // Se declara con **lista cerrada** y no con un `continue`, para que no pudra
+  // en las dos direcciones: si aparece un quinto controlador sin decorar, falla;
+  // y si alguien decora uno de estos tres y no lo quita de aquí, también.
+  const HUECO_CONOCIDO = [
+    'access_tokens_controller.ts (2)',
+    'new_account_controller.ts (1)',
+    'profile_controller.ts (1)',
+  ]
+  const inesperados = sinDecorar.filter((f) => !HUECO_CONOCIDO.includes(f))
+  const yaDecorados = HUECO_CONOCIDO.filter((f) => !sinDecorar.includes(f))
+
+  if (inesperados.length) {
+    throw new Error(`fuera del contrato, sin declarar: ${inesperados.join(', ')}`)
+  }
+  if (yaDecorados.length) {
+    throw new Error(`ya no están fuera del contrato, quítalos de HUECO_CONOCIDO: ${yaDecorados.join(', ')}`)
+  }
 
   // Esto es aviso temprano, no la garantía. La garantía es la prueba, que
   // provoca un 500 real y mira el cuerpo entero.
@@ -229,7 +273,7 @@ comprobar('Toda operación decorada declara el error que no estaba previsto', ()
     }
   }
 
-  return `${revisadas} operaciones con 500 declarado`
+  return `${revisadas} operaciones con 500, ${HUECO_CONOCIDO.length} controladores fuera del contrato (H-23)`
 })
 comprobar('Ningún change se archiva con casillas mudas', () => {
   // H-18. Un change se archivó con la casilla «verificar que ninguna respuesta
@@ -259,7 +303,20 @@ comprobar('Ningún change se archiva con casillas mudas', () => {
     if (!/^- \[ \]/m.test(tareas)) continue
 
     conPendientes += 1
-    if (!/^#{2,3} .*Lo que no se ejecutó/m.test(tareas)) mudos.push(change)
+    const seccion = tareas.match(/^#{2,3} .*Lo que no se ejecutó.*$([\s\S]*)/m)
+    if (!seccion) {
+      mudos.push(change)
+      continue
+    }
+    // Con filas de verdad. La séptima revisión pasó esta comprobación dejando
+    // la sección presente y vacía, que es la misma mentira que no tenerla: su
+    // hermana la del reporte ya se había endurecido contra esa forma.
+    const filas = seccion[1]
+      .split('\n')
+      .filter((linea) => /^\|/.test(linea.trim()))
+      .filter((linea) => !/^\|[\s|:-]+\|$/.test(linea.trim()))
+      .slice(1)
+    if (!filas.length) mudos.push(`${change} (sección vacía)`)
   }
 
   if (mudos.length) {
@@ -272,7 +329,7 @@ comprobar('Ningún change se archiva con casillas mudas', () => {
 })
 
 comprobar('La petición se valida antes de resolver el identificador', () => {
-  // ADR-0004. Antes dependía de la ruta: `show` validaba primero y las dos
+  // ADR-0006. Antes dependía de la ruta: `show` validaba primero y las dos
   // escrituras resolvían primero, así que la misma clase de petición daba
   // `422` o `404` según a cuál llegaras. Ninguna de las dos órdenes estaba
   // mal; tener las dos, sí.
@@ -292,7 +349,13 @@ comprobar('La petición se valida antes de resolver el identificador', () => {
     // Cada acción por separado: un controlador con dos acciones podía tener
     // una bien y otra mal, y mirar el fichero entero las mezclaba.
     for (const accion of codigo.split(/\n {2}async /).slice(1)) {
-      const resolver = accion.indexOf('findOrFail')
+      // Resolver un identificador **de la ruta**, por cualquiera de las dos
+      // formas que lanzan. Buscar solo `findOrFail` dejaba pasar exactamente la
+      // regresión que ya ocurrió una vez: escribir `show` con
+      // `releerConResponsable(params.id)` antes de validar devuelve `404` donde
+      // el contrato dice `422`, tumba `orden_de_validacion.spec.ts`, y esta
+      // comprobación seguía en verde. Lo encontró la séptima revisión.
+      const resolver = accion.search(/(?:findOrFail|releerConResponsable)\(params\./)
       if (resolver === -1) continue
 
       revisadas += 1
@@ -305,7 +368,7 @@ comprobar('La petición se valida antes de resolver el identificador', () => {
 
   if (!revisadas) throw new Error('ningún controlador resuelve un identificador')
   if (invertidos.length) {
-    throw new Error(`resuelven antes de validar: ${invertidos.join(', ')} (ADR-0004)`)
+    throw new Error(`resuelven antes de validar: ${invertidos.join(', ')} (ADR-0006)`)
   }
 
   return `${revisadas} acciones resuelven un id, todas validan antes`
@@ -320,7 +383,7 @@ comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', (
   // convierte todo lo demás en un 404 falso, y la version anterior de esta
   // comprobacion lo dejaba pasar: solo exigia que las dos cadenas coexistieran.
   if (!/error\.code === 'E_ROW_NOT_FOUND'/.test(handler)) {
-    throw new Error('el handler no compara `error.code === E_ROW_NOT_FOUND` (ADR-0002)')
+    throw new Error('el handler no compara `error.code === E_ROW_NOT_FOUND` (ADR-0004)')
   }
   if (/error\.code !== 'E_ROW_NOT_FOUND'/.test(handler)) {
     throw new Error('la comparacion esta invertida: normalizaria todo menos el 404')
@@ -332,7 +395,7 @@ comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', (
 })
 
 comprobar('El volcado de depuración va apagado salvo que se encienda', () => {
-  // ADR-0003. Fue H-19, abierto tres módulos. Encenderlo devuelve traza, rutas
+  // ADR-0005. Fue H-19, abierto tres módulos. Encenderlo devuelve traza, rutas
   // absolutas y el SQL ejecutado a cualquiera que alcance el puerto, sin sesión.
   //
   // La versión anterior era una lista negra -ni `true`, ni `inProduction`- y
@@ -477,8 +540,22 @@ comprobar('La versión navegable dice lo mismo que el reporte', () => {
   for (const fichero of artefactos) {
     const html = leer(`docs/artefactos/${fichero}`)
 
-    if (!/Lo que se arrastra/.test(html)) {
-      throw new Error(`${fichero} no trae la sección «Lo que se arrastra»`)
+    // Se exige el **encabezado y su tabla**, no que la cadena aparezca.
+    // La séptima revisión pasó esta comprobación de dos formas: dejando el
+    // `<h2>` con un párrafo que decía que no hacía falta la tabla, y dejando
+    // la frase solo dentro de un comentario HTML. Su hermana la del `.md` ya
+    // se había endurecido contra exactamente esto, y esta se quedó atrás al
+    // debilitarle la parte del conteo.
+    const sinComentarios = html.replace(/<!--[\s\S]*?-->/g, '')
+    const seccion = sinComentarios.match(
+      /<h2>[^<]*Lo que se arrastra[^<]*<\/h2>([\s\S]*?)(?=<h2>|<\/section>)/
+    )
+    if (!seccion) {
+      throw new Error(`${fichero} no trae el encabezado «Lo que se arrastra»`)
+    }
+    const filas = (seccion[1].match(/<tr><td/g) ?? []).length
+    if (!filas) {
+      throw new Error(`${fichero} trae la sección «Lo que se arrastra» sin ninguna fila`)
     }
     // **Aquí se retiró la comprobación del número de comprobaciones**, y
     // conviene decir por qué en vez de borrarla en silencio.
@@ -554,7 +631,7 @@ comprobar('Las pruebas no pueden escribir sobre la base de desarrollo', () => {
   // solo que existe `db-test.sqlite3` lo satisfacía una constante muerta.
   const eleccion = config.match(/const\s+(\w+)\s*=\s*app\.inTest\s*\?\s*'([^']+)'\s*:\s*'([^']+)'/)
   if (!eleccion) {
-    throw new Error('config/database.ts no elige el fichero según el entorno (ADR-0001)')
+    throw new Error('config/database.ts no elige el fichero según el entorno (ADR-0003)')
   }
   const [, variable, enTest, fuera] = eleccion
   if (enTest === fuera) {

@@ -51,7 +51,7 @@ export default class TasksController {
     required: false,
     enum: [...TASK_STATUSES],
     description:
-      'Acota la lista a un estado. El estado es la única dimensión por la que se puede acotar. Sin él llegan `pending` e `in_progress`. Hoy el validador solo comprueba que sea texto, así que un valor fuera de estos tres no se rechaza: devuelve una lista vacía.',
+      'Acota la lista a un estado. El estado es la única dimensión por la que se puede acotar. Sin él llegan `pending` e `in_progress`. Un valor que no sea uno de los tres se rechaza con `422` señalando el campo, y **nunca** devuelve una lista vacía: confundir «no existe ese estado» con «no hay nada en ese estado» es el fallo silencioso que este filtro existe para evitar.',
   })
   @ApiResponse({
     status: 200,
@@ -65,9 +65,15 @@ export default class TasksController {
     type: () => ErrorResponse,
   })
   @ApiResponse({
+    status: 422,
+    description:
+      'El estado por el que se pide acotar no es ninguno de los tres del dominio. Se rechaza señalando el campo, y **no** se devuelve una lista vacía: confundir «no existe ese estado» con «no hay nada en ese estado» es el fallo silencioso que este filtro existe para evitar.',
+    type: () => ValidationErrorResponse,
+  })
+  @ApiResponse({
     status: 500,
     description:
-      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
     type: () => ErrorResponse,
   })
   async index({ request, serialize }: HttpContext) {
@@ -132,7 +138,7 @@ export default class TasksController {
   @ApiResponse({
     status: 500,
     description:
-      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
     type: () => ErrorResponse,
   })
   async show({ params, request, serialize }: HttpContext) {
@@ -172,7 +178,7 @@ export default class TasksController {
   @ApiResponse({
     status: 500,
     description:
-      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
     type: () => ErrorResponse,
   })
   async store({ request, response, auth, serialize }: HttpContext) {

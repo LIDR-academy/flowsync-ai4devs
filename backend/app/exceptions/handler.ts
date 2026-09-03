@@ -4,7 +4,7 @@ import { type HttpContext, ExceptionHandler } from '@adonisjs/core/http'
 export default class HttpExceptionHandler extends ExceptionHandler {
   /**
    * El volcado de depuración va **apagado por defecto en todos los entornos**
-   * (ADR-0003), no solo en producción.
+   * (ADR-0005), no solo en producción.
    *
    * Encendido devolvía en el cuerpo de la respuesta la traza, el nombre de la
    * excepción, rutas absolutas del disco y, si el error venía de la base, la

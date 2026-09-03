@@ -77,7 +77,7 @@ Bajar una regla a un guardarraíl **no la garantiza tampoco**.
 
 El 2026-09-02, la quinta revisión adversarial demostró que dos de las comprobaciones de `verificar-docs.mjs` daban luz verde a mutaciones reales: encender el volcado de depuración con `|| !app.inTest` y sustituir la tabla de arrastre entera por la frase «esta vez no hace falta la tabla». Las dos pasaban en verde. Era la quinta pasada consecutiva en que la mutación con la que se había probado una comprobación era la que esa comprobación ya cubría por construcción.
 
-Así que la columna «Qué la ejecutaría» tiene una condición que no se ve en la tabla: **una comprobación cuenta cuando se la ha visto fallar a propósito**, no cuando existe. Es lo que [ADR-0002](adr/0002-la-documentacion-se-verifica-no-se-regenera.md) dice desde el Módulo 4, escrito antes de saber cuántas veces íbamos a necesitarlo.
+Así que la columna «Qué la ejecutaría» tiene una condición que no se ve en la tabla: **una comprobación cuenta cuando se la ha visto fallar a propósito**, no cuando existe. Es lo que [ADR-0004](adr/0004-la-documentacion-se-verifica-no-se-regenera.md) dice desde el Módulo 4, escrito antes de saber cuántas veces íbamos a necesitarlo.
 
 Esa condición es ahora **R-14**, y es la única regla de la tabla que no viene ni del curso ni de los proyectos de renelo: sale de esta cicatriz. Estaba escrita en un ADR como consecuencia de una decisión, que es un sitio donde nadie va a buscarla al añadir una comprobación nueva. Subirla a las reglas de proceso es, literalmente, el movimiento que el módulo describe: coger lo que falla en silencio y ponerlo donde se ejecuta.
 

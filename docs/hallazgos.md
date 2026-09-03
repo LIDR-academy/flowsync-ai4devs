@@ -17,7 +17,7 @@
 
 | # | Hallazgo | Severidad | Estado |
 |---|---|---|---|
-| H-01 | Los tests comparten base de datos con desarrollo | Alta | **Resuelto (2026-08-25)** |
+| H-01 | Los tests comparten base de datos con desarrollo | Alta | **Resuelto** · `s3/start` 2026-08-25, `s5/start` 2026-09-02. Estaba vivo aquí |
 | H-02 | Cero pruebas automatizadas en todo el proyecto | Alta | **Resuelto (2026-08-25)** |
 | H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Alta | **Resuelto** · `s3/start` 2026-08-26, `s4/start` 2026-09-02 |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | Documentado y sorteado |
@@ -37,7 +37,7 @@
 | H-18 | Los changes se archivaron con verificaciones marcadas sin hacer | Alta | **Resuelto (2026-09-02)** |
 | H-19 | Las respuestas de error devuelven traza, rutas y el SQL ejecutado | Alta | **Resuelto (2026-09-02)** · arrastrado desde el Módulo 3, cerrado en dos pasos |
 | H-20 | Dos requisitos de la spec viva se contradecían sobre `today` | Media | **Resuelto (2026-08-26)** |
-| H-21 | El orden de validación difiere entre controladores | Baja | **Resuelto (2026-09-02)** · ADR-0004 |
+| H-21 | El orden de validación difiere entre controladores | Baja | **Resuelto (2026-09-02)** · ADR-0006 |
 | H-22 | La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama | Alta | **Resuelto (2026-09-02)** |
 
 > **Al abrir el Módulo 5**, la comprobación contra `s5/start` dice que **seis de los siete** vuelven rotos: H-11, H-13, H-14, H-15, H-16 y H-19. Solo H-17 llega arreglado. Evidencia y plan de acción de cada uno en la sección «Al abrir el Módulo 5», más abajo.
@@ -84,7 +84,7 @@ Idéntica. La base de test vive aparte, en `tmp/db-test.sqlite3`, y no está ver
 
 > **Y en `s4/start`, la rama del curso.** El mismo hallazgo volvió a aparecer, porque el curso lo sortea con `withGlobalTransaction()` declarado en cada fichero en vez de resolverlo.
 > Se reprodujo la fuga: un fichero de prueba **sin** el hook dejó una fila en la base de desarrollo con 21 pruebas en verde.
-> Resuelto aquí por [ADR-0001](adr/0001-aislamiento-de-la-base-de-datos-en-pruebas.md), con la misma decisión y una diferencia: **los hooks por fichero se mantienen tal cual**, no se centralizan en `suite.onGroup`.
+> Resuelto aquí por [ADR-0003](adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md), con la misma decisión y una diferencia: **los hooks por fichero se mantienen tal cual**, no se centralizan en `suite.onGroup`.
 > Y a diferencia de `s3/start`, aquí lo fija una prueba: `tests/functional/aislamiento.spec.ts` le pregunta a la conexión viva por su fichero.
 
 ---
@@ -524,7 +524,7 @@ Los tres archivados llevan ya esa sección, escrita con lo que de verdad pasó:
 
 ### El primer cierre, y por qué no bastaba
 
-[ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md) apagó el volcado por defecto **en todos los entornos**, con `DEBUG_HTTP_ERRORS=true` para encenderlo a propósito.
+[ADR-0005](adr/0005-el-volcado-de-depuracion-va-apagado.md) apagó el volcado por defecto **en todos los entornos**, con `DEBUG_HTTP_ERRORS=true` para encenderlo a propósito.
 
 Eso quitó las trazas y **dejó abierta la mitad grande**. La rama sin depuración del framework responde `{ message: error.message }`, y el `message` de un `SqliteError` es la sentencia SQL entera con sus valores dentro. La quinta revisión adversarial lo reprodujo contra el servidor **con el volcado ya apagado**, que es la configuración de producción:
 
@@ -563,7 +563,7 @@ El manejador intercepta todo `5xx` y responde `{ errors: [{ message: 'Error inte
 
 ## H-21 · El orden de validación difiere entre controladores
 
-**Rama: `s4/start`. Severidad: baja. Resuelto el 2026-09-02** por [ADR-0004](adr/0004-validar-antes-de-resolver.md).
+**Rama: `s4/start`. Severidad: baja. Resuelto el 2026-09-02** por [ADR-0006](adr/0006-validar-antes-de-resolver.md).
 
 `TaskStatusesController.update` y `TaskDueDatesController.update` resolvían la tarea **antes** de validar; `TasksController.show` validaba antes. Los dos caminos cumplían la spec, pero significaba que un `PATCH` con estado inventado sobre una tarea inexistente daba 404, mientras un `GET` sin `today` sobre una tarea inexistente daba 422.
 
@@ -615,13 +615,18 @@ Es la forma más incómoda del patrón: **el hueco no se ve cuando lo que falta 
 > Comprobado el 2026-09-02 leyendo la rama fichero a fichero, antes de tocar nada, como manda la regla de arrastre.
 > `s5/start` está en `449bb69`, idéntico a `upstream/s5/start`.
 >
-> **Seis de los siete defectos que cerramos vuelven rotos.** No es una regresión: la rama del curso llega a la misma funcionalidad por otro camino y nunca tuvo nuestros arreglos. Es exactamente lo que pasó de `s3/start` a `s4/start`, y por lo que existe H-22.
+> **Esta sección era el plan. Se ejecutó el mismo día**, en `feat/portar-cierres-modulo-4`, y lo que salió al ejecutarlo no coincide con lo que decía el plan:
+>
+> - El plan contaba **seis** defectos vueltos. Fueron **nueve**. Los tres que faltaban aparecieron portando: **H-01** -la suite escribía sobre la base de desarrollo, y lo detectó `aislamiento.spec.ts` al fallar, no una lectura-, el runner de frontend, y el `.gitignore` que dejaba las notas propias sin proteger.
+> - El plan decía «portar los siete ficheros de prueba que faltan» y eran **nueve**, y «el verificador con sus diecisiete comprobaciones», que aquí quedaron en **quince** por una decisión sobre el contrato.
+>
+> Se conserva como estaba, con esta nota encima, porque la distancia entre el plan y lo que salió es lo que enseña. **Leer una rama no sustituye a ejecutar sus pruebas en ella.**
 
 ### Los seis que vuelven
 
 | # | Hallazgo | Evidencia en `s5/start` | Plan de acción |
 |---|---|---|---|
-| **H-19** · Alta | Las respuestas de error revelan traza, rutas y el SQL ejecutado | `backend/app/exceptions/handler.ts:9` declara `protected debug = !app.inProduction`, el valor con el que viene el framework, con el comentario original en inglés («display verbose errors with pretty printed stack traces»). El fichero entero son 30 líneas: **no hay rama para `E_ROW_NOT_FOUND`** ni intercepción de `5xx`. `backend/.env.example` no menciona `DEBUG_HTTP_ERRORS`. Vuelven las **dos mitades**: el volcado de Youch fuera de producción, y el `{ message: error.message }` del framework, que en un error de SQLite es la sentencia entera con el hash de la contraseña dentro | Portar `handler.ts` completo: la constante desde `env.get('DEBUG_HTTP_ERRORS', false)`, la normalización de `E_ROW_NOT_FOUND` a `{ errors: [...] }` con 404, y la intercepción de `status >= 500`. Añadir `DEBUG_HTTP_ERRORS=false` a `.env.example` y a `.env.test`, y `DEBUG_HTTP_ERRORS: Env.schema.boolean.optional()` a `start/env.ts`. Portar `tests/functional/errores.spec.ts` con sus cinco casos y los diecisiete rastros. **Verificar por mutación**: quitar la intercepción del `5xx` tiene que tumbar la prueba del error de base de datos. Traer [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md), que es lo que convierte esto en una decisión escrita y no en un arreglo suelto |
+| **H-19** · Alta | Las respuestas de error revelan traza, rutas y el SQL ejecutado | `backend/app/exceptions/handler.ts:9` declara `protected debug = !app.inProduction`, el valor con el que viene el framework, con el comentario original en inglés («display verbose errors with pretty printed stack traces»). El fichero entero son 30 líneas: **no hay rama para `E_ROW_NOT_FOUND`** ni intercepción de `5xx`. `backend/.env.example` no menciona `DEBUG_HTTP_ERRORS`. Vuelven las **dos mitades**: el volcado de Youch fuera de producción, y el `{ message: error.message }` del framework, que en un error de SQLite es la sentencia entera con el hash de la contraseña dentro | Portar `handler.ts` completo: la constante desde `env.get('DEBUG_HTTP_ERRORS', false)`, la normalización de `E_ROW_NOT_FOUND` a `{ errors: [...] }` con 404, y la intercepción de `status >= 500`. Añadir `DEBUG_HTTP_ERRORS=false` a `.env.example` y a `.env.test`, y `DEBUG_HTTP_ERRORS: Env.schema.boolean.optional()` a `start/env.ts`. Portar `tests/functional/errores.spec.ts` con sus cinco casos y los diecisiete rastros. **Verificar por mutación**: quitar la intercepción del `5xx` tiene que tumbar la prueba del error de base de datos. Traer [ADR-0005](adr/0005-el-volcado-de-depuracion-va-apagado.md), que es lo que convierte esto en una decisión escrita y no en un arreglo suelto |
 | **H-11** · Alta | El email distingue mayúsculas: la misma persona se registra dos veces | `backend/app/validators/user.ts:6` es `const email = () => vine.string().email().maxLength(254)`, sin `.normalizeEmail()`. `backend/database/migrations/` tiene **cuatro** ficheros y ninguno es `normalize_user_emails` ni `unique_email_ignoring_case`. El índice de la tabla `users` compara byte a byte | Portar `app/validators/user.ts` entero, incluida la constante `SOLO_MINUSCULAS` con las transformaciones destructivas apagadas -las de Gmail, Outlook, Yahoo, iCloud y Yandex- y la función exportada `normalizeUserEmail`. Portar las dos migraciones: la que normaliza lo ya guardado usando esa misma función, y la que crea el índice único sobre `lower(email)`. Portar `tests/functional/auth/email_mayusculas.spec.ts` (6 pruebas). **Ojo al aplicar la migración**: si la base local tiene duplicados que solo se diferencian en la caja, falla a propósito y hay que resolverlos a mano antes. Ya pasó el 2026-09-02 |
 | **H-15** · Alta | Una tarea hecha con la fecha pasada llega marcada como vencida | `backend/app/models/task.ts:52-56`: `isOverdueOn` son tres líneas, `if (this.dueDate === null) return false` y `return this.dueDate < referenceDay`. **Falta la condición del estado.** La pantalla anuncia «Vencida» en rojo debajo de una cabecera que dice «Hecho» | Añadir `if (this.status === 'done') return false` como segunda guarda. Portar `tests/functional/tasks/vencimiento.spec.ts` (8 pruebas), que cubre además el borde del `<` estricto: vencer hoy todavía no es estar vencida. **Verificar por mutación** las dos cosas: quitar la condición del estado, y cambiar `<` por `<=`. Cada una tiene que tumbar su prueba |
 | **H-16** · Alta | Un estado inventado en el filtro devuelve 200 con lista vacía | `backend/app/validators/task.ts:29-31`: `listTasksValidator` declara `status: vine.string().optional()`, una cadena suelta. `/tasks?status=archivado` responde `200` con `[]`, que en la pantalla se lee como «el equipo no tiene nada en ese estado» en vez de «ese estado no existe». Es el fallo silencioso, no un error | Cambiar a `vine.enum(TASK_STATUSES).optional()`, importando la constante del modelo para que no haya dos listas de estados. Portar `tests/functional/tasks/filtro.spec.ts` (7 pruebas), incluida la que fija que el `422` lleva `meta.choices` con los tres estados válidos, que es de lo que el frontend construye el mensaje. **Verificar por mutación**: volver a `vine.string()` tiene que tumbarlas |
@@ -657,7 +662,7 @@ Y en esa rama **no hay nada que lo compruebe**: ni `scripts/`, ni `.github/`, ni
 
 Nuestro contraste es que llevamos la misma clase de regla bajada a una comprobación que corre en CI y falla la build. Y aun así, el 2026-09-02 la quinta revisión adversarial demostró que **dos de esas comprobaciones daban luz verde a mutaciones reales**, y que la primera tabla que aplicó la regla de arrastre la incumplió el mismo día en que se escribió.
 
-Así que la lección del módulo tiene una segunda mitad que el prework no anuncia: **bajar una regla a un guardarraíl no la garantiza tampoco; la garantiza haber visto fallar el guardarraíl a propósito.** Es lo que ADR-0002 llama «una comprobación que no se ha visto fallar no cuenta», escrito antes de saber cuántas veces íbamos a necesitarlo.
+Así que la lección del módulo tiene una segunda mitad que el prework no anuncia: **bajar una regla a un guardarraíl no la garantiza tampoco; la garantiza haber visto fallar el guardarraíl a propósito.** Es lo que ADR-0004 llama «una comprobación que no se ha visto fallar no cuenta», escrito antes de saber cuántas veces íbamos a necesitarlo.
 
 ---
 
@@ -719,7 +724,7 @@ Tres razones, y ninguna es que fuera difícil de arreglar.
 
 ### Cómo se cerró, el 2026-09-02
 
-Lo que faltaba no era código, era la decisión. Está en [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md).
+Lo que faltaba no era código, era la decisión. Está en [ADR-0005](adr/0005-el-volcado-de-depuracion-va-apagado.md).
 
 **El volcado va apagado por defecto en todos los entornos**, con `DEBUG_HTTP_ERRORS=true` para encenderlo a propósito. El falso dilema era «apagarlo y perder el diagnóstico»: se comprobó leyendo el framework que `report()` sigue registrando el error completo en el log del servidor, así que el diagnóstico **cambia de sitio, no desaparece**. El desarrollador lo tiene en su terminal; quien deja de tenerlo es quien alcanza el puerto sin credenciales.
 

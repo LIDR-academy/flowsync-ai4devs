@@ -2,7 +2,7 @@ import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
 
 /**
- * Los tests usan su propio fichero (ADR-0001).
+ * Los tests usan su propio fichero (ADR-0003).
  *
  * Sin esto, la suite functional escribe sobre la misma base que el servidor de
  * desarrollo, y el aislamiento queda dependiendo de que cada fichero de prueba

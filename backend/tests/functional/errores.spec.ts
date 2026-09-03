@@ -4,7 +4,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { invalido } from '#tests/helpers/api'
 
 /**
- * Cierra H-19 (ADR-0003), que se arrastraba desde el Módulo 3.
+ * Cierra H-19 (ADR-0005), que se arrastraba desde el Módulo 3.
  *
  * Ninguna respuesta de error puede llevar el volcado de depuración -traza,
  * nombre de la excepción, rutas absolutas del disco- **ni el mensaje crudo de
@@ -183,7 +183,7 @@ test.group('Errores | ninguna respuesta revela internals', (group) => {
   })
 
   /**
-   * El caso que motivó ADR-0003, y el que faltaba.
+   * El caso que motivó ADR-0005, y el que faltaba.
    *
    * Un `5xx` es el único error cuyo mensaje lo escribe la librería que falló y
    * no el producto, así que es el único que puede decir cualquier cosa. Aquí

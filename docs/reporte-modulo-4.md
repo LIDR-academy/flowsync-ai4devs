@@ -21,6 +21,8 @@
 
 ---
 
+> **Nota de rama, 2026-09-02.** Este reporte cierra el Módulo 4 sobre `s4/start`, y sus cifras son las de esa rama: 17 comprobaciones, 71 pruebas. En `s5/start`, donde vive portado, el verificador tiene **quince** -dos contrastaban el contrato escrito a mano, que esta rama genera- y hay 76 pruebas. Se dice aquí en vez de reescribir las cifras, porque un reporte es el registro de lo que pasó.
+
 ## 1 · El priming, y por qué el ejercicio funcionó
 
 El prework pide cazar un «casi correcto» propio. El que encontré no estaba en el código de producto sino en el arnés.
@@ -39,7 +41,7 @@ $ select id, email from users   -- base de DESARROLLO
 { id: 2, email: 'nuevo@flowsync.local' }
 ```
 
-Veintiuna pruebas en verde y una fila de test escrita en la base con la que se estaba trabajando. Corregido en [ADR-0001](adr/0001-aislamiento-de-la-base-de-datos-en-pruebas.md): la conexión elige el fichero según el entorno, y los hooks por fichero se mantienen intactos para lo que sirven bien, aislar un caso de otro.
+Veintiuna pruebas en verde y una fila de test escrita en la base con la que se estaba trabajando. Corregido en [ADR-0003](adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md): la conexión elige el fichero según el entorno, y los hooks por fichero se mantienen intactos para lo que sirven bien, aislar un caso de otro.
 
 ---
 
@@ -178,7 +180,7 @@ De todo lo encontrado, uno tardó tres módulos y dos intentos en cerrarse, y es
 | Módulo 4, al documentar | Se escriben tres `404` en el contrato con una forma que la API no devolvía. **El documento pasó a mentir en el mismo commit que pretendía hacerlo cierto** |
 | Módulo 4, el arreglo | Normalizado en el manejador de excepciones, que es el sitio general que D12 ya había señalado |
 | Módulo 4, cuarta revisión | Se evidencia que era más ancho: **cualquier** excepción no controlada salía con el volcado. Un `500` de SQLite devolvía el SQL ejecutado y rutas absolutas |
-| 2026-09-02, primer cierre | ADR-0003 apaga el volcado en todos los entornos. **No bastaba** |
+| 2026-09-02, primer cierre | ADR-0005 apaga el volcado en todos los entornos. **No bastaba** |
 | 2026-09-02, quinta revisión | Con el volcado ya apagado, un `500` seguía devolviendo `{ message }`, y el `message` de un `SqliteError` **es el SQL**: el alta de una cuenta filtraba el `insert into users …` con el hash de la contraseña, sin sesión |
 | 2026-09-02, cierre completo | El manejador intercepta todo `5xx` y responde una forma cerrada. Atado por una prueba que provoca un `500` real |
 
@@ -186,7 +188,7 @@ De todo lo encontrado, uno tardó tres módulos y dos intentos en cerrarse, y es
 
 **Ese tercer motivo era falso**, y nadie lo comprobó hasta la quinta revisión. En producción `debug` es `false`, y `debug=false` es exactamente la configuración con la que se reprodujo la fuga del SQL. El argumento que lo despriorizó tres módulos no era una prioridad discutible: era un error de hecho.
 
-**Cerrado el 2026-09-02** por [ADR-0003](adr/0003-el-volcado-de-depuracion-va-apagado.md). El volcado va apagado por defecto en todos los entornos. El falso dilema era perder el diagnóstico: `report()` sigue registrando el error completo en el log del servidor, así que cambia de sitio en vez de desaparecer. El arreglo fueron dos líneas; lo caro era decidirlo.
+**Cerrado el 2026-09-02** por [ADR-0005](adr/0005-el-volcado-de-depuracion-va-apagado.md). El volcado va apagado por defecto en todos los entornos. El falso dilema era perder el diagnóstico: `report()` sigue registrando el error completo en el log del servidor, así que cambia de sitio en vez de desaparecer. El arreglo fueron dos líneas; lo caro era decidirlo.
 
 El recorrido completo, con la evidencia de cada paso, está en [`hallazgos.md`](hallazgos.md), sección «El defecto que arrastramos».
 
@@ -203,7 +205,7 @@ Tabla obligatoria en el reporte de cada módulo, desde ahora. Sirve para que nad
 | # | Hallazgo | Desde | Estado en `s4/start` | Qué falta |
 |---|---|---|---|---|
 | H-18 | Changes archivados con verificaciones marcadas sin ejecutar | Módulo 3 (changes del curso) | **Abierto** | No se arregla con código. Una casilla marcada tiene que significar que se ejecutó algo |
-| H-19 | Las respuestas de error revelan internals | Módulo 3 | **Cerrado el 2026-09-02** (ADR-0003, revisado el mismo día) | Nada. Se cerró en dos pasos: el primero no bastaba |
+| H-19 | Las respuestas de error revelan internals | Módulo 3 | **Cerrado el 2026-09-02** (ADR-0005, revisado el mismo día) | Nada. Se cerró en dos pasos: el primero no bastaba |
 | H-11 | El email distingue mayúsculas | Módulo 3, cerrado en `s3/start` | **Estaba vivo aquí.** El arreglo no cruzó de rama | Nada. Portado el 2026-09-02 con seis pruebas |
 | H-13 | Sesión caducada sin salida | Módulo 3, cerrado en `s3/start` | **Estaba vivo aquí.** El arreglo no cruzó de rama | Nada. Portado el 2026-09-02 |
 | H-14 | `updatedAt` distinto según el endpoint | Módulo 3, cerrado en `s3/start` | **Estaba vivo aquí**, y en una escritura más que en `s3/start` | Nada. Portado el 2026-09-02 con tres pruebas |
@@ -248,9 +250,9 @@ El segundo encuentra lo que el primero no puede encontrar, porque el primero sol
 | — | Los 15 requisitos de `tasks` que solo se observan en pantalla | No hay runner de navegador. Vitest cubre `lib/api.ts`; lo que falta es el que ve la pantalla |
 | — | El revisor adversarial en CI, escrito y sin verificar | Falta la credencial. Hasta que se le vea encontrar algo no cuenta (R-14) |
 
-> **H-18 y H-21 estaban aquí y salieron el 2026-09-02.** H-21 no era un bug sino una decisión que nadie había escrito, y es [ADR-0004](adr/0004-validar-antes-de-resolver.md). H-18 se cerró de otra forma que la prevista: «una casilla marcada tiene que significar que se ejecutó algo» **no se puede comprobar**, y perseguirlo habría producido otra regla escrita sin nada que la ejecute. Lo que sí se exige es que una casilla sin marcar no sea muda.
+> **H-18 y H-21 estaban aquí y salieron el 2026-09-02.** H-21 no era un bug sino una decisión que nadie había escrito, y es [ADR-0006](adr/0006-validar-antes-de-resolver.md). H-18 se cerró de otra forma que la prevista: «una casilla marcada tiene que significar que se ejecutó algo» **no se puede comprobar**, y perseguirlo habría producido otra regla escrita sin nada que la ejecute. Lo que sí se exige es que una casilla sin marcar no sea muda.
 
-> H-19 estaba en esta tabla y salió de ella el 2026-09-02, cerrado por ADR-0003 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: ver la sección 4 ter.
+> H-19 estaba en esta tabla y salió de ella el 2026-09-02, cerrado por ADR-0005 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: ver la sección 4 ter.
 
 Y los 15 requisitos de `tasks` que solo se observan en pantalla siguen sin prueba, porque el proyecto no tiene runner de navegador. Están enumerados por prioridad en la matriz, que es la diferencia entre un hueco conocido y una omisión.
 

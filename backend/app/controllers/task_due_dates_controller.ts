@@ -43,7 +43,8 @@ export default class TaskDueDatesController {
   })
   @ApiResponse({
     status: 404,
-    description: 'No existe ninguna tarea con ese identificador. Se comprueba antes que el cuerpo.',
+    description:
+      'No existe ninguna tarea con ese identificador. Se comprueba **después** del cuerpo: una petición mal formada sobre un identificador inexistente responde `422` (ADR-0006).',
     type: () => ErrorResponse,
   })
   @ApiResponse({
@@ -55,11 +56,11 @@ export default class TaskDueDatesController {
   @ApiResponse({
     status: 500,
     description:
-      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0003). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
     type: () => ErrorResponse,
   })
   async update({ params, request, serialize }: HttpContext) {
-    // Validar antes de resolver (ADR-0004), igual que las otras cuatro.
+    // Validar antes de resolver (ADR-0006), igual que las otras cuatro.
     const { today, dueDate } = await request.validateUsing(setTaskDueDateValidator)
     const task = await Task.findOrFail(params.id)
 

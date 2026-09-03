@@ -5,7 +5,7 @@ import { errores, invalido } from '#tests/helpers/api'
 
 /**
  * H-21: qué gana cuando la petición está mal formada **y** el recurso no
- * existe. Lo decide [ADR-0004](../../../docs/adr/0004-validar-antes-de-resolver.md):
+ * existe. Lo decide [ADR-0006](../../../docs/adr/0006-validar-antes-de-resolver.md):
  * gana el `422`.
  *
  * Un `404` afirma «te entendí y ese recurso no está». Esa afirmación no se

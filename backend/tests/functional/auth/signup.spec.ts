@@ -10,7 +10,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
  * El aislamiento es una transacción global y no un truncate: aísla un caso de
  * otro dentro de la misma ejecución, que es para lo que sirve bien.
  *
- * Ya no es la única línea de defensa. Desde ADR-0001, `config/database.ts`
+ * Ya no es la única línea de defensa. Desde ADR-0003, `config/database.ts`
  * elige el fichero según el entorno, así que la suite escribe sobre
  * `tmp/db-test.sqlite3` y no puede tocar la base de desarrollo.
  */

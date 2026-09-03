@@ -181,7 +181,7 @@ Y en navegador real, sobre el sistema levantado:
 
 | # | Hallazgo | Desde | Estado al cerrar el Módulo 3, en `s3/start` | Qué pasó después, comprobado en `s4/start` |
 |---|---|---|---|---|
-| H-19 | Las respuestas de error revelan internals | Módulo 3, lo destapó `/verify` | **Arreglado solo en una ruta.** D12 diagnosticó la causa general y aplicó un arreglo local | Reapareció en `s4/start`. Cerrado del todo el 2026-09-02, en dos pasos: ADR-0003 y su revisión |
+| H-19 | Las respuestas de error revelan internals | Módulo 3, lo destapó `/verify` | **Arreglado solo en una ruta.** D12 diagnosticó la causa general y aplicó un arreglo local | Reapareció en `s4/start`. Cerrado del todo el 2026-09-02, en dos pasos: ADR-0005 y su revisión |
 | H-11 | El email distingue mayúsculas | Módulo 3 | Cerrado en `s3/start` | **Vivo en `s4/start`.** Comprobado por API: `REV@EXAMPLE.COM` creó una segunda cuenta. Portado el 2026-09-02 |
 | H-13 | Sesión caducada sin salida | Módulo 3 | Cerrado en `s3/start` | **Vivo en `s4/start`.** Sin punto de suscripción en `lib/api.ts`. Portado el 2026-09-02 |
 | H-14 | `updatedAt` distinto según el endpoint | Módulo 3 | Cerrado en `s3/start` | **Vivo en `s4/start`**, y en tres escrituras en vez de dos. Portado el 2026-09-02 |

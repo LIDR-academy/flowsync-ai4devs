@@ -75,7 +75,7 @@ test.group('Tasks | tarea inexistente', (group) => {
     // que ninguna prueba miraba, porque todas se conformaban con el código.
     //
     // Cubre las rutas de tareas. Que ninguna respuesta del sistema revele
-    // internals lo cubre `tests/functional/errores.spec.ts`, desde ADR-0003.
+    // internals lo cubre `tests/functional/errores.spec.ts`, desde ADR-0005.
     const crudo = JSON.stringify(respuesta.body())
     for (const rastro of ['frames', 'fileName', 'lineNumber', 'node_modules', 'E_ROW_NOT_FOUND']) {
       assert.notInclude(crudo, rastro, `la respuesta filtra «${rastro}»`)

@@ -414,7 +414,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
           <tr><td class="num">H-11</td><td>El email distingue mayúsculas</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado con seis pruebas</td></tr>
           <tr><td class="num">H-13</td><td>Sesión caducada sin salida</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b></td><td>Nada. Portado, y con él el runner de frontend que tampoco había cruzado</td></tr>
           <tr><td class="num">H-14</td><td><code>updatedAt</code> distinto según el endpoint</td><td>Módulo 3, cerrado en <code>s3/start</code></td><td><b>Estaba vivo aquí</b>, y en una escritura más</td><td>Nada. Portado con tres pruebas</td></tr>
-          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Módulo 4</td><td><b>Cerrado el 2026-09-02</b> (ADR-0004)</td><td>Nada. Se valida primero, con tres escenarios en la spec</td></tr>
+          <tr><td class="num">H-21</td><td>El orden de validación difiere entre controladores</td><td>Módulo 4</td><td><b>Cerrado el 2026-09-02</b> (ADR-0006)</td><td>Nada. Se valida primero, con tres escenarios en la spec</td></tr>
           <tr><td class="num">H-22</td><td>La tabla de arrastre dio por cerrados tres hallazgos sin comprobarlos</td><td>Módulo 4, esta misma tabla</td><td><b>Cerrado el 2026-09-02</b></td><td>Nada. Las tres filas de arriba son su corrección</td></tr>
         </tbody>
       </table>
@@ -436,7 +436,7 @@ GET /api/v1/tasks?status=in_progress   → 200 {"data":[]}</code></pre>
       </table>
     </div>
 
-    <p><strong>H-19 salió de esta tabla el 2026-09-02</strong>, cerrado por ADR-0003 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: <code>debug=false</code> es la configuración de producción, y es exactamente con la que se reprodujo la fuga del SQL.</p>
+    <p><strong>H-19 salió de esta tabla el 2026-09-02</strong>, cerrado por ADR-0005 y su revisión del mismo día. Lo que decía aquí -«en producción no ocurre»- resultó ser falso: <code>debug=false</code> es la configuración de producción, y es exactamente con la que se reprodujo la fuga del SQL.</p>
 
     <p>Los 17 requisitos de sistema de tareas tienen prueba. Los 15 que solo se ven en pantalla no, porque el proyecto no tiene runner de navegador: es un hueco declarado en la matriz de trazabilidad, que es la diferencia entre un hueco conocido y una omisión.</p>
   </section>

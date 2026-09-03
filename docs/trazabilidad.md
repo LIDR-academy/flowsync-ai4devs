@@ -11,14 +11,14 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 45 | — | — | 26 | parcial, ver §2 |
-| `tasks` | 33 | 127 | 12 | 118 | 42 | 18 de 18 requisitos de sistema, ver §3 |
+| `tasks` | 33 | 127 | 12 | 118 | 41 | 18 de 18 requisitos de sistema, ver §3 |
 | transversal | — | — | — | — | 8 | 6 de forma de los errores, 2 de aislamiento de la base |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
 
 La suite estaba en verde, y escondía tres defectos que la revisión adversarial destapó: la regla de vencimiento incumplía una de sus tres condiciones, un estado inventado en el filtro respondía `200` con lista vacía, y la lista filtraba el email de cada responsable. Los tres están corregidos y cubiertos. Con las que fijan la lista compartida, la creación, la tarea inexistente y los bordes de la fecha, son las 38 pruebas de esta tabla.
 
-Las siete transversales no cuelgan de ningún requisito de una capability y por eso van aparte: cinco fijan que **ninguna respuesta de error revele internals** -es H-19, incluido un `500` real de la base de datos- y dos que la suite no pueda escribir sobre la base de desarrollo (ADR-0001). Las seis nuevas de `auth` fijan que el email no distinga mayúsculas (H-11) y las tres nuevas de `tasks` que toda escritura devuelva lo persistido (H-14): los dos hallazgos estaban cerrados en `s3/start` y vivos aquí.
+Las siete transversales no cuelgan de ningún requisito de una capability y por eso van aparte: cinco fijan que **ninguna respuesta de error revele internals** -es H-19, incluido un `500` real de la base de datos- y dos que la suite no pueda escribir sobre la base de desarrollo (ADR-0003). Las seis nuevas de `auth` fijan que el email no distinga mayúsculas (H-11) y las tres nuevas de `tasks` que toda escritura devuelva lo persistido (H-14): los dos hallazgos estaban cerrados en `s3/start` y vivos aquí.
 
 Sigue habiendo mucho hueco. Lo que cambia es que ahora está enumerado.
 
@@ -70,11 +70,11 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 33 requisitos, 127 escenarios, 42 pruebas
+## 3 · `tasks` · 33 requisitos, 127 escenarios, 41 pruebas
 
 La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHALL»** y **15 por «La interfaz SHALL»**. La cuenta de cobertura se hace sobre los 17, porque el proyecto no tiene runner de navegador y los otros 15 no son un hueco que estas pruebas puedan llenar.
 
-**18 de 18 requisitos de sistema tienen al menos una prueba.** El decimoctavo es «Una petición mal formada se rechaza antes de buscar nada», añadido el 2026-09-02 al cerrar H-21 con [ADR-0004](adr/0004-validar-antes-de-resolver.md): lo cubren las cuatro pruebas de `orden_de_validacion.spec.ts`.
+**18 de 18 requisitos de sistema tienen al menos una prueba.** El decimoctavo es «Una petición mal formada se rechaza antes de buscar nada», añadido el 2026-09-02 al cerrar H-21 con [ADR-0006](adr/0006-validar-antes-de-resolver.md): lo cubren las cuatro pruebas de `orden_de_validacion.spec.ts`.
 
 > El reparto que decía 18 y 14 era mío y estaba mal, en el sentido cómodo. Salía de dos errores que se cancelaban: contaba «Aviso ante una fecha que no vale» como observable por API cuando su texto dice «La interfaz SHALL explicar el problema junto al propio campo», y dejaba fuera de la cuenta escenarios de «Una sola vista de tareas» que sí están cubiertos. Lo destapó la tercera revisión adversarial.
 

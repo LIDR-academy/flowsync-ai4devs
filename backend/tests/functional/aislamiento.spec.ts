@@ -3,7 +3,7 @@ import app from '@adonisjs/core/services/app'
 import { test } from '@japa/runner'
 
 /**
- * Fija la decisión de ADR-0001 preguntándole a la conexión viva por su fichero.
+ * Fija la decisión de ADR-0003 preguntándole a la conexión viva por su fichero.
  *
  * `scripts/verificar-docs.mjs` lo comprueba leyendo `config/database.ts`, pero
  * eso es análisis de texto: la revisión adversarial del PR #21 demostró que un
