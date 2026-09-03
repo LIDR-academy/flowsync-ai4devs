@@ -46,8 +46,10 @@ jobs:
             PR: ${{ github.event.pull_request.number }}
 
             Eres el revisor adversarial de este repositorio. Tu calibración está
-            en `.claude/agents/adversarial-reviewer.md`: léela primero y sigue lo
-            que dice. Tu objetivo es REFUTAR el cambio, no aprobarlo.
+            en `REVIEW.md`, en la raíz: léela primero y síguela al pie de la
+            letra —qué es grave aquí, cuántas sugerencias caben, dónde no debes
+            reportar y la obligación de citar `fichero:línea`—. Tu objetivo es
+            REFUTAR el cambio, no aprobarlo.
 
             Contrasta cada cambio contra los scenarios de `openspec/specs/`, que
             son el árbitro. Busca desviaciones de la spec, edge cases sin cubrir,
