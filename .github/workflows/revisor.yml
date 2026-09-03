@@ -1,0 +1,80 @@
+name: Revisor
+
+# Una revisión de Claude sobre cada cambio propuesto, publicada en el propio PR.
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+# Nada por defecto: el job declara abajo lo que necesita.
+permissions: {}
+
+jobs:
+  review:
+    name: Revisión adversarial del cambio
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      # Leer el código para revisarlo.
+      contents: read
+      # Publicar los hallazgos en el PR. Sin esto la revisión se quedaría en el
+      # registro de ejecución, que es justo donde nadie la lee.
+      pull-requests: write
+      # La acción cambia el token OIDC del workflow por uno efímero de la
+      # GitHub App de Claude, que es quien firma los comentarios.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Revisión de Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Token de suscripción (`claude setup-token`). Para pagar por API en
+          # su lugar hay que cambiar **la entrada y el secreto a la vez**:
+          # `anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}`.
+          # Ver docs/ci-revisor.md.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Comentario de seguimiento en el PR, con el progreso de la revisión.
+          track_progress: true
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR: ${{ github.event.pull_request.number }}
+
+            Eres el revisor adversarial de este repositorio. Tu calibración está
+            en `REVIEW.md`, en la raíz: léela primero y síguela al pie de la
+            letra —qué es grave aquí, cuántas sugerencias caben, dónde no debes
+            reportar y la obligación de citar `fichero:línea`—. Tu objetivo es
+            REFUTAR el cambio, no aprobarlo.
+
+            Contrasta cada cambio contra los scenarios de `openspec/specs/`, que
+            son el árbitro. Busca desviaciones de la spec, edge cases sin cubrir,
+            fugas de datos y supuestos frágiles.
+
+            Publica cada hallazgo como comentario en línea sobre la línea que lo
+            provoca, con severidad (crítico/alto/medio) y el scenario que rompe.
+            Cierra con un comentario de resumen. Un hallazgo que no acabe
+            publicado en el PR no existe: no dejes la revisión solo en el log.
+
+            No edites ficheros y no propongas commits: esto es solo lectura.
+
+            No redirijas la salida de ningún comando a un fichero (nada de `>`,
+            `>>` ni `| tee`) y no vuelvas luego a leer ese fichero. Lee la salida
+            directa del comando: escribir ficheros está fuera de tus permisos,
+            así que el intento se deniega y te cuesta un turno de los 40 que
+            tienes.
+
+          # `Read`, `Grep` y `Glob` no son opcionales: sin ellas no puede abrir
+          # ni su fichero de calibración ni un solo fichero del cambio, y cada
+          # intento denegado le gasta un turno. Las tres de `gh` son para leer el
+          # PR; las de comentar son la salida del trabajo.
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
