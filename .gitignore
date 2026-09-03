@@ -24,3 +24,8 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+# Planes de sesion y notas propias: material de trabajo, no documentacion del
+# producto. No viajan con el repositorio.
+docs/plans/
+docs/propuestas-rene-lopez.md

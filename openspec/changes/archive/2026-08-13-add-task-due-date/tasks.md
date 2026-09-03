@@ -51,3 +51,17 @@
 - [ ] 6.4 Comprobar con dos cuentas que cualquiera puede poner y quitar la fecha de una tarea ajena
 - [x] 6.5 Comprobar el paso del día llamando a la API con dos días de referencia distintos sobre la misma tarea sin tocarla: una lectura vencida y otra no, ambas correctas
 - [ ] 6.6 Recorrer la pantalla de la tarea solo con el teclado, incluidos el campo de fecha y el botón de quitarla
+
+## Lo que no se ejecutó
+
+> Añadido el 2026-09-02 al cerrar **H-18**. Cinco casillas sin marcar, todas de verificación a mano, y el change se archivó igual.
+
+| Casilla | Qué pasó |
+|---|---|
+| 6.1 · el camino completo en navegador | Sin ejecutar entonces. Recorrido el 2026-09-02 |
+| 6.2 · la regla con las tres fechas | **Sin ejecutar, y es el caso que enseña.** La regla comprobaba dos de sus tres condiciones. Se registró como **H-15**, y la habría cazado esta casilla |
+| 6.3 · una tarea hecha deja de mostrarse vencida | Sin ejecutar. Es literalmente H-15. Cubierto ahora por `vencimiento.spec.ts` |
+| 6.4 · dos cuentas sobre una tarea ajena | Sin ejecutar. Cubierto después por `lista_compartida.spec.ts` |
+| 6.6 · la pantalla solo con teclado | Sin ejecutar, y **sigue sin cubrir**: no hay runner de navegador |
+
+**La lección**: dos de las cinco describían exactamente el defecto que se escapó. Estaban escritas, en el sitio correcto, y sin ejecutar.

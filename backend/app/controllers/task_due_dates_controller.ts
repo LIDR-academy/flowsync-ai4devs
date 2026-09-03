@@ -43,7 +43,8 @@ export default class TaskDueDatesController {
   })
   @ApiResponse({
     status: 404,
-    description: 'No existe ninguna tarea con ese identificador. Se comprueba antes que el cuerpo.',
+    description:
+      'No existe ninguna tarea con ese identificador. Se comprueba **después** del cuerpo: una petición mal formada sobre un identificador inexistente responde `422` (ADR-0006).',
     type: () => ErrorResponse,
   })
   @ApiResponse({
@@ -52,18 +53,29 @@ export default class TaskDueDatesController {
       '`dueDate` es una fecha imposible o mal formada, o falta `today` o no vale. La tarea conserva intacta la fecha que tuviera.',
     type: () => ValidationErrorResponse,
   })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
+  })
   async update({ params, request, serialize }: HttpContext) {
-    const task = await Task.findOrFail(params.id)
+    // Validar antes de resolver (ADR-0006), igual que las otras cuatro.
     const { today, dueDate } = await request.validateUsing(setTaskDueDateValidator)
+    const task = await Task.findOrFail(params.id)
 
     // El `DateTime` del validador se queda aquí: hacia dentro, una fecha de
     // vencimiento es un día en texto y nunca un instante.
     task.dueDate = dueDate === null ? null : toCalendarDay(dueDate)
     await task.save()
-    await task.load('assignee')
 
     // Se devuelve ya resuelta contra el día de quien pide, para que aplazar una
     // tarea vencida deje de mostrarla vencida en esta misma respuesta.
-    return serialize(TaskDetailTransformer.transform(task, toCalendarDay(today)))
+    return serialize(
+      TaskDetailTransformer.transform(
+        await Task.releerConResponsable(task.id),
+        toCalendarDay(today)
+      )
+    )
   }
 }
