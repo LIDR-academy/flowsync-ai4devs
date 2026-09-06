@@ -61,7 +61,9 @@ recorta a `id`, `fullName` e `initials` — nunca el email.
 Las cinco operaciones están anotadas con los decoradores de `@foadonis/openapi` sobre los propios
 controladores, así que el documento servido en **`/api.json`** (y la interfaz en `/api`) lleva el
 parámetro `status` con sus tres valores, el `today` obligatorio, los cuerpos de las escrituras y los
-códigos `200`/`201`/`401`/`404`/`422` de cada operación, cada uno con la forma de lo que devuelve.
+códigos `200`/`201`/`401`/`404`/`422`/`500` de cada operación, cada uno con la forma de lo que devuelve.
+
+**Cuatro operaciones de `auth` siguen fuera del documento**: `signup`, `login`, `logout` y `profile` no llevan decoradores, así que `/api.json` las omite. Es H-23, y decorarlas exige esquemas de respuesta que `app/openapi/schemas.ts` todavía no tiene. Un generador escribe fielmente lo que hay y no dice nada de lo que falta: eso lo vigila una comprobación de `scripts/verificar-docs.mjs` con lista cerrada.
 
 Las formas que se repiten viven en
 [`backend/app/openapi/schemas.ts`](../../../backend/app/openapi/schemas.ts) y se publican en
@@ -95,7 +97,7 @@ qué exige cada una, se abre el enlace de la derecha.
 | El día de referencia lo pone quien mira | `taskReferenceDayValidator`, obligatorio y sin valor por defecto | [El día de referencia lo pone quien mira](../../../openspec/specs/tasks/spec.md#requirement-el-día-de-referencia-lo-pone-quien-mira) |
 | La lista no lleva vencimiento | Dos transformers separados, no uno con campos opcionales | [La lista no lleva el vencimiento](../../../openspec/specs/tasks/spec.md#requirement-la-lista-no-lleva-el-vencimiento) |
 | Acotar por estado | `listTasksValidator` y la rama de `TasksController.index` | [Acotar la lista por estado](../../../openspec/specs/tasks/spec.md#requirement-acotar-la-lista-por-estado) |
-| Filtro válido sin resultados ≠ filtro inválido | **Sin cumplir hoy.** `listTasksValidator` declara `status: vine.string().optional()`, no un `vine.enum`, así que un estado inventado no se rechaza: llega al `where` y sale como lista vacía, que es justo lo que el requisito prohíbe. El comentario de `TasksController.index` afirma lo contrario | [Un estado que no existe se rechaza, no se responde vacío](../../../openspec/specs/tasks/spec.md#requirement-un-estado-que-no-existe-se-rechaza-no-se-responde-vacío) |
+| Filtro válido sin resultados ≠ filtro inválido | **Cumplido desde el 2026-09-02.** `listTasksValidator` declara `vine.enum(TASK_STATUSES).optional()`, así que un estado inventado sale con `422` señalando el campo y nunca como lista vacía. Era H-16, y aquí decía «Sin cumplir hoy» describiendo `vine.string().optional()`, que es lo que había antes de portar el arreglo | [Un estado que no existe se rechaza, no se responde vacío](../../../openspec/specs/tasks/spec.md#requirement-un-estado-que-no-existe-se-rechaza-no-se-responde-vacío) |
 
 En el frontend, la capability vive en [`pages/tasks-page.tsx`](../../../frontend/src/pages/tasks-page.tsx),
 [`pages/task-page.tsx`](../../../frontend/src/pages/task-page.tsx),

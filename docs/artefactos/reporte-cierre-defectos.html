@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Reset minimo: al publicarse como artefacto lo pone el host; aqui va
+     explicito para que el fichero abra igual desde el repositorio. */
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+  img, svg, video { max-width: 100%; height: auto; }
+</style>
+<title>Cierre de defectos FlowSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground: #EEF1F4;
+    --surface: #FFFFFF;
+    --surface-sunk: #E4E9ED;
+    --ink: #131A20;
+    --ink-soft: #4E5C69;
+    --ink-faint: #7A8794;
+    --hairline: #D3DBE1;
+    --hairline-soft: #E3E9ED;
+    --accent: #0B6B63;
+    --accent-soft: #E0EFEC;
+    --alta: #9C2B3B;
+    --alta-soft: #F6E4E6;
+    --media: #9A661A;
+    --media-soft: #F7ECDA;
+    --baja: #566472;
+    --baja-soft: #E6EAEE;
+    --ok: #2F6B45;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1317;
+      --surface: #141C22;
+      --surface-sunk: #1B252C;
+      --ink: #E4EBF0;
+      --ink-soft: #A2B0BC;
+      --ink-faint: #75838F;
+      --hairline: #26323A;
+      --hairline-soft: #1E282F;
+      --accent: #4FB3A6;
+      --accent-soft: #16302E;
+      --alta: #E08694;
+      --alta-soft: #331B20;
+      --media: #DCA85E;
+      --media-soft: #2E2517;
+      --baja: #93A2B0;
+      --baja-soft: #1F272E;
+      --ok: #6FBF8C;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0D1317;
+    --surface: #141C22;
+    --surface-sunk: #1B252C;
+    --ink: #E4EBF0;
+    --ink-soft: #A2B0BC;
+    --ink-faint: #75838F;
+    --hairline: #26323A;
+    --hairline-soft: #1E282F;
+    --accent: #4FB3A6;
+    --accent-soft: #16302E;
+    --alta: #E08694;
+    --alta-soft: #331B20;
+    --media: #DCA85E;
+    --media-soft: #2E2517;
+    --baja: #93A2B0;
+    --baja-soft: #1F272E;
+    --ok: #6FBF8C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 1.25rem 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 46rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  /* ---------- cabecera ---------- */
+
+  .cabecera {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    padding: 4rem 0 0;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: Newsreader, Georgia, serif;
+    font-size: clamp(2.2rem, 5.5vw, 3.1rem);
+    line-height: 1.08;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .bajada {
+    font-family: Newsreader, Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 38rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .meta b { color: var(--ink-soft); font-weight: 500; }
+
+  /* ---------- marcador de estado ---------- */
+
+  .estado {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    gap: 1px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+  }
+
+  .estado div {
+    background: var(--surface);
+    padding: 1.05rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .estado .cifra {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .estado .cifra.verde { color: var(--ok); }
+
+  .estado .rotulo {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- secciones ---------- */
+
+  section { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  h2 {
+    font-family: Newsreader, Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin: 0;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid var(--ink);
+    text-wrap: balance;
+  }
+
+  .intro { margin: 0; color: var(--ink-soft); max-width: 40rem; }
+
+  /* ---------- hallazgo ---------- */
+
+  .hallazgo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.5rem 0 0;
+    border-top: 1px solid var(--hairline-soft);
+  }
+
+  .hallazgo:first-of-type { border-top: none; padding-top: 0; }
+
+  .encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .chip {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 0.17rem 0.45rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .chip.alta { background: var(--alta-soft); color: var(--alta); }
+  .chip.media { background: var(--media-soft); color: var(--media); }
+  .chip.baja { background: var(--baja-soft); color: var(--baja); }
+  .chip.id { background: var(--accent-soft); color: var(--accent); }
+
+  .titulo {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 1.06rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.35;
+    flex: 1 1 16rem;
+  }
+
+  .hallazgo p { margin: 0; }
+  .hallazgo p + p { margin-top: 0.55rem; }
+
+  .campo {
+    display: grid;
+    grid-template-columns: 6.2rem 1fr;
+    gap: 0.35rem 1rem;
+    align-items: start;
+  }
+
+  @media (max-width: 34rem) {
+    .campo { grid-template-columns: 1fr; gap: 0.1rem; }
+    .campo dt { margin-top: 0.5rem; }
+  }
+
+  .campo dt {
+    font-size: 0.71rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: 0.28rem;
+  }
+
+  .campo dd { margin: 0; }
+
+  pre {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    background: var(--surface-sunk);
+    color: var(--ink-soft);
+    padding: 0.8rem 0.95rem;
+    margin: 0;
+    overflow-x: auto;
+    border-left: 2px solid var(--accent);
+    white-space: pre;
+  }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--surface-sunk);
+    padding: 0.08em 0.32em;
+    border-radius: 2px;
+  }
+
+  pre code { background: none; padding: 0; font-size: 1em; }
+
+  /* ---------- tabla ---------- */
+
+  .tabla-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  th {
+    text-align: left;
+    font-size: 0.71rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    padding: 0 0.9rem 0.5rem 0;
+    border-bottom: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.6rem 0.9rem 0.6rem 0;
+    border-bottom: 1px solid var(--hairline-soft);
+    vertical-align: top;
+  }
+
+  td.mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* ---------- nota ---------- */
+
+  .nota {
+    background: var(--surface);
+    border-left: 3px solid var(--media);
+    padding: 1.15rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .nota .rotulo {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--media);
+  }
+
+  .nota p { margin: 0; }
+
+  .pie {
+    font-size: 0.83rem;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--hairline);
+    padding-top: 1.2rem;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  em { font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 1.06em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cabecera">
+    <p class="eyebrow">FlowSync · Módulo 3</p>
+    <h1>Cierre de defectos</h1>
+    <p class="bajada">Qué se arregló, por qué se arregló así, y qué estaba escrito de forma que no correspondía con el código.</p>
+    <div class="meta">
+      <span><b>Rama</b> s3/start</span>
+      <span><b>PR</b> #15</span>
+      <span><b>Commits</b> 11</span>
+      <span><b>Fecha</b> 2026-08-26</span>
+    </div>
+  </header>
+
+  <div class="estado">
+    <div><span class="cifra">37</span><span class="rotulo">Pruebas backend</span></div>
+    <div><span class="cifra">21</span><span class="rotulo">Pruebas frontend</span></div>
+    <div><span class="cifra verde">0</span><span class="rotulo">Hallazgos abiertos</span></div>
+    <div><span class="cifra verde">0</span><span class="rotulo">Dependencias nuevas</span></div>
+  </div>
+
+  <section>
+    <h2>Los tres defectos que quedaban abiertos</h2>
+    <p class="intro">Estaban documentados desde el Módulo 3 y sin arreglar porque los tres cambian comportamiento observable, y no cabían en un cambio cuyo objeto era montar el arnés de pruebas. Se cerraron en el change <code>fix-defectos-abiertos</code>, que es además el primero que <em>modifica</em> una spec viva en vez de crear una.</p>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-11</span>
+        <span class="chip alta">Alta</span>
+        <h3 class="titulo">El email distinguía mayúsculas, así que la misma persona podía registrarse dos veces</h3>
+      </div>
+      <dl class="campo">
+        <dt>Por qué dolía</dt>
+        <dd>La parte de dominio de un correo no distingue mayúsculas, así que <code>Ada@…</code> y <code>ada@…</code> designan el mismo buzón. Se creaban dos cuentas con dos identidades dentro del mismo espacio compartido, y luego la persona no podía entrar porque escribía su correo como lo escribe siempre.</dd>
+        <dt>Arreglo</dt>
+        <dd>Normalización a minúsculas declarada en el validador, <b>antes</b> de la regla de unicidad.</dd>
+        <dt>Por qué ahí</dt>
+        <dd>Un hook en el modelo parece lo natural y rompe: la regla de unicidad consultaría el valor sin normalizar, daría por libre un email que sí existe, y el índice de la base reventaría después. El usuario vería un <code>500</code> en lugar de «ese email ya está registrado». VineJS muta el valor según avanza, así que el orden de las reglas es la solución.</dd>
+        <dt>Además</dt>
+        <dd>Migración que normaliza las cuentas ya guardadas. Sin ella, quien se registró con mayúsculas dejaba de poder entrar en cuanto el acceso normalizara.</dd>
+      </dl>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-13</span>
+        <span class="chip media">Media</span>
+        <h3 class="titulo">Una sesión caducada con la lista abierta dejaba sin salida</h3>
+      </div>
+      <dl class="campo">
+        <dt>Por qué dolía</dt>
+        <dd>La pantalla decía «Vuelve a iniciar sesión» y a la vez lo impedía: el aviso no ofrecía navegación, el estado local seguía marcado como válido, y el guard rebotaba <code>/login</code> de vuelta a <code>/tasks</code>. El producto daba una instrucción que él mismo bloqueaba.</dd>
+        <dt>Arreglo</dt>
+        <dd>Un punto de suscripción en <code>lib/api.ts</code>, al que se engancha el proveedor de sesión. Cualquier <code>401</code>, en cualquier operación, descarta la sesión y deja escrito el motivo.</dd>
+        <dt>Por qué ahí</dt>
+        <dd>Poner un botón en el aviso de la lista habría arreglado la pantalla que ya conocíamos y dejado el defecto en todas las que vinieran. <code>lib/api.ts</code> es el único punto de contacto con el backend, así que es el único sitio por el que pasan todas las respuestas.</dd>
+      </dl>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-14</span>
+        <span class="chip baja">Baja</span>
+        <h3 class="titulo"><code>updatedAt</code> valía distinto según el endpoint que lo devolviera</h3>
+      </div>
+      <dl class="campo">
+        <dt>Por qué dolía</dt>
+        <dd>La escritura devolvía el objeto en memoria, con milisegundos; la lectura siguiente devolvía lo persistido, truncado al segundo. Sin impacto visible hoy, pero es el mismo campo con dos valores, y dolería en cuanto algo comparase marcas de tiempo.</dd>
+        <dt>Arreglo</dt>
+        <dd>La escritura relee lo persistido antes de serializar, en una sola consulta que ya trae el responsable.</dd>
+        <dt>Por qué ahí</dt>
+        <dd>Truncar al serializar escondía el desajuste en la capa de presentación y dejaba el objeto en memoria diciendo una cosa y la base otra.</dd>
+      </dl>
+    </article>
+  </section>
+
+  <section>
+    <h2>Lo que la revisión adversarial destapó del propio arreglo</h2>
+    <p class="intro">El grupo de cierre de ese change se archivó sin ejecutar, y era justo el que existía para pillar lo que sigue. Dos hallazgos eran graves y uno de ellos reabría el defecto que el commit decía cerrar.</p>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip alta">Grave</span>
+        <h3 class="titulo">Se me olvidó una excepción, y reabrió H-11 por otra puerta</h3>
+      </div>
+      <p>Al apagar las transformaciones por proveedor de <code>normalizeEmail</code> no incluí <code>yandex_convert_yandexru</code>, que viene activa y convierte <code>yandex.com</code>, <code>yandex.ua</code> y <code>ya.ru</code> a <code>yandex.ru</code>. Una cuenta creada antes quedaba bloqueada, y al reintentar el alta se creaba una segunda cuenta para el mismo buzón.</p>
+      <p>El comentario del código afirmaba que estaban todas apagadas. Una lista de excepciones escrita a mano y un comentario que dice «están todas» son la misma clase de error.</p>
+      <pre><code>"Ada@yandex.com" → "ada@yandex.ru"
+"ada@ya.ru"      → "ada@yandex.ru"    ← dos cuentas distintas colapsadas
+</code></pre>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip alta">Grave</span>
+        <h3 class="titulo">La migración y el validador normalizaban distinto</h3>
+      </div>
+      <p>La migración usaba <code>lower()</code> de SQL y el validador normaliza con JavaScript. <code>lower()</code> de SQLite solo baja el ASCII, así que una cuenta como <code>JOSÉ@…</code> quedaba en <code>josÉ@…</code>: un valor que la aplicación no genera nunca, y con el que esa cuenta no podía volver a entrar.</p>
+      <p>El arreglo no fue corregir la migración. Fue exportar la función del validador y usarla allí, para que las dos no puedan discrepar por construcción.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip media">Media</span>
+        <h3 class="titulo">Mis pruebas por proveedor no vigilaban nada</h3>
+      </div>
+      <p>Usaban <code>+etiqueta</code> para todas las familias, pero Yahoo separa con guion y Gmail convierte <code>googlemail.com</code>. Un caso de prueba con la sintaxis equivocada pasa siempre.</p>
+      <p>Se comprobó activando las siete transformaciones destructivas de una en una. Ahora cada una tumba exactamente una prueba.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip media">Media</span>
+        <h3 class="titulo">Escritura y lectura se comparaban saliendo del mismo transformer</h3>
+      </div>
+      <p>Las dos pruebas de H-14 comparaban la respuesta de escritura con la de lectura. Ambas salen del mismo transformer, así que borrar <code>updatedAt</code> —el campo del que trata H-14— las dejaba iguales y las dos pasaban. Verificaban que coinciden, no que digan algo.</p>
+      <p>Se añadió el conjunto cerrado de campos de tarea. Ahora borrar ese campo tumba una prueba.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip media">Media</span>
+        <h3 class="titulo">Salir a propósito aterrizaba con un aviso de sesión caducada</h3>
+      </div>
+      <p>El arreglo de H-13 avisaba ante cualquier <code>401</code>, incluido el de la propia llamada de cierre de sesión cuando el token ya estaba revocado. Cerrar sesión llevaba al acceso con una alerta roja que no venía a cuento. Regresión introducida por el mismo commit que arreglaba H-13.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip media">Media</span>
+        <h3 class="titulo">El validador solo no hacía imposible el duplicado</h3>
+      </div>
+      <p>El índice de la tabla compara byte a byte, así que cualquier escritura que no pase por el validador —un seeder, un comando de ace, un controlador nuevo— reabre el defecto sin que nada avise. El diseño decía «mejor imposible que disciplinado» y lo que había construido era disciplinado.</p>
+      <p>Se añadió un índice único sobre <code>lower(email)</code>, verificado insertando un duplicado directamente en la base. Su límite queda escrito: <code>lower()</code> de SQLite es ASCII, así que fuera de ahí sigue protegiendo solo el validador.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip baja">Menor</span>
+        <h3 class="titulo">Seguía habiendo una pantalla sin salida, para los errores que no son 401</h3>
+      </div>
+      <p>Con el backend caído, la lista mostraba una caja roja sin cabecera, sin enlaces y sin botones. Misma forma de callejón que H-13, distinto disparador. Ahora ofrece reintentar y cerrar sesión.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip baja">Menor</span>
+        <h3 class="titulo">Dos consultas donde el diseño decía una</h3>
+      </div>
+      <p><code>refresh()</code> seguido de <code>load('assignee')</code> lanza dos consultas por escritura. Sustituido por una sola con <code>preload</code>, y corregido el apartado del diseño que afirmaba lo contrario.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Inconsistencias entre lo escrito y lo que hace el código</h2>
+    <p class="intro">Son la parte más incómoda del informe. Ninguna rompía nada, y todas mandaban a quien las leyera en la dirección equivocada.</p>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-05</span>
+        <h3 class="titulo">Describía un código que nunca ha existido</h3>
+      </div>
+      <p>El hallazgo, escrito en el Módulo 1, decía que <code>api.ts</code> traducía los errores mediante un diccionario indexado por el <b>texto literal</b> del mensaje, con el ejemplo <code>'The email has already been taken'</code>. Ese código no existe en ninguna rama del repositorio.</p>
+      <pre><code>$ for r in main s1/start s1/end s2/start s3/start; do
+    git show upstream/$r:frontend/src/lib/api.ts \
+      | grep -c "has already been taken"; done
+0 0 0 0 0
+</code></pre>
+      <p><code>api.ts</code> ya mapeaba por <code>rule</code> y <code>field</code> desde la primera rama, que es exactamente lo que el propio hallazgo proponía como solución. Un hallazgo documentado no es un hallazgo verificado.</p>
+      <p>Reescrito con el riesgo que sí existe: los nombres de regla los emiten VineJS y Lucid, no nosotros. Ahora lo vigilan las dos mitades, el backend asertando <code>rule</code> en cada rechazo y el frontend cubriendo el diccionario.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip id">H-03</span>
+        <h3 class="titulo">Describía una función que no existe</h3>
+      </div>
+      <p>Decía que <code>api.ts</code> «separa <code>send()</code> de <code>request()</code>, y logout usa el primero». No hay ningún <code>send()</code>. Lo que hace <code>logout</code> es descartar el resultado.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip media">Media</span>
+        <h3 class="titulo">El <code>CLAUDE.md</code> del proyecto quedó mintiendo en tres frases</h3>
+      </div>
+      <p>Tras montar el arnés de pruebas, seguía diciendo que los directorios de test no existen, que el frontend no tiene runner, y —la peor— que la base de datos de tests pega contra la de desarrollo y que te montes los hooks a mano.</p>
+      <p>Esa última manda directamente hacia la alternativa que el diseño había descartado, y es el primer fichero que lee cualquiera que llegue al repo. Actualizar la documentación de contexto es parte del cambio, no algo que se hace después.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip baja">Menor</span>
+        <h3 class="titulo">El propio registro de hallazgos se contradecía</h3>
+      </div>
+      <p>La tabla del índice marcaba tres entradas como resueltas mientras sus cuerpos seguían diciendo «Abierto», la cabecera llevaba una fecha de revisión anterior a las entradas, y la severidad de H-11 no coincidía entre documentos.</p>
+    </article>
+
+    <article class="hallazgo">
+      <div class="encabezado">
+        <span class="chip baja">Menor</span>
+        <h3 class="titulo">Un escenario colgaba del requisito equivocado</h3>
+      </div>
+      <p>«Lo que devuelve crear es lo que devuelve leer» estaba bajo el requisito de cambiar el estado desde la lista. Crear una tarea no es cambiarle el estado. Movido al requisito de anotar trabajo, que es donde su afirmación tiene sentido.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Un error de reporte mío</h2>
+    <div class="nota">
+      <span class="rotulo">Corrección</span>
+      <p>Reporté <code>npm run lint</code> del backend como limpio cuando estaba fallando. El <code>| tail -1</code> del comando se comió el error y me quedé con la última línea, que no era la del fallo.</p>
+      <p>Arreglado el error de lint, y desde entonces la verificación se hace por código de salida y no por lo que imprime la última línea.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cómo se verificó</h2>
+    <p class="intro">Cada arreglo se comprobó revirtiéndolo. Una prueba que no falla cuando el código está roto no es una prueba.</p>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead>
+          <tr><th>Mutación aplicada al código de producción</th><th>Pruebas que caen</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Quitar la normalización del email</td><td class="mono">4</td></tr>
+          <tr><td>Activar cualquiera de las 7 transformaciones por proveedor</td><td class="mono">1 cada una</td></tr>
+          <tr><td>Quitar la relectura de lo persistido</td><td class="mono">2</td></tr>
+          <tr><td>Quitar <code>updatedAt</code> del transformer de tarea</td><td class="mono">1</td></tr>
+          <tr><td>Quitar <code>initials</code> y <code>createdAt</code> del transformer de usuario</td><td class="mono">4</td></tr>
+          <tr><td>Invertir el orden de las reglas del validador</td><td class="mono">1</td></tr>
+          <tr><td>Sustituir la respuesta 404 por una excepción lanzada</td><td class="mono">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="intro">Y en navegador real, sobre el sistema levantado:</p>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead>
+          <tr><th>Comprobación</th><th>Resultado</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Alta con <code>Sonda@Yandex.COM</code></td><td>Se guarda <code>sonda@yandex.com</code>, sin conversión de dominio</td></tr>
+          <tr><td>Acceso escribiendo el email en mayúsculas</td><td>Entra a la lista</td></tr>
+          <tr><td>Crear tarea y cambiar estado desde la lista</td><td>Correcto, con el responsable y el estado inicial que pone el servidor</td></tr>
+          <tr><td>Escritura frente a lectura de una tarea</td><td>Idénticas campo por campo</td></tr>
+          <tr><td>Credencial revocada con la lista abierta</td><td>Lleva al acceso <b>sin recargar</b>, explicando por qué</td></tr>
+          <tr><td>Error de servidor en la carga de la lista</td><td>Ofrece reintentar y cerrar sesión, y conserva la sesión</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Lo que se arrastra</h2>
+
+    <p class="intro">Estado al cerrar el Módulo 3, sobre <code>s3/start</code>. Sección añadida el 2026-09-02, cuando se estableció la regla de arrastrar el registro de hallazgos entre módulos.</p>
+
+    <div class="nota">
+      <span class="rotulo">Corregida el mismo día</span>
+      <p>La primera versión marcaba H-11, H-13 y H-14 como <code>Cerrado</code>. Lo estaban en <code>s3/start</code> y <b>no en <code>s4/start</code></b>, donde seguían vivos: el arreglo nunca cruzó de rama. Es H-22, y la columna dice ahora en qué rama se miró.</p>
+    </div>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Qué</th><th>Desde</th><th>Al cerrar el Módulo 3</th><th>Qué pasó después, en <code>s4/start</code></th></tr></thead>
+        <tbody>
+          <tr><td class="num">H-19</td><td>Las respuestas de error revelan internals</td><td>Módulo 3, lo destapó <code>/verify</code></td><td><b>Arreglado solo en una ruta.</b> D12 diagnosticó la causa general y aplicó un arreglo local</td><td>Reapareció. Cerrado del todo el 2026-09-02, en dos pasos</td></tr>
+          <tr><td class="num">H-11</td><td>El email distingue mayúsculas</td><td>Módulo 3</td><td>Cerrado en <code>s3/start</code></td><td><b>Vivo.</b> Comprobado por API. Portado el 2026-09-02</td></tr>
+          <tr><td class="num">H-13</td><td>Sesión caducada sin salida</td><td>Módulo 3</td><td>Cerrado en <code>s3/start</code></td><td><b>Vivo.</b> Portado, y con él el runner de frontend que tampoco había cruzado</td></tr>
+          <tr><td class="num">H-14</td><td><code>updatedAt</code> distinto según el endpoint</td><td>Módulo 3</td><td>Cerrado en <code>s3/start</code></td><td><b>Vivo</b>, y en tres escrituras. Portado el 2026-09-02</td></tr>
+          <tr><td class="num">—</td><td>La condición de carrera de <code>unique</code> sigue dando 500</td><td>Módulo 3</td><td><b>Declarado, no arreglado</b></td><td>Sigue dando 500, pero el 500 ya no filtra nada</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><b>La lección de esta tabla es H-19</b>: se dio por resuelto un defecto cuyo arreglo era local, teniendo escrito en el propio diseño que la causa era general. <b>Y la segunda la dio la tabla misma</b>: sus tres filas de «Cerrado» repitieron el error que existía para evitar, el mismo día en que se escribió la regla.</p>
+  </section>
+
+  <section>
+    <h2>Lo que queda fuera, y por qué</h2>
+    <p class="intro">Declarado para que sea un hueco conocido y no una omisión silenciosa.</p>
+
+    <div class="tabla-scroll">
+      <table>
+        <thead>
+          <tr><th>Qué</th><th>Motivo</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Dos altas <b>simultáneas</b> con el mismo email siguen dando un 500</td>
+            <td>La regla de unicidad consulta y escribe en dos momentos distintos. No lo introduce este trabajo y no lo resuelve. Queda escrito en el diseño en lugar de darse por arreglado</td>
+          </tr>
+          <tr>
+            <td>Escenarios que solo se observan en pantalla</td>
+            <td>No hay runner de navegador y este trabajo no añade uno. Verificados a mano, uno a uno</td>
+          </tr>
+          <tr>
+            <td>El enganche del proveedor de sesión no tiene prueba automática</td>
+            <td>Exigiría jsdom y una librería de componentes. Cubierto por la verificación en navegador</td>
+          </tr>
+          <tr>
+            <td>Unificar cuentas ya duplicadas por el defecto del email</td>
+            <td>Es una decisión con datos detrás. Una migración no puede tomarla, y si aparecen colisiones falla en vez de adivinar</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="pie">El detalle completo, con las alternativas descartadas de cada decisión, está en los changes archivados de <code>openspec/changes/archive/</code> y en <code>docs/hallazgos.md</code>, donde cada entrada indica cómo se verificó.</p>
+
+</div>
+</body>
+</html>

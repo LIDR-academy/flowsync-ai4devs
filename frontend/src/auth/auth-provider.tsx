@@ -81,6 +81,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [clearSession])
 
+  /**
+   * Cualquier 401 posterior al arranque cierra la sesión, venga de la operación
+   * que venga.
+   *
+   * Es H-13: antes solo se limpiaba el token al rehidratar, así que una
+   * credencial que dejaba de valer con la lista abierta dejaba el estado en
+   * `authenticated`, el aviso pedía volver a entrar y el guard de rutas
+   * públicas rebotaba `/login` de vuelta a `/tasks`. La persona leía qué hacer
+   * y el producto se lo impedía.
+   *
+   * Se engancha al único punto por el que pasan todas las respuestas, y no a
+   * cada pantalla: así lo hereda cualquier pantalla que se añada mañana.
+   */
+  useEffect(() => {
+    return api.onUnauthorized((error) => {
+      clearSession()
+      setSessionError(error.message)
+    })
+  }, [clearSession])
+
   const login = useCallback(
     async (payload: LoginPayload) => {
       startSession(await api.login(payload))

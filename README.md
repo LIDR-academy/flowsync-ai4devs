@@ -2,6 +2,14 @@
 
 Proyecto de práctica del curso: gestión de tareas en equipo. API en AdonisJS 7 (`backend/`) + frontend en React 19 + Vite (`frontend/`).
 
+## Qué hace
+
+Qué puede hacer una persona con FlowSync hoy, historia a historia y con lo que quedó fuera del MVP: [`docs/alcance-funcional.md`](docs/alcance-funcional.md).
+
+Cómo se llegó hasta aquí, módulo a módulo y en orden, con el objetivo de cada sesión, el estado del proyecto al empezar y al terminar, y lo que cada una encontró: [`docs/recorrido-por-modulo.md`](docs/recorrido-por-modulo.md).
+
+Cómo rehacerlo desde cero, paso a paso y con los comandos, incluyendo la comprobación de salto de rama y los cinco errores que más caros salieron: [`docs/guia-de-replicacion.md`](docs/guia-de-replicacion.md).
+
 ## Empezar
 
 ```bash

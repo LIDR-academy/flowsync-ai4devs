@@ -14,7 +14,7 @@
 - [x] 2.1 Escribir el validador de la lista con `status` **opcional** y acotado al enum de los tres estados, de modo que un valor inventado no llegue nunca al controlador (decisión 1 del diseño)
 - [x] 2.2 Ramificar la consulta antes de ejecutarla: un estado pedido acota a ese estado; la ausencia de estado acota a la vista por defecto
 - [x] 2.3 Verificar los tres caminos contra el servidor real: cada estado válido, la ausencia de filtro, y un estado válido sin ninguna tarea, que devuelve `200` con lista vacía y no un error
-- [x] 2.4 Verificar que un estado inventado devuelve `422` señalando el campo `status` y **no** una lista vacía, y que su respuesta es distinguible de la del filtro válido sin resultados
+- [ ] 2.4 Verificar que un estado inventado devuelve `422` señalando el campo `status` y **no** una lista vacía, y que su respuesta es distinguible de la del filtro válido sin resultados
 - [x] 2.5 Confirmar que acotar es solo lectura: ninguna tarea cambia de estado, responsable ni fecha al consultarla filtrada
 - [x] 2.6 Confirmar que la lista acotada sigue exigiendo sesión y responde `401` sin token válido
 - [x] 2.7 Arrancar el servidor para regenerar los tipos del cliente y commitear el diff de `.adonisjs/`
@@ -58,3 +58,15 @@
 - [x] 7.1 Confirmar que no existe ninguna forma de acotar la lista por responsable ni por ninguna dimensión que no sea el estado
 - [x] 7.2 Confirmar que aplicar o quitar un filtro no cambia lo que ve nadie más: la lente es personal, el contenido es compartido
 - [x] 7.3 Dejar constancia de que **no se escriben tests** —incumpliendo a conciencia los puntos de prueba del DoD de FS-142.1— y de que **CA-11, CA-12 y CA-14 no se implementan**, por no existir lista viva en el producto
+
+## Lo que no se ejecutó
+
+> Añadido el 2026-09-02 al cerrar **H-18**, y este es el caso más grave de los tres.
+
+| Casilla | Qué pasó |
+|---|---|
+| 2.4 · un estado inventado devuelve `422` y no una lista vacía | **Estaba marcada `[x]` sobre código que nunca lo hizo.** El validador declaraba `vine.string().optional()`, así que `?status=archivado` respondía `200` con lista vacía. El `design.md` de este change afirmaba además que declaraba `vine.enum(TASK_STATUSES).optional()`, que no era cierto. Se registró como **H-16**. Desmarcada el 2026-09-02: era falsa |
+
+**La lección**: una casilla vacía es un hueco conocido. Una casilla marcada que miente es peor, porque detiene la comprobación de quien la lee. Y esta se marcó en el mismo change cuyo diseño describía el comportamiento correcto.
+
+El comportamiento existe desde el 2026-08-26 y lo fija `filtro.spec.ts`, pero la casilla se queda sin marcar a propósito: **marcaría una verificación que nadie hizo entonces**, y reescribirla sería repetir el defecto para taparlo.
