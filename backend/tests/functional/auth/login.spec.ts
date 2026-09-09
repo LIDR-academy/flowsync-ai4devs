@@ -10,10 +10,14 @@ import testUtils from '@adonisjs/core/services/test_utils'
 test.group('Auth | login', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  async function cuenta() {
+  // Sin valor por defecto a propósito: el email es el fixture que colisiona
+  // con datos reales de `tmp/db.sqlite3` si se reutiliza (ver
+  // backend/docs/verificacion-tests.md), así que cada test está obligado a
+  // pasar el suyo propio en vez de heredar uno compartido en silencio.
+  async function cuenta(email: string) {
     return User.create({
       fullName: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email,
       password: 'secreto123',
     })
   }
@@ -22,16 +26,17 @@ test.group('Auth | login', (group) => {
     client,
     assert,
   }) => {
-    await cuenta()
+    const email = 'ada.login-credenciales-correctas@example.com'
+    await cuenta(email)
 
     const response = await client
       .post('/api/v1/auth/login')
-      .json({ email: 'ada@example.com', password: 'secreto123' })
+      .json({ email, password: 'secreto123' })
 
     response.assertStatus(200)
 
     const { user, token } = response.body().data
-    assert.equal(user.email, 'ada@example.com')
+    assert.equal(user.email, email)
 
     const profile = await client
       .get('/api/v1/account/profile')
@@ -41,11 +46,12 @@ test.group('Auth | login', (group) => {
   })
 
   test('una contraseña equivocada no emite token', async ({ client, assert }) => {
-    await cuenta()
+    const email = 'ada.login-password-equivocada@example.com'
+    await cuenta(email)
 
     const response = await client
       .post('/api/v1/auth/login')
-      .json({ email: 'ada@example.com', password: 'no-es-la-suya' })
+      .json({ email, password: 'no-es-la-suya' })
 
     response.assertStatus(400)
     assert.notProperty(response.body(), 'token')
@@ -55,7 +61,8 @@ test.group('Auth | login', (group) => {
     client,
     assert,
   }) => {
-    await cuenta()
+    const email = 'ada.login-email-desconocido@example.com'
+    await cuenta(email)
 
     const desconocido = await client
       .post('/api/v1/auth/login')
@@ -63,7 +70,7 @@ test.group('Auth | login', (group) => {
 
     const equivocada = await client
       .post('/api/v1/auth/login')
-      .json({ email: 'ada@example.com', password: 'no-es-la-suya' })
+      .json({ email, password: 'no-es-la-suya' })
 
     // El scenario pide que sean INDISTINGUIBLES: si un día divergen, este test
     // cae, y con él la fuga que permitiría enumerar qué emails tienen cuenta.

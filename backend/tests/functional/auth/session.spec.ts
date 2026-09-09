@@ -10,7 +10,11 @@ import testUtils from '@adonisjs/core/services/test_utils'
 test.group('Auth | sesión', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  async function sesion(client: any, email = 'ada@example.com') {
+  // Sin valor por defecto a propósito: el email es el fixture que colisiona
+  // con datos reales de `tmp/db.sqlite3` si se reutiliza (ver
+  // backend/docs/verificacion-tests.md), así que cada test está obligado a
+  // pasar el suyo propio en vez de heredar uno compartido en silencio.
+  async function sesion(client: any, email: string) {
     await User.create({ fullName: 'Ada Lovelace', email, password: 'secreto123' })
 
     const response = await client.post('/api/v1/auth/login').json({ email, password: 'secreto123' })
@@ -19,7 +23,8 @@ test.group('Auth | sesión', (group) => {
   }
 
   test('el perfil devuelve la cuenta del token presentado', async ({ client, assert }) => {
-    const token = await sesion(client)
+    const email = 'ada.sesion-perfil@example.com'
+    const token = await sesion(client, email)
 
     const response = await client
       .get('/api/v1/account/profile')
@@ -29,11 +34,11 @@ test.group('Auth | sesión', (group) => {
 
     const perfil = response.body().data
     assert.properties(perfil, ['id', 'fullName', 'email', 'initials', 'createdAt', 'updatedAt'])
-    assert.equal(perfil.email, 'ada@example.com')
+    assert.equal(perfil.email, email)
   })
 
   test('sin cabecera de autorización no se devuelve nada de la cuenta', async ({ client }) => {
-    await sesion(client)
+    await sesion(client, 'ada.sesion-sin-cabecera@example.com')
 
     const response = await client.get('/api/v1/account/profile')
 
@@ -41,7 +46,7 @@ test.group('Auth | sesión', (group) => {
   })
 
   test('un token inventado no abre las rutas de cuenta', async ({ client }) => {
-    await sesion(client)
+    await sesion(client, 'ada.sesion-token-inventado@example.com')
 
     const response = await client
       .get('/api/v1/account/profile')
@@ -51,7 +56,7 @@ test.group('Auth | sesión', (group) => {
   })
 
   test('cerrar sesión invalida el token usado', async ({ client, assert }) => {
-    const token = await sesion(client)
+    const token = await sesion(client, 'ada.sesion-cerrar@example.com')
 
     const logout = await client
       .post('/api/v1/account/logout')
@@ -68,11 +73,12 @@ test.group('Auth | sesión', (group) => {
   })
 
   test('cerrar una sesión no cierra las demás de la misma cuenta', async ({ client }) => {
-    const primera = await sesion(client)
+    const email = 'ada.sesion-multiples@example.com'
+    const primera = await sesion(client, email)
 
     const otroLogin = await client
       .post('/api/v1/auth/login')
-      .json({ email: 'ada@example.com', password: 'secreto123' })
+      .json({ email, password: 'secreto123' })
     const segunda = otroLogin.body().data.token
 
     await client.post('/api/v1/account/logout').header('Authorization', `Bearer ${primera}`)

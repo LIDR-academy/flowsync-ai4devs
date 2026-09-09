@@ -14,11 +14,21 @@ test.group('Auth | iniciales', (group) => {
     [
       'un nombre de dos palabras da la inicial de cada una',
       'Ada Lovelace',
-      'ada@example.com',
+      'ada.iniciales-dos-palabras@example.com',
       'AL',
     ],
-    ['un nombre de una palabra da sus dos primeras letras', 'Ada', 'ada@example.com', 'AD'],
-    ['sin nombre, las iniciales salen del email', null, 'ada@example.com', 'AE'],
+    [
+      'un nombre de una palabra da sus dos primeras letras',
+      'Ada',
+      'ada.iniciales-una-palabra@example.com',
+      'AD',
+    ],
+    [
+      'sin nombre, las iniciales salen del email',
+      null,
+      'ada.sin-nombre-iniciales@example.com',
+      'AE',
+    ],
   ]
 
   for (const [titulo, fullName, email, esperadas] of casos) {

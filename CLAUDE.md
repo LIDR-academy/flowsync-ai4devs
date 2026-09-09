@@ -127,7 +127,19 @@ Organización de `src/`:
 La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defecto `http://localhost:3333`.
 
 ## Reglas de proceso
-- Antes de tocar código: crear una rama nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main`/`s1/start`.
-- Al cerrar la tarea: usar la skill `/commit`, luego `gh pr create` con una descripción completa de los cambios en el cuerpo del PR.
-- Después de abrir el PR: usar el subagente `adversarial-reviewer` sobre él, antes de darlo por terminado.
-- No repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
+
+1. **Control de Rama por Unidad de Trabajo**:
+   - Está prohibido tocar código si estás en `main`, `master` o cualquier rama `sX/start` de upstream.
+   - La rama es por unidad de trabajo, no por petición: si ya estás en una rama propia (`feat/<slug>` u otra distinta de `main`/`master`/`sX/start`), sigue trabajando en ella para las peticiones siguientes de esa misma unidad de trabajo. Solo crea una rama nueva (`git checkout -b feat/<nombre-descriptivo>`) al empezar una unidad de trabajo distinta o cuando el punto de partida sea una rama prohibida.
+
+2. **Commit por petición**:
+   - Al cerrar cada petición dentro de la unidad de trabajo, usa la skill `/commit` (o el commit estructurado equivalente). No hace falta esperar al final de toda la unidad de trabajo para commitear.
+
+3. **Cierre de la Unidad de Trabajo (una sola vez, OBLIGATORIO)**:
+   - `git push`, `gh pr create` y el pase del subagente `adversarial-reviewer` van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición.
+   - Al terminar la unidad de trabajo, el agente **DEBE** ejecutar de forma secuencial:
+     1. Hacer `git push origin <rama-actual>` para subir los cambios a tu fork remoto.
+     2. Ejecutar obligatoriamente el comando de la CLI de GitHub para abrir el Pull Request:
+        `gh pr create --title "<Título descriptivo>" --body "<Descripción detallada de los cambios implementados>"`
+     3. Usar el subagente `adversarial-reviewer` sobre el PR abierto, antes de darlo por terminado.
+   - **Restricción de respuesta**: No des por finalizada la unidad de trabajo ni resumas el proceso en el chat si el PR no fue creado y revisado. Responde únicamente entregando la URL del Pull Request generado.
