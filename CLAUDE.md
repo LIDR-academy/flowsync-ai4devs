@@ -99,6 +99,8 @@ Rutas actuales (`start/routes.ts`), todas bajo `/api/v1`:
 | GET | `/api/v1/account/profile` | `ProfileController.show` | sí |
 | POST | `/api/v1/account/logout` | `AccessTokensController.destroy` | sí |
 
+Además, fuera de `/api/v1`, el documento OpenAPI vive en `GET /api` (interfaz Scalar), `GET /api.json` y `GET /api.yaml` (`OpenapiDocsController`, sin auth). No usa `openapi.registerRoutes()` del paquete: ese registro reconstruye el documento en cada request en desarrollo, lo que hacía crecer sin límite los parámetros de ruta; `OpenapiDocsController` cachea la construcción una sola vez por arranque.
+
 ### Validación
 
 VineJS 4 en `app/validators/`, consumido con `request.validateUsing(validator)`. Nota de API: se usa `vine.create({...})` (no `vine.compile`), y hay reglas como `.sameAs('password')` y `.unique({ table, column })` sobre el schema. Los validadores comparten builders de campo (`email()`, `password()`) en vez de repetir reglas.
@@ -145,4 +147,4 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
    - **Restricción de respuesta**: No des por finalizada la unidad de trabajo ni resumas el proceso en el chat si el PR no fue creado y revisado. Responde únicamente entregando la URL del Pull Request generado.
 
 4. **Documentación de capability al día**:
-   - Si el cambio toca rutas, controladores, validadores o transformers de una capability, en ese mismo commit hay que regenerar el documento OpenAPI y actualizar `docs/capabilities/<nombre>/README.md` de esa capability.
+   - Si el cambio toca rutas, controladores, validadores o transformers de una capability, en ese mismo commit hay que verificar contra el servidor en marcha que `GET /api.json` ya refleja el cambio (no hay ningún fichero versionado que "regenerar": el documento se construye en caliente) y actualizar `docs/capabilities/<nombre>/README.md` de esa capability.
