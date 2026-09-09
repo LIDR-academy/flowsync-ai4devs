@@ -127,7 +127,16 @@ Organización de `src/`:
 La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defecto `http://localhost:3333`.
 
 ## Reglas de proceso
-- Antes de tocar código: crear una rama nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main`/`s1/start`.
-- Al cerrar la tarea: usar la skill `/commit`, luego `gh pr create` con una descripción completa de los cambios en el cuerpo del PR.
-- Después de abrir el PR: usar el subagente `adversarial-reviewer` sobre él, antes de darlo por terminado.
-- No repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
+
+1. **Control de Rama Estricto**: 
+   - Está prohibido tocar código si estás en `main`, `master` o cualquier rama `sX/start` de upstream.
+   - Si estás en una rama `feat/<slug>` propia del alumno, puedes continuar, pero **nunca** mezcles tareas de módulos distintos en la misma rama. Si es una tarea nueva, crea una nueva rama `feat/<nombre-descriptivo>` desde la terminal antes de editar.
+
+2. **Cierre de Tarea y Automatización de PR (OBLIGATORIO)**:
+   - Ninguna tarea se considera "terminada" con solo modificar archivos locales.
+   - Al finalizar los cambios, el agente **DEBE** ejecutar de forma secuencial:
+     1. Usar la skill `/commit` (o realizar el commit estructurado correspondiente).
+     2. Hacer `git push origin <rama-actual>` para subir los cambios a tu fork remoto.
+     3. Ejecutar obligatoriamente el comando de la CLI de GitHub para abrir el Pull Request:
+        `gh pr create --title "<Título descriptivo>" --body "<Descripción detallada de los cambios implementados>"`
+   - **Restricción de respuesta**: No des por finalizada la sesión ni resumas el proceso en el chat si el PR no fue creado. Responde únicamente entregando la URL del Pull Request generado.
