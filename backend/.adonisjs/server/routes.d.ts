@@ -4,6 +4,9 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
+    'openapi.html': { paramsTuple?: []; params?: {} }
+    'openapi.json': { paramsTuple?: []; params?: {} }
+    'openapi.yaml': { paramsTuple?: []; params?: {} }
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
@@ -15,11 +18,17 @@ export type ScannedRoutes = {
     'tasks.task_due_dates.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
+    'openapi.html': { paramsTuple?: []; params?: {} }
+    'openapi.json': { paramsTuple?: []; params?: {} }
+    'openapi.yaml': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'tasks.tasks.index': { paramsTuple?: []; params?: {} }
     'tasks.tasks.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
+    'openapi.html': { paramsTuple?: []; params?: {} }
+    'openapi.json': { paramsTuple?: []; params?: {} }
+    'openapi.yaml': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'tasks.tasks.index': { paramsTuple?: []; params?: {} }
     'tasks.tasks.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

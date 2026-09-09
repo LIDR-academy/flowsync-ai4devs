@@ -62,6 +62,7 @@
     "@adonisjs/lucid": "^22.4.2",
     "@adonisjs/session": "^8.1.0",
     "@adonisjs/shield": "^9.0.0",
+    "@foadonis/openapi": "^1.1.0",
     "@japa/api-client": "^3.2.1",
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
