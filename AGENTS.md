@@ -1,1 +1,1 @@
-C:/Dev/flowsync-ai4devs/CLAUDE.md
+CLAUDE.md

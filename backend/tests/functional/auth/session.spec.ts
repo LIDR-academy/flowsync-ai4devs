@@ -10,7 +10,11 @@ import testUtils from '@adonisjs/core/services/test_utils'
 test.group('Auth | sesión', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
-  async function sesion(client: any, email = 'ada@example.com') {
+  // Sin valor por defecto a propósito: el email es el fixture que colisiona
+  // con datos reales de `tmp/db.sqlite3` si se reutiliza (ver
+  // backend/docs/verificacion-tests.md), así que cada test está obligado a
+  // pasar el suyo propio en vez de heredar uno compartido en silencio.
+  async function sesion(client: any, email: string) {
     await User.create({ fullName: 'Ada Lovelace', email, password: 'secreto123' })
 
     const response = await client.post('/api/v1/auth/login').json({ email, password: 'secreto123' })

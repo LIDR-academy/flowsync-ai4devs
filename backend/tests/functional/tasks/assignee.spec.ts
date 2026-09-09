@@ -49,6 +49,10 @@ test.group('Tasks | responsable', (group) => {
     assert.equal(enLista.assignee.initials, 'AL')
   })
 
+  // TODO: falta assertar directamente sobre el body de `POST /tasks`
+  // (`tarea`, abajo solo se usa `tarea.id`) — hoy queda cubierto indirectamente
+  // porque `POST` y `GET /tasks` comparten `TaskTransformer`, pero este test no
+  // fija esa forma para la respuesta de creación.
   test('el assignee no incluye el email ni ningún otro dato de acceso, suelta o en la lista', async ({
     client,
     assert,

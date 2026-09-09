@@ -12,6 +12,7 @@ Reglas de negocio relevantes, tal como están implementadas hoy:
 - **"Vencida" se decide siempre desde el cliente**, nunca desde el reloj del servidor: todo endpoint que necesita saber si una tarea está vencida exige un parámetro `today` (`AAAA-MM-DD`) y es **obligatorio, sin valor por defecto**. Esto evita que la lectura dependa del huso horario del servidor. La única definición de "vencida" vive en `Task.isOverdueOn()` (`backend/app/models/task.ts`); el frontend nunca la reimplementa.
 - Quitar la fecha de vencimiento es fijarla a `null`, un valor legítimo del campo ("sin fecha"), no un borrado.
 - El listado (`TaskTransformer`) **no expone** `dueDate` ni `isOverdue` — solo el detalle de una tarea (`TaskDetailTransformer`) lo hace. Es intencional: la forma de la respuesta impide que el listado "se le cuele" el vencimiento.
+- El `assignee` de una tarea (en cualquier endpoint) **no expone `email`**: se serializa siempre con `TaskAssigneeTransformer` (`id`, `fullName`, `initials`), nunca con `UserTransformer`.
 
 ## Código relevante
 
@@ -51,9 +52,6 @@ Todos bajo `/api/v1/tasks`, requieren `Authorization: Bearer <token>` (guard `ap
   "assignee": {
     "id": 3,
     "fullName": "Ada Lovelace",
-    "email": "ada@example.com",
-    "createdAt": "...",
-    "updatedAt": "...",
     "initials": "AL"
   }
 }
@@ -96,7 +94,7 @@ El módulo no tiene pantallas propias documentadas aquí a nivel de frontend; co
 
 ## Cómo probarlo
 
-**No hay tests automatizados para este módulo todavía** (`backend/tests/` solo tiene la suite `functional/auth/`; ni `tests/unit/` ni tests de `tasks` existen). Para verificar el comportamiento manualmente:
+`backend/tests/functional/tasks/assignee.spec.ts` cubre el requisito «Lo que cada tarea muestra de su responsable» de `openspec/specs/tasks/spec.md`; el resto de requisitos de este módulo (creación, filtro por estado, fecha de vencimiento) todavía no tiene tests. Para verificar el comportamiento manualmente:
 
 ```bash
 # 1. Conseguir un token (ver módulo de auth)
@@ -131,4 +129,4 @@ curl -s -X PUT http://localhost:3333/api/v1/tasks/1/due-date \
   -d '{"today":"2026-09-08","dueDate":null}' | jq
 ```
 
-Si se añaden tests functional de `tasks`, deberían vivir en `backend/tests/functional/tasks/` (mismo patrón que `tests/functional/auth/`) y usar los hooks de `testUtils.db()` para aislar el estado, ya que la suite pega contra el mismo `tmp/db.sqlite3` que el servidor de desarrollo.
+Si se añaden más tests functional de `tasks`, deberían vivir en `backend/tests/functional/tasks/` (mismo patrón que `tests/functional/auth/` y que `assignee.spec.ts`) y usar los hooks de `testUtils.db()` para aislar el estado. Ojo con los fixtures: la suite pega contra el mismo `tmp/db.sqlite3` que el servidor de desarrollo, así que un email hardcodeado puede colisionar con una cuenta real ya persistida — usa un email propio por test, no reutilices los de otros specs.

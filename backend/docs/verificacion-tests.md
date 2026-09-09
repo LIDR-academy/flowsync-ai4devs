@@ -173,3 +173,15 @@ De los 23 tests totales, 6 pasan (no aparecen en la tabla de arriba): 4 de `Auth
 ## Estado tras #1–#17
 
 `npm test` completo: **23 passed, 0 failed (23)**.
+
+## Hallazgos del `adversarial-reviewer` sobre el PR, y su corrección
+
+Con la suite en verde se pasó el subagente `adversarial-reviewer` sobre el PR. Encontró 5 hallazgos; se corrigieron los de prioridad alta y media:
+
+- **[ALTO, corregido]** `AGENTS.md` era un symlink con target absoluto (`C:/Dev/flowsync-ai4devs/CLAUDE.md`), roto fuera de esta máquina. Recreado con target relativo (`CLAUDE.md`) vía `git hash-object` + `git update-index --cacheinfo 120000` + `git checkout` — el `ln -s` directo en este Git Bash no crea symlinks reales, cae a copiar el contenido en silencio.
+- **[ALTO, corregido]** `package-lock.json` en la raíz del repo, sin `package.json` que lo justifique, contradice `CLAUDE.md` ("monorepo sin package.json raíz"). Eliminado (`git rm`).
+- **[MEDIO, corregido]** `docs/modulos/tareas.md` desactualizado: decía "no hay tests" (ya no es cierto) y su ejemplo de `GET /tasks` mostraba `email` en `assignee` (contradice el fix del #17). Corregidos ambos, más una nota sobre la colisión de fixtures para quien añada tests nuevos.
+- **[MEDIO, corregido]** `cuenta()` (`login.spec.ts`) y `sesion()` (`session.spec.ts`) conservaban `email = 'ada@example.com'` como valor por defecto — una trampa latente para tests futuros que olviden pasar el email. Quitado el default, el parámetro pasa a ser obligatorio.
+- **[BAJO, solo nota]** `assignee.spec.ts` no asserta directamente el body de `POST /tasks` (solo usa `tarea.id`); queda cubierto indirectamente porque comparte transformer con la lista. Dejado un `TODO` en el propio test en vez de implementar la aserción ahora.
+
+**Pendiente sin resolver, encontrado aparte (no es de los 5 hallazgos):** `npm run typecheck` falla con 4 errores en `assignee.spec.ts` (tipo generado de Tuyau: `lista.body().data` no se infiere como array, `assignee` es opcional), preexistente desde que se escribió el fichero. Queda para una próxima unidad de trabajo.
