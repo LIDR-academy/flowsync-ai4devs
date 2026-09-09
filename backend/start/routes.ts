@@ -10,13 +10,21 @@
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
-import openapi from '@foadonis/openapi/services/main'
 
 router.get('/', () => {
   return { hello: 'world' }
 })
 
-openapi.registerRoutes()
+// No se usa openapi.registerRoutes(): su controlador reconstruye el
+// documento en cada request en desarrollo y eso deja crecer sin límite los
+// parámetros de ruta (ver el comentario en openapi_docs_controller.ts).
+router
+  .group(() => {
+    router.get('/api', [controllers.OpenapiDocs, 'html']).as('html')
+    router.get('/api.json', [controllers.OpenapiDocs, 'json']).as('json')
+    router.get('/api.yaml', [controllers.OpenapiDocs, 'yaml']).as('yaml')
+  })
+  .as('openapi')
 
 router
   .group(() => {

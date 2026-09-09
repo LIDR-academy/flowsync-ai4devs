@@ -15,8 +15,8 @@ export interface Registry {
       paramsTuple: []
       params: {}
       query: {}
-      response: unknown
-      errorResponse: unknown
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/openapi_docs_controller').default['html']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/openapi_docs_controller').default['html']>>>
     }
   }
   'openapi.json': {
@@ -27,8 +27,8 @@ export interface Registry {
       paramsTuple: []
       params: {}
       query: {}
-      response: unknown
-      errorResponse: unknown
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/openapi_docs_controller').default['json']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/openapi_docs_controller').default['json']>>>
     }
   }
   'openapi.yaml': {
@@ -39,8 +39,8 @@ export interface Registry {
       paramsTuple: []
       params: {}
       query: {}
-      response: unknown
-      errorResponse: unknown
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/openapi_docs_controller').default['yaml']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/openapi_docs_controller').default['yaml']>>>
     }
   }
   'auth.new_account.store': {

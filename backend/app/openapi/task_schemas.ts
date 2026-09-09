@@ -123,7 +123,12 @@ export const unauthorizedErrorSchema: OpenAPIV3.SchemaObject = {
   required: ['errors'],
 }
 
-/** `404` cuando la tarea del `:id` no existe. */
+/**
+ * `404` cuando la tarea del `:id` no existe. Documenta la forma de
+ * `ExceptionHandler#renderErrorAsJSON` en producción (`{ message }`), no el
+ * volcado de Youch con traza completa que se ve en desarrollo — ese es un
+ * artefacto de depuración (`debug = !app.inProduction`), no el contrato.
+ */
 export const notFoundErrorSchema: OpenAPIV3.SchemaObject = {
   type: 'object',
   properties: {
