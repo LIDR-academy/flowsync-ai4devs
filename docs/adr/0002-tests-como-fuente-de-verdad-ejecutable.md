@@ -1,5 +1,7 @@
 # 2. Los tests de integración como única fuente de verdad ejecutable
 
+> **Nota:** este ADR describe un escenario hipotético, planteado como ejercicio — "supongamos que dentro de un año dejamos de mantener las specs de OpenSpec". No es una decisión tomada hoy. **`openspec/specs/` sigue siendo la fuente de verdad real de este repositorio ahora mismo**, tal como establece el [ADR 0001](0001-openspec-como-fuente-de-verdad.md); su "Reemplazada por" apunta a este documento dentro de ese mismo ejercicio, no a un reemplazo que haya ocurrido de verdad.
+
 ## Contexto
 
 El [ADR 0001](0001-openspec-como-fuente-de-verdad.md) adoptó las delta-specs de OpenSpec (`openspec/specs/*/spec.md`) como fuente de verdad sobre el comportamiento del sistema. La decisión traía ya, escrito en sus propias consecuencias, el riesgo que ha acabado pesando más que sus ventajas:
