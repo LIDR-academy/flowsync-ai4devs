@@ -143,3 +143,6 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
         `gh pr create --title "<Título descriptivo>" --body "<Descripción detallada de los cambios implementados>"`
      3. Usar el subagente `adversarial-reviewer` sobre el PR abierto, antes de darlo por terminado.
    - **Restricción de respuesta**: No des por finalizada la unidad de trabajo ni resumas el proceso en el chat si el PR no fue creado y revisado. Responde únicamente entregando la URL del Pull Request generado.
+
+4. **Documentación de capability al día**:
+   - Si el cambio toca rutas, controladores, validadores o transformers de una capability, en ese mismo commit hay que regenerar el documento OpenAPI y actualizar `docs/capabilities/<nombre>/README.md` de esa capability.
