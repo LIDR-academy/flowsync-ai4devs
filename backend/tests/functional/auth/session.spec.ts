@@ -19,7 +19,8 @@ test.group('Auth | sesión', (group) => {
   }
 
   test('el perfil devuelve la cuenta del token presentado', async ({ client, assert }) => {
-    const token = await sesion(client)
+    const email = 'ada.sesion-perfil@example.com'
+    const token = await sesion(client, email)
 
     const response = await client
       .get('/api/v1/account/profile')
@@ -29,11 +30,11 @@ test.group('Auth | sesión', (group) => {
 
     const perfil = response.body().data
     assert.properties(perfil, ['id', 'fullName', 'email', 'initials', 'createdAt', 'updatedAt'])
-    assert.equal(perfil.email, 'ada@example.com')
+    assert.equal(perfil.email, email)
   })
 
   test('sin cabecera de autorización no se devuelve nada de la cuenta', async ({ client }) => {
-    await sesion(client)
+    await sesion(client, 'ada.sesion-sin-cabecera@example.com')
 
     const response = await client.get('/api/v1/account/profile')
 
@@ -41,7 +42,7 @@ test.group('Auth | sesión', (group) => {
   })
 
   test('un token inventado no abre las rutas de cuenta', async ({ client }) => {
-    await sesion(client)
+    await sesion(client, 'ada.sesion-token-inventado@example.com')
 
     const response = await client
       .get('/api/v1/account/profile')
@@ -51,7 +52,7 @@ test.group('Auth | sesión', (group) => {
   })
 
   test('cerrar sesión invalida el token usado', async ({ client, assert }) => {
-    const token = await sesion(client)
+    const token = await sesion(client, 'ada.sesion-cerrar@example.com')
 
     const logout = await client
       .post('/api/v1/account/logout')
@@ -68,11 +69,12 @@ test.group('Auth | sesión', (group) => {
   })
 
   test('cerrar una sesión no cierra las demás de la misma cuenta', async ({ client }) => {
-    const primera = await sesion(client)
+    const email = 'ada.sesion-multiples@example.com'
+    const primera = await sesion(client, email)
 
     const otroLogin = await client
       .post('/api/v1/auth/login')
-      .json({ email: 'ada@example.com', password: 'secreto123' })
+      .json({ email, password: 'secreto123' })
     const segunda = otroLogin.body().data.token
 
     await client.post('/api/v1/account/logout').header('Authorization', `Bearer ${primera}`)

@@ -16,9 +16,10 @@ test.group('Auth | registro', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
   test('registrarse devuelve la cuenta y un token que ya sirve', async ({ client, assert }) => {
+    const email = 'ada.signup-token-que-sirve@example.com'
     const response = await client.post('/api/v1/auth/signup').json({
       fullName: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email,
       password: 'secreto123',
       passwordConfirmation: 'secreto123',
     })
@@ -26,7 +27,7 @@ test.group('Auth | registro', (group) => {
     response.assertStatus(200)
 
     const { user, token } = response.body().data
-    assert.equal(user.email, 'ada@example.com')
+    assert.equal(user.email, email)
     assert.equal(user.fullName, 'Ada Lovelace')
     assert.equal(user.initials, 'AL')
     assert.isString(token)
@@ -37,7 +38,7 @@ test.group('Auth | registro', (group) => {
       .header('Authorization', `Bearer ${token}`)
 
     profile.assertStatus(200)
-    assert.equal(profile.body().data.email, 'ada@example.com')
+    assert.equal(profile.body().data.email, email)
   })
 
   test('una cuenta puede quedarse sin nombre', async ({ client, assert }) => {
@@ -55,7 +56,7 @@ test.group('Auth | registro', (group) => {
   test('la contraseña nunca sale en la respuesta', async ({ client, assert }) => {
     const response = await client.post('/api/v1/auth/signup').json({
       fullName: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email: 'ada.signup-credenciales-ocultas@example.com',
       password: 'secreto123',
       passwordConfirmation: 'secreto123',
     })
@@ -66,29 +67,31 @@ test.group('Auth | registro', (group) => {
   })
 
   test('una contraseña corta se rechaza y no crea cuenta', async ({ client, assert }) => {
+    const email = 'ada.signup-password-corta@example.com'
     const response = await client.post('/api/v1/auth/signup').json({
       fullName: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email,
       password: 'corta',
       passwordConfirmation: 'corta',
     })
 
     response.assertStatus(422)
     response.assertBodyContains({ errors: [{ field: 'password', rule: 'minLength' }] })
-    assert.isNull(await User.findBy('email', 'ada@example.com'))
+    assert.isNull(await User.findBy('email', email))
   })
 
   test('la confirmación tiene que coincidir', async ({ client, assert }) => {
+    const email = 'ada.signup-confirmacion@example.com'
     const response = await client.post('/api/v1/auth/signup').json({
       fullName: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email,
       password: 'secreto123',
       passwordConfirmation: 'secreto456',
     })
 
     response.assertStatus(422)
     response.assertBodyContains({ errors: [{ field: 'passwordConfirmation' }] })
-    assert.isNull(await User.findBy('email', 'ada@example.com'))
+    assert.isNull(await User.findBy('email', email))
   })
 
   test('un email mal formado se rechaza', async ({ client }) => {
@@ -104,15 +107,16 @@ test.group('Auth | registro', (group) => {
   })
 
   test('un email ya registrado no crea una segunda cuenta', async ({ client, assert }) => {
+    const email = 'ada.signup-email-duplicado@example.com'
     await User.create({
       fullName: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email,
       password: 'secreto123',
     })
 
     const response = await client.post('/api/v1/auth/signup').json({
       fullName: 'Otra Persona',
-      email: 'ada@example.com',
+      email,
       password: 'secreto123',
       passwordConfirmation: 'secreto123',
     })
@@ -120,7 +124,7 @@ test.group('Auth | registro', (group) => {
     response.assertStatus(422)
     response.assertBodyContains({ errors: [{ field: 'email' }] })
 
-    const cuentas = await User.query().where('email', 'ada@example.com')
+    const cuentas = await User.query().where('email', email)
     assert.lengthOf(cuentas, 1)
     assert.equal(cuentas[0].fullName, 'Ada Lovelace')
   })
