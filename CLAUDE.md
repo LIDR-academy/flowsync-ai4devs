@@ -128,15 +128,18 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 
 ## Reglas de proceso
 
-1. **Control de Rama Estricto**: 
+1. **Control de Rama por Unidad de Trabajo**:
    - Está prohibido tocar código si estás en `main`, `master` o cualquier rama `sX/start` de upstream.
-   - Si estás en una rama `feat/<slug>` propia del alumno, puedes continuar, pero **nunca** mezcles tareas de módulos distintos en la misma rama. Si es una tarea nueva, crea una nueva rama `feat/<nombre-descriptivo>` desde la terminal antes de editar.
+   - La rama es por unidad de trabajo, no por petición: si ya estás en una rama propia (`feat/<slug>` u otra distinta de `main`/`master`/`sX/start`), sigue trabajando en ella para las peticiones siguientes de esa misma unidad de trabajo. Solo crea una rama nueva (`git checkout -b feat/<nombre-descriptivo>`) al empezar una unidad de trabajo distinta o cuando el punto de partida sea una rama prohibida.
 
-2. **Cierre de Tarea y Automatización de PR (OBLIGATORIO)**:
-   - Ninguna tarea se considera "terminada" con solo modificar archivos locales.
-   - Al finalizar los cambios, el agente **DEBE** ejecutar de forma secuencial:
-     1. Usar la skill `/commit` (o realizar el commit estructurado correspondiente).
-     2. Hacer `git push origin <rama-actual>` para subir los cambios a tu fork remoto.
-     3. Ejecutar obligatoriamente el comando de la CLI de GitHub para abrir el Pull Request:
+2. **Commit por petición**:
+   - Al cerrar cada petición dentro de la unidad de trabajo, usa la skill `/commit` (o el commit estructurado equivalente). No hace falta esperar al final de toda la unidad de trabajo para commitear.
+
+3. **Cierre de la Unidad de Trabajo (una sola vez, OBLIGATORIO)**:
+   - `git push`, `gh pr create` y el pase del subagente `adversarial-reviewer` van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición.
+   - Al terminar la unidad de trabajo, el agente **DEBE** ejecutar de forma secuencial:
+     1. Hacer `git push origin <rama-actual>` para subir los cambios a tu fork remoto.
+     2. Ejecutar obligatoriamente el comando de la CLI de GitHub para abrir el Pull Request:
         `gh pr create --title "<Título descriptivo>" --body "<Descripción detallada de los cambios implementados>"`
-   - **Restricción de respuesta**: No des por finalizada la sesión ni resumas el proceso en el chat si el PR no fue creado. Responde únicamente entregando la URL del Pull Request generado.
+     3. Usar el subagente `adversarial-reviewer` sobre el PR abierto, antes de darlo por terminado.
+   - **Restricción de respuesta**: No des por finalizada la unidad de trabajo ni resumas el proceso en el chat si el PR no fue creado y revisado. Responde únicamente entregando la URL del Pull Request generado.
