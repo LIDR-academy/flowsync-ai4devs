@@ -26,7 +26,12 @@ export default class OpenapiCheck extends BaseCommand {
 
     let versioned: string
     try {
-      versioned = await readFile(versionedPath, 'utf-8')
+      // Un checkout de Windows con core.autocrlf=true (el default habitual)
+      // convierte el \n con el que se genera el documento a \r\n al escribir
+      // el árbol de trabajo. Sin normalizar aquí, ese cambio de fin de línea
+      // -no de contenido- haría fallar el check en cualquier clon así.
+      const versionedFile = await readFile(versionedPath, 'utf-8')
+      versioned = versionedFile.replace(/\r\n/g, '\n')
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
         this.logger.error(
