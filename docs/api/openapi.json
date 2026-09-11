@@ -1,0 +1,736 @@
+{
+  "info": {
+    "title": "FlowSync API",
+    "version": "1.0.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Access token opaco emitido por `POST /api/v1/auth/login`, en la cabecera `Authorization: Bearer <token>`."
+      }
+    },
+    "schemas": {
+      "TaskListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Task"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "example": "Revisar el informe"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "done"
+            ],
+            "example": "pending"
+          },
+          "assignee": {
+            "$ref": "#/components/schemas/TaskAssignee"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "assignee",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TaskAssignee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ada Lovelace",
+            "description": "Nulo cuando la cuenta se registró sin nombre. Las iniciales siguen llegando."
+          },
+          "initials": {
+            "type": "string",
+            "example": "AL"
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "initials"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorItem"
+            }
+          }
+        },
+        "required": [
+          "errors"
+        ]
+      },
+      "ErrorItem": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Unauthorized access"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "TaskDetailResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TaskDetail"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "TaskDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "example": "Revisar el informe"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "done"
+            ],
+            "example": "pending"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-09-30",
+            "description": "Día del calendario `AAAA-MM-DD`, sin hora ni huso. Nulo si la tarea no tiene."
+          },
+          "isOverdue": {
+            "type": "boolean",
+            "description": "Resuelto contra el `today` de la petición: hay fecha, es anterior a ese día y el estado no es `done`."
+          },
+          "assignee": {
+            "$ref": "#/components/schemas/TaskAssignee"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "dueDate",
+          "isOverdue",
+          "assignee",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationErrorItem"
+            }
+          }
+        },
+        "required": [
+          "errors"
+        ]
+      },
+      "ValidationErrorItem": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "The title field must be defined"
+          },
+          "rule": {
+            "type": "string",
+            "example": "required"
+          },
+          "field": {
+            "type": "string",
+            "example": "title"
+          }
+        },
+        "required": [
+          "message",
+          "rule",
+          "field"
+        ]
+      },
+      "CreateTaskBody": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Revisar el informe",
+            "description": "Se recortan los espacios de los extremos antes de comprobar la longitud: un título de solo espacios se rechaza igual que uno vacío, y pasarse de 200 es un error, nunca un recorte."
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "TaskResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Task"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "UpdateTaskStatusBody": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "done"
+            ],
+            "example": "in_progress",
+            "description": "Cualquiera de los tres estados. Todas las transiciones valen, incluida la vuelta desde `done`."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "SetTaskDueDateBody": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-09-30",
+            "description": "`null` retira la fecha, y es un valor legítimo del campo, no un error."
+          },
+          "today": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-08-27",
+            "description": "Día de referencia con el que se resuelve `isOverdue` en la respuesta. Obligatorio y sin valor por defecto."
+          }
+        },
+        "required": [
+          "dueDate",
+          "today"
+        ]
+      }
+    }
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api": {
+      "get": {
+        "summary": "Documentation UI",
+        "description": "Displays the OpenAPI documentation UI.",
+        "tags": [
+          "OpenAPI"
+        ],
+        "responses": {
+          "default": {
+            "description": "The documentation UI",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api.json": {
+      "get": {
+        "summary": "JSON Documentation",
+        "description": "Returns the OpenAPI documentation in JSON format.",
+        "tags": [
+          "OpenAPI"
+        ],
+        "responses": {
+          "default": {
+            "description": "The documentation in JSON format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api.yaml": {
+      "get": {
+        "summary": "YAML Documentation",
+        "description": "Returns the OpenAPI documentation in YAML format.",
+        "tags": [
+          "OpenAPI"
+        ],
+        "responses": {
+          "default": {
+            "description": "The documentation in YAML format",
+            "content": {
+              "application/yaml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api/v1/auth/signup": {
+      "post": {
+        "tags": [
+          "NewAccount"
+        ],
+        "responses": {},
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "AccessTokens"
+        ],
+        "responses": {},
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api/v1/account/logout": {
+      "post": {
+        "tags": [
+          "AccessTokens"
+        ],
+        "responses": {},
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api/v1/account/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "responses": {},
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "summary": "La lista compartida del espacio",
+        "description": "Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, de la más reciente a la más antigua y sin paginar. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.",
+        "tags": [
+          "Tasks"
+        ],
+        "responses": {
+          "200": {
+            "description": "La lista del alcance pedido, entera. Ninguna tarea trae fecha ni condición de vencida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token o no es válido. No se devuelve ninguna tarea.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "description": "Acota la lista a un estado. El estado es la única dimensión por la que se puede acotar. Sin él llegan `pending` e `in_progress`. Hoy el validador solo comprueba que sea texto, así que un valor fuera de estos tres no se rechaza: devuelve una lista vacía.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "in_progress",
+                "done"
+              ]
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Crear una tarea con solo el título",
+        "description": "El título es el único dato que se lee. La tarea nace en `pending` y a nombre de la cuenta dueña del token: un `status` o un responsable enviados en el cuerpo se ignoran, no se rechazan. Tampoco admite fecha de vencimiento, que se pone después con `PUT /tasks/{id}/due-date`.",
+        "tags": [
+          "Tasks"
+        ],
+        "responses": {
+          "201": {
+            "description": "La tarea ya creada, en `pending` y a nombre de quien la envió.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token o no es válido. No se crea ninguna tarea.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El título falta, está vacío, es solo espacios o pasa de 200 caracteres. No se crea ninguna tarea ni se guarda una versión recortada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskBody"
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/{id}": {
+      "get": {
+        "summary": "Una tarea suelta, con su vencimiento resuelto",
+        "description": "Devuelve la tarea entera —fecha de vencimiento incluida, o su ausencia— con `isOverdue` ya resuelto contra el día que indique quien pregunta. No comprueba quién es el responsable: una tarea ajena llega igual que una propia, y mirarla no la cambia.",
+        "tags": [
+          "Tasks"
+        ],
+        "responses": {
+          "200": {
+            "description": "La tarea, con su fecha de vencimiento y su condición de vencida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token o no es válido. No se devuelve ninguna tarea.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ninguna tarea con ese identificador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Falta `today` o no es una fecha válida. No se devuelve ninguna tarea.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "today",
+            "required": true,
+            "example": "2026-08-27",
+            "description": "Día de referencia `AAAA-MM-DD` contra el que se decide el vencimiento. Obligatorio y sin valor por defecto: el sistema no sustituye el día que falte por el de su propio reloj.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/{id}/status": {
+      "patch": {
+        "summary": "Cambiar el estado de una tarea",
+        "description": "Cualquier cuenta con sesión cambia el estado de cualquier tarea, sea o no la responsable, y en cualquier dirección: volver de `done` a `pending` está permitido. El título y el responsable no se tocan. Responde con la forma de lista, sin fecha ni condición de vencida, así que no pide día de referencia.",
+        "tags": [
+          "TaskStatuses"
+        ],
+        "responses": {
+          "200": {
+            "description": "La tarea ya en el estado de destino.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token o no es válido. Nada cambia.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ninguna tarea con ese identificador. Se comprueba antes que el cuerpo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El estado falta o no es uno de los tres. La tarea conserva el que tenía y el estado inventado no pasa a existir.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskStatusBody"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/{id}/due-date": {
+      "put": {
+        "summary": "Fijar, cambiar o retirar la fecha de vencimiento",
+        "description": "Las tres cosas son la misma operación: enviar una fecha la pone o la sustituye, y enviar `null` la retira, que es una operación admitida y no un error. Se acepta una fecha ya pasada sin advertir nada. El título, el responsable y el estado siguen igual. Cualquier cuenta con sesión puede hacerlo sobre cualquier tarea.",
+        "tags": [
+          "TaskDueDates"
+        ],
+        "responses": {
+          "200": {
+            "description": "La tarea con la fecha ya actualizada y su `isOverdue` resuelto contra el `today` enviado, de modo que aplazar una tarea vencida deja de mostrarla vencida en esta misma respuesta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token o no es válido. Nada cambia.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ninguna tarea con ese identificador. Se comprueba antes que el cuerpo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`dueDate` es una fecha imposible o mal formada, o falta `today` o no vale. La tarea conserva intacta la fecha que tuviera.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTaskDueDateBody"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    }
+  }
+}
