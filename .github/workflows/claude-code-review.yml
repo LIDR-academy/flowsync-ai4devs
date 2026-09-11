@@ -1,0 +1,59 @@
+name: Claude Code review
+
+on:
+  pull_request:
+
+# Solo lee el repo para revisarlo y comenta en el propio PR; no escribe
+# código, no crea ramas ni toca nada fuera de esos dos permisos.
+# `id-token: write` es el que la GitHub App oficial de Claude necesita para
+# canjear el token OIDC del workflow (ver docs/ci-revisor.md).
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  review:
+    name: adversarial-reviewer
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Revisar el PR con Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Camino "suscripción": token generado en local con
+          # `claude setup-token`. El otro camino (clave de API de la
+          # consola) y por qué no son intercambiables están documentados en
+          # docs/ci-revisor.md.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Publica los hallazgos actualizando un único comentario en el PR
+          # (no solo en el log de la ejecución), sin necesitar `gh pr
+          # comment` ni ninguna herramienta de escritura.
+          track_progress: true
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Eres un revisor adversarial. Lee primero
+            `.claude/agents/adversarial-reviewer.md`: ahí está tu calibración
+            (objetivo, qué buscar, cómo priorizar y devolver hallazgos) y
+            síguela al pie de la letra.
+
+            Revisa los cambios de este PR contrastándolos contra los
+            scenarios de `openspec/specs/`. Tu objetivo es REFUTAR el
+            cambio, no aprobarlo.
+
+            No edites nada: eres de solo lectura.
+
+          claude_args: |
+            --allowedTools "Read,Grep,Glob"
+            --model sonnet
+            --effort medium
+            --max-turns 40
