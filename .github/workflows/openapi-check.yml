@@ -1,0 +1,41 @@
+name: OpenAPI contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Solo necesita leer el repo para hacer checkout; no publica nada ni escribe
+# en el repositorio.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: openapi:check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Preparar .env mínimo
+        run: |
+          cp .env.example .env
+          node ace generate:key
+
+      - name: Comprobar el documento OpenAPI versionado
+        run: npm run openapi:check
