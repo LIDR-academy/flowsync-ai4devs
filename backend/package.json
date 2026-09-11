@@ -15,7 +15,9 @@
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "openapi:generate": "node ace openapi:generate",
+    "openapi:check": "node ace openapi:check"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -28,6 +30,7 @@
     "#generated/*": "./.adonisjs/server/*.js",
     "#middleware/*": "./app/middleware/*.js",
     "#transformers/*": "./app/transformers/*.js",
+    "#openapi/*": "./app/openapi/*.js",
     "#validators/*": "./app/validators/*.js",
     "#providers/*": "./providers/*.js",
     "#policies/*": "./app/policies/*.js",
@@ -62,6 +65,7 @@
     "@adonisjs/lucid": "^22.4.2",
     "@adonisjs/session": "^8.1.0",
     "@adonisjs/shield": "^9.0.0",
+    "@foadonis/openapi": "^1.1.0",
     "@japa/api-client": "^3.2.1",
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
@@ -74,6 +78,9 @@
       "./app/controllers/**/*.ts",
       "./app/middleware/*.ts"
     ]
+  },
+  "overrides": {
+    "@adonisjs/ace": "^14.1.1"
   },
   "prettier": "@adonisjs/prettier-config"
 }
