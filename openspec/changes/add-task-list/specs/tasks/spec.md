@@ -49,7 +49,7 @@ El sistema SHALL crear una tarea en `POST /api/v1/tasks` aceptando el título co
 #### Scenario: Datos no aceptados en el alta
 
 - **WHEN** se envía un alta que incluye un estado, un responsable o cualquier otro dato además del título
-- **THEN** ese dato no tiene efecto sobre la tarea creada: nace igualmente en `pending` y con quien la crea como responsable
+- **THEN** ese dato se ignora sin error y no tiene efecto: la tarea nace igualmente en `pending` y con quien la crea como responsable, a diferencia de la actualización, que sí rechaza con 422 un estado o un responsable inválidos
 
 ### Requirement: La tarea nace pendiente y a nombre de quien la crea
 
@@ -182,6 +182,11 @@ El sistema NO SHALL aplicar ni prometer ningún criterio de ordenación sobre la
 
 - **WHEN** una persona mira la lista
 - **THEN** no ve ninguna opción de orden ni ninguna agrupación por persona o por estado
+
+#### Scenario: Enumerar el trabajo de cada persona con la lista llena
+
+- **WHEN** la lista acumula un volumen alto de tareas repartidas entre varios miembros
+- **THEN** cada fila sigue diciendo de quién es, pero nada las ordena ni las agrupa por persona, así que decir en qué trabaja cada miembro obliga a recorrer la lista entera: ese uso **no está garantizado** a volumen mientras no se decida el orden
 
 ### Requirement: La lista es la pantalla principal de la aplicación
 

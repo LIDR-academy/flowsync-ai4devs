@@ -6,7 +6,7 @@
 
 ## 2. Validación y serialización
 
-- [ ] 2.1 Definir la constante compartida del límite de longitud del título (200, provisional por PA-9) y el conjunto cerrado de los tres identificadores de estado, en un solo sitio reutilizable por los validadores
+- [ ] 2.1 Definir la constante compartida del límite de longitud del título (200, provisional por PA-9 en su vertiente de RF-6) y el conjunto cerrado de los tres identificadores de estado, en un solo sitio reutilizable por los validadores
 - [ ] 2.2 Escribir el validador de creación: solo título, con recorte de espacios de los extremos, longitud mínima 1 y máxima el límite compartido; verificar a mano que título ausente, vacío y de solo espacios dan el mismo 422 con el campo del título
 - [ ] 2.3 Escribir el validador de actualización: estado dentro del conjunto cerrado y responsable existente, ambos opcionales; verificar que un estado en castellano o con otra capitalización da 422 y que un responsable inexistente da 422 sobre su propio campo
 - [ ] 2.4 Escribir el transformer de la tarea exponiendo identificador, título, estado y un responsable con solo identificador y nombre completo; verificar en la respuesta real que **no** aparece el correo ni las fechas de la cuenta del responsable
@@ -41,9 +41,10 @@
 
 ## 6. Navegación
 
-- [ ] 6.1 Registrar la ruta de la lista como ruta protegida y hacerla el destino por defecto y el de las direcciones desconocidas, conservando el perfil en la suya; verificar que tras iniciar sesión y tras registrarse se aterriza en la lista
-- [ ] 6.2 Añadir desde la lista el acceso al perfil; verificar que el perfil sigue mostrando los datos de la cuenta y su cierre de sesión
-- [ ] 6.3 Verificar que sin sesión la dirección de la lista lleva al inicio de sesión, y que con sesión el inicio de sesión y el registro llevan a la lista
+- [ ] 6.1 Registrar la ruta de la lista como ruta protegida, conservando el perfil en la suya; verificar que con sesión se llega a las dos
+- [ ] 6.2 Unificar el destino por defecto en una sola constante y hacer que la usen tanto el guard de rutas públicas como la regla comodín (hoy el literal `/profile` está duplicado y sin atar en los dos sitios); verificar que tras iniciar sesión, tras registrarse y al abrir una dirección desconocida se aterriza en el mismo lugar: la lista
+- [ ] 6.3 Añadir desde la lista el acceso al perfil; verificar que el perfil sigue mostrando los datos de la cuenta y su cierre de sesión
+- [ ] 6.4 Verificar que sin sesión la dirección de la lista lleva al inicio de sesión, y que con sesión el inicio de sesión y el registro llevan a la lista
 
 ## 7. Cierre
 

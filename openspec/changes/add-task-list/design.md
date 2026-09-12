@@ -67,7 +67,15 @@ El validador de creación recorta los espacios de los extremos y después exige 
 
 *Por qué:* CA-2 de `E2-2` pide que un título en blanco se rechace *igual* que el vacío. Un único mensaje para los dos casos es el comportamiento pedido.
 
-*Nota de alcance:* el 200 es provisional (PA-9), así que vive en una sola constante compartida por el validador y por el atributo del campo en pantalla, para que resolver PA-9 sea cambiar un número.
+*Nota de alcance:* el 200 es provisional (PA-9, en su vertiente de RF-6: «con holgura» y «desmedido» sin frontera — no la de las «2 interacciones» de RF-9, que el backlog etiqueta con el mismo identificador). Vive en una sola constante compartida por el validador y por el atributo del campo en pantalla, para que resolver esa decisión sea cambiar un número.
+
+### Al crear se ignora lo que no sea el título; al actualizar se valida
+
+El alta acepta el título y descarta cualquier otro dato que venga en el cuerpo, sin error. La actualización, en cambio, rechaza con 422 un estado fuera del conjunto o un responsable inexistente.
+
+*Por qué la asimetría:* en el alta, estado y responsable no son campos del contrato —la restricción de alcance es que el título sea lo único que se pide—, así que un valor ahí no es un dato inválido, es un dato que no existe. En la actualización sí son el contrato, y un valor fuera de rango tiene que fallar ruidosamente.
+
+*Trade-off asumido:* un cliente que mande un estado al crear no recibe ninguna señal de que se ha ignorado, y verá su tarea en `pending`. Queda declarado en la spec como escenario propio para que no se descubra por sorpresa. La alternativa —rechazar con 422 cualquier campo desconocido— es más estricta pero convierte el alta en un contrato cerrado que hay que ampliar cada vez que la tarea gane un campo.
 
 ### Cambio de estado optimista con vuelta atrás
 
@@ -87,7 +95,9 @@ La fila ofrece los tres estados como un grupo de tres botones (el actual marcado
 
 ### La lista es la pantalla principal; el perfil se conserva
 
-Se añade una ruta protegida para la lista, pasa a ser el destino por defecto y el del comodín, y el perfil sigue en la suya, alcanzable desde la lista. Los dos guards existentes y el `AuthProvider` no cambian: `PublicOnlyRoute` ya redirige «al destino por defecto», y solo hay que mover cuál es.
+Se añade una ruta protegida para la lista, pasa a ser el destino por defecto y el del comodín, y el perfil sigue en la suya, alcanzable desde la lista. El `AuthProvider` y los dos guards no cambian de lógica, pero **el destino no está hoy en un único sitio**: el literal `/profile` aparece por separado en el guard de rutas públicas y en la regla comodín de las rutas, sin nada que los ate. Este change los unifica en una constante única de destino por defecto y hace que ambos la usen.
+
+*Por qué unificarlos y no editar los dos literales:* si se cambia uno y se olvida el otro, iniciar sesión lleva a un sitio y abrir una dirección desconocida a otro, y los dos escenarios de la spec quedan cumplidos por separado sin ser coherentes entre sí. Es el fallo exacto que el duplicado invita a cometer.
 
 *Por qué:* quien entra viene a trabajar sobre las tareas, no a mirarse el perfil. Y conservar el perfil evita tocar la capability de acceso, que tiene su propio cierre de sesión ya especificado.
 

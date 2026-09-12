@@ -54,7 +54,7 @@ Ninguna. La capability `auth` no cambia de requisitos: el acceso, la sesión y e
 Se dejan explícitos para que nadie los dé por decididos.
 
 - **En qué orden salen las tareas (PA-3).** No hay criterio de ordenación decidido y este change **no inventa ninguno**: no se ordena explícitamente ni en la API ni en la pantalla, así que el orden es el que resulte y no es comportamiento garantizado. Es la ausencia que más condiciona la promesa de «responder quién está en qué» y bloquea CA-5 de `E3-1`.
-- **El umbral de longitud del título (PA-9).** Los 200 caracteres son una **decisión provisional** tomada solo para que CA-3 de `E2-2` sea verificable. El PRD no fija la frontera; cuando PA-9 se resuelva, este número cambia.
+- **El umbral de longitud del título (PA-9, en su vertiente de RF-6).** Los 200 caracteres son una **decisión provisional** tomada solo para que CA-3 de `E2-2` sea verificable. El PRD no fija la frontera; cuando se resuelva, este número cambia. Ojo al leer el backlog: etiqueta con el mismo PA-9 otra decisión distinta —el coste en interacciones del gesto de RF-9—, que este change no resuelve.
 - **Qué transiciones de estado son legales (PA-7).** Ningún requisito declara el grafo, así que aquí los tres estados son destino desde cualquier otro, incluida la vuelta atrás desde Hecho. No es una decisión tomada: es la ausencia de decisión, y hace muy barato marcar algo como hecho por error.
 - **Cuántas tareas «En curso» puede acumular una persona (PA-4).** Sin límite en este change.
 - **Qué ve alguien cuando la tarea que está mirando cambia bajo sus pies (PA-8).** Fuera de alcance mientras la lista no se refresque sola.
