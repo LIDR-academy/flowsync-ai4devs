@@ -29,6 +29,11 @@ El sistema SHALL rechazar el alta con 422 cuando los datos no cumplan las reglas
 - **WHEN** se envía un alta con un email que ya pertenece a otra cuenta
 - **THEN** la respuesta es 422 señalando el campo del email como ya existente, y no se crea una segunda cuenta con ese email
 
+#### Scenario: El mismo email con distinta capitalización
+
+- **WHEN** se envía un alta con el email de una cuenta existente escrito con distintas mayúsculas y minúsculas
+- **THEN** el alta se acepta y se crea una segunda cuenta: la comprobación de que el email no está repetido es una comparación exacta, sensible a mayúsculas
+
 #### Scenario: Email con formato inválido o demasiado largo
 
 - **WHEN** se envía un alta cuyo email no tiene formato de dirección de correo o supera los 254 caracteres
@@ -53,15 +58,15 @@ El sistema SHALL permitir obtener un token de acceso enviando `POST /api/v1/auth
 - **WHEN** se envía `POST /api/v1/auth/login` con el email y la contraseña de una cuenta existente
 - **THEN** la respuesta es 200 con `data.user` y un `data.token` nuevo y válido
 
-#### Scenario: Contraseña incorrecta o cuenta inexistente
+#### Scenario: Contraseña incorrecta, contraseña vacía o cuenta inexistente
 
-- **WHEN** se envía un inicio de sesión con una contraseña que no corresponde a ese email, o con un email que no pertenece a ninguna cuenta
-- **THEN** la respuesta es un error de credenciales inválidas con el mismo mensaje en ambos casos y sin token
+- **WHEN** se envía un inicio de sesión con una contraseña que no corresponde a ese email, con una contraseña vacía, o con un email que no pertenece a ninguna cuenta
+- **THEN** la respuesta es 400 de credenciales inválidas, con el mismo mensaje en los tres casos, sin señalar ningún campo concreto y sin token
 
-#### Scenario: Faltan campos obligatorios
+#### Scenario: Falta alguno de los dos campos
 
-- **WHEN** se envía un inicio de sesión sin email, sin contraseña o con un email con formato inválido
-- **THEN** la respuesta es 422 señalando el campo que falla
+- **WHEN** se envía un inicio de sesión en el que no viaja el email o no viaja la contraseña, o cuyo email tiene un formato inválido
+- **THEN** la respuesta es 422 señalando el campo que falta o falla
 
 ### Requirement: Acceso a los datos del perfil
 
@@ -84,7 +89,7 @@ El sistema SHALL revocar el token con el que se autentica la petición cuando se
 #### Scenario: Cierre de sesión con token válido
 
 - **WHEN** se envía `POST /api/v1/account/logout` con un token válido
-- **THEN** la respuesta confirma el cierre de sesión y ese mismo token pasa a ser rechazado con 401 en cualquier petición posterior
+- **THEN** la respuesta es 200 con un mensaje de confirmación del cierre de sesión, entregado sin el envoltorio `data` que llevan las demás respuestas de éxito, y ese mismo token pasa a ser rechazado con 401 en cualquier petición posterior
 
 #### Scenario: Cierre de sesión sin autenticación
 
@@ -115,7 +120,7 @@ El sistema SHALL calcular y devolver unas iniciales en mayúsculas para cada cue
 
 #### Scenario: Nombre y apellido
 
-- **WHEN** la cuenta tiene un nombre completo formado por al menos dos palabras
+- **WHEN** la cuenta tiene un nombre completo formado por al menos dos palabras separadas por un solo espacio
 - **THEN** las iniciales son la primera letra de las dos primeras palabras, en mayúsculas
 
 #### Scenario: Una sola palabra o sin nombre
@@ -190,7 +195,7 @@ La aplicación SHALL mostrar, a quien tiene sesión iniciada, una pantalla de pe
 
 #### Scenario: Perfil de una cuenta sin nombre
 
-- **WHEN** la cuenta no tiene nombre completo
+- **WHEN** la cuenta se creó sin nombre completo
 - **THEN** el perfil muestra «Sin nombre» en el lugar del nombre, junto con el email y el resto de datos
 
 ### Requirement: Cierre de sesión desde el perfil
