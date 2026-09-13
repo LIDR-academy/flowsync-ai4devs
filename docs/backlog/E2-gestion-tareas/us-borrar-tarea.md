@@ -4,6 +4,8 @@
 **Épica:** E2 · Gestión de tareas
 **Traza:** RF-12 del [PRD](../../prd/flowsync-mvp.md)
 
+> ⚠️ **Planificar esta historia reabre dos puntos del PRD**, cerrados el 2026-09-13 solo porque borrar no existía: **PA-2** (papelera o deshacer) y **PA-10** (registro abierto multiplicado por borrado irreversible). Y es una de las cuatro que **PA-8** bloquea: qué ve alguien cuya tarea abierta borra otra persona se decide antes de construirla.
+
 ## Historia
 
 > Como miembro del equipo, quiero borrar una tarea que ya no tiene sentido, para que la lista no se llene de ruido que nadie va a hacer.

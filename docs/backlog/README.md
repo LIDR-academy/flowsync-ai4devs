@@ -131,6 +131,6 @@ Respeta a la vez prioridad de producto y dependencias. **La dependencia manda so
 | 9 | **E2-5** Abrir una tarea | Habilitadora de lo que viene detrás; bloqueada por PA-6 |
 | 10 | **E2-6** Editar el título | Cae casi sola una vez existe E2-5 |
 | 11 | **FS-118** Fecha de vencimiento | Impacto bajo y depende de E2-5 |
-| 12 | **E2-10** Borrar tarea | Higiene, sin urgencia |
+| 12 | **E2-10** Borrar tarea | Higiene, sin urgencia. **Al planificarla se reabren PA-2 y PA-10** |
 
 **Lo más rentable ahora mismo no es un ticket:** es resolver la contradicción **CA-9 / CA-17** de FS-142. Cuesta una conversación y desbloquea la historia de alto impacto más avanzada del backlog.
