@@ -77,7 +77,9 @@ npm test        # todas en verde; cuántas, en CLAUDE.md
 cd frontend
 npm install
 npm run dev     # http://localhost:5173
-npm test        # Vitest sobre lib/api.ts
+npm test        # Vitest sobre lib/
+npx playwright install chromium   # solo la primera vez
+npm run test:e2e  # Playwright; no a la vez que npm test del backend
 npm run lint    # oxlint, NO eslint
 npm run build   # aquí vive el typecheck
 ```

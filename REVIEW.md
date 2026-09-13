@@ -28,7 +28,7 @@ Sin nada grave y sin nada menor que llegue al umbral, el informe correcto es **u
 - **Ficheros generados**: `backend/.adonisjs/`, `backend/database/schema.ts`, `node_modules`.
   **`docs/api/openapi.json` no está en esta lista**, aunque se genere: es el contrato, y lo que afirma sobre autorización y respuestas **sí se revisa**. Estuvo aquí un día y en ese día declaró públicas dos rutas protegidas ([H-25](docs/hallazgos.md)).
 - **Estilo, nombres, orden, «esto podría extraerse a una función»**, y rendimiento sin un número que lo respalde.
-- **Huecos ya declarados**: la ausencia de runner de navegador. Está abierto a propósito y documentado como es. **Que un hueco esté declarado no cubre lo que haya a su lado**: H-23 estaba declarado y H-25 vivía en las mismas cuatro rutas sin que nadie lo viera.
+- **Huecos ya declarados**: los requisitos de pantalla sin prueba de navegador. Playwright cubre desde el 2026-09-13 los pocos casos que nada más veía; el resto está declarado en `docs/trazabilidad.md`. **Que un hueco esté declarado no cubre lo que haya a su lado**: H-23 estaba declarado y H-25 vivía en las mismas cuatro rutas sin que nadie lo viera.
 
 ## Cita o no firmes
 

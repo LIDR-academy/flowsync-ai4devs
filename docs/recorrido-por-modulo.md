@@ -359,13 +359,12 @@ Y lo que más enseña de este módulo: **nueve defectos cerrados volvieron rotos
 
 ## Lo que queda abierto hoy
 
-Actualizado el 2026-09-12. Ese día salieron dos filas: H-03, que abría esta tabla desde el Módulo 2, con el change `fix-logout-envelope`, y R-01, que ya no depende de acordarse: la impide `.githooks/pre-commit`.
+Actualizado el 2026-09-13. El 2026-09-12 salieron H-03, que abría esta tabla desde el Módulo 2, y R-01, que ya no depende de acordarse. El 2026-09-13 salió H-37, que ahora vigila una prueba de navegador.
 
 | | Qué | Estado |
 |---|---|---|
 | **H-24** | La verificación no corre en el PR del curso | **Mitigado, no cerrado.** Corre en un PR del fork. Aprobar las ejecuciones pendientes no está en nuestra mano |
-| — | Los requisitos que solo se observan en pantalla | No hay runner de navegador. Vitest cubre `lib/api.ts`; falta el que ve la pantalla |
-| **H-37** | Rehidratar con un 401 depende de que otro efecto ya esté suscrito | **Abierto, baja.** Hoy funciona; moviendo la suscripción, la app se quedaría cargando sin error. Se resuelve con el runner de navegador |
+| — | Los requisitos que solo se observan en pantalla | **Reducido, no cerrado.** Hay Playwright desde el 2026-09-13, con los pocos casos que nada más veía. La mayoría de los requisitos de pantalla siguen sin prueba, y cuáles está en `docs/trazabilidad.md` |
 
 **Y dos que se cerraron aquí y conviene no dar por eternas**: el contrato tenía dos aproximaciones conviviendo y ahora tiene una, con su ADR; y el revisor adversarial pasó de «escrito y nunca visto morder» a haber encontrado un defecto real sin que nadie se lo plantara.
 

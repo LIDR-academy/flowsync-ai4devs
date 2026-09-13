@@ -69,6 +69,40 @@ jobs:
   mutaciones:
     name: Las comprobaciones muerden (R-14)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Instalar el backend
+        run: npm ci && cp .env.example .env && node ace generate:key
+        working-directory: backend
+
+      - name: Instalar el frontend
+        run: npm ci
+        working-directory: frontend
+
+      # Varias entradas del catálogo se comprueban con las pruebas de navegador.
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      # Reintroduce defectos que ya existieron y exige que la comprobación que
+      # dice cubrir cada uno se ponga en rojo por ese motivo, no por otro. Falla
+      # también si una mutación ya no se puede aplicar porque el código cambió:
+      # una mutación que no se aplica es un verde falso.
+      - name: Catálogo de mutaciones
+        run: node scripts/mutaciones.mjs
+
+  navegador:
+    name: Lo que se ve en pantalla (Playwright)
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -88,12 +122,29 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      # Reintroduce defectos que ya existieron y exige que la comprobación que
-      # dice cubrir cada uno se ponga en rojo por ese motivo, no por otro. Falla
-      # también si una mutación ya no se puede aplicar porque el código cambió:
-      # una mutación que no se aplica es un verde falso.
-      - name: Catálogo de mutaciones
-        run: node scripts/mutaciones.mjs
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      # Levanta el backend con NODE_ENV=test y el frontend en otro puerto, y
+      # deshace las tablas al terminar (playwright.config.ts).
+      - name: Pruebas de navegador
+        run: npm run test:e2e
+        working-directory: frontend
+
+      # La primera ejecución local dejó vacío `database/schema.ts`: el reset de
+      # la base lo regeneraba desde una base sin tablas. Ya no lo hace, y este
+      # paso es lo que lo diría si volviera a pasar.
+      - name: Las pruebas de navegador no tocan el esquema versionado
+        run: git diff --exit-code -- backend/database/schema.ts
+
+      - name: Guardar las trazas si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trazas-playwright
+          path: frontend/test-results/
+          retention-days: 7
 
   documentacion:
     name: La documentación corresponde con el código

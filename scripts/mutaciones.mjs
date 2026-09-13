@@ -80,6 +80,15 @@ const FIX = {
   args: ['scripts/probar-fix-con-prueba.mjs'],
   fallo: /^FALLA\b/,
 }
+const PLAYWRIGHT = {
+  nombre: 'frontend: playwright',
+  cwd: 'frontend',
+  args: ['node_modules/@playwright/test/cli.js', 'test'],
+  // La línea resumen de una prueba fallida empieza por `x` en Windows y por
+  // `✘` en Linux; la cabecera del detalle, `1) [chromium] › …`, es igual en
+  // los dos y solo sale cuando algo falla.
+  fallo: /^\s*\d+\) \[chromium\]/,
+}
 
 const CATALOGO = [
   {
@@ -244,7 +253,29 @@ const CATALOGO = [
         '  const posicion = 0',
       ],
     ],
-    muerden: [[VITEST, 'entra debajo de las en curso y encima de las pendientes']],
+    muerden: [
+      [VITEST, 'entra debajo de las en curso y encima de las pendientes'],
+      [
+        PLAYWRIGHT,
+        'la tarea creada entra debajo de lo que está en curso y la fila no salta al cambiar su estado',
+      ],
+    ],
+  },
+  {
+    id: 'H-37',
+    que: 'el suscriptor de onUnauthorized deja de cerrar la sesión y el arranque se queda cargando',
+    fichero: 'frontend/src/auth/auth-provider.tsx',
+    cambios: [['      clearSession()', '      void 0']],
+    muerden: [[PLAYWRIGHT, 'con un token revocado se llega al acceso explicando por qué']],
+  },
+  {
+    id: 'H-38',
+    que: 'un fallo de red al arrancar borra el token guardado',
+    fichero: 'frontend/src/auth/auth-provider.tsx',
+    cambios: [['        setToken(null)', '        clearSession()']],
+    muerden: [
+      [PLAYWRIGHT, 'con el servidor caído se conserva el token y la sesión vuelve al recargar'],
+    ],
   },
   {
     id: 'H-03',

@@ -17,8 +17,13 @@ const corsConfig = defineConfig({
    * In development, allow every origin to simplify local front/backend setup.
    * In production, keep an explicit allowlist (empty by default, so no
    * cross-origin browser access is allowed until configured).
+   *
+   * Y en el entorno de pruebas también: las pruebas de navegador de
+   * `frontend/e2e/` levantan el backend con `NODE_ENV=test` -para que escriba
+   * en la base de pruebas y nunca en la de desarrollo- y el frontend en otro
+   * puerto. Sin esto el navegador bloquea cada llamada. Producción no cambia.
    */
-  origin: app.inDev ? true : [],
+  origin: app.inDev || app.inTest ? true : [],
 
   /**
    * HTTP methods accepted for cross-origin requests.

@@ -66,7 +66,7 @@ Es la única capability con verificación automática.
 
 | Requisito | Por qué no la tiene |
 |---|---|
-| Los 8 requisitos de pantalla (entrada a la aplicación, errores en castellano, envío en curso, la sesión sobrevive a recargar, rutas según el estado, salir de la aplicación) | Solo se observan en navegador y no hay runner de navegador |
+| Los 8 requisitos de pantalla (entrada a la aplicación, errores en castellano, envío en curso, la sesión sobrevive a recargar, rutas según el estado, salir de la aplicación) | Solo se observan en navegador. **Dos tienen prueba desde el 2026-09-13**, en `frontend/e2e/sesion.e2e.ts`: «Recuperación de una sesión que ya no vale» (token revocado, H-37) y «Aviso cuando el servidor no está disponible» (servidor caído al arrancar, H-38). Los otros seis, sin prueba |
 
 > **La validación acumulada salió de esta tabla el 2026-09-12.** Estaba aquí como el único hueco de `auth` sin excusa: las tres pruebas de validación del registro mandan un solo campo malo cada una, así que seguían en verde si la respuesta traía solo el primer error. Ahora `signup.spec.ts` manda tres a la vez y exige los tres, cada uno con su campo.
 >
@@ -110,9 +110,9 @@ Los tres escenarios «Tarea inexistente», que viven repartidos entre tres de es
 
 **Los 15 requisitos de pantalla**: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, no tener fecha no se penaliza, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, una sola vista sin señales de presencia, el aviso al intentar crear sin un título válido, y el aviso ante una fecha que no vale.
 
-No hay runner de navegador en el proyecto y este trabajo no añade uno. Es un hueco declarado, no una omisión.
+Es un hueco declarado, no una omisión. **Desde el 2026-09-13 hay runner de navegador**, Playwright en `frontend/e2e/`, y cubre a propósito muy poco: los casos que ninguna otra prueba veía.
 
-> **Una pieza de «crear desde la lista» sí tiene prueba desde el 2026-09-13**: dónde entra la tarea recién creada -la primera de las pendientes, debajo de lo que está en curso- se sacó de la pantalla a `src/lib/lista.ts`, y la fija `lista.test.ts` en Vitest. El resto del requisito, y «la fila no salta» al cambiar un estado, siguen sin prueba; se verificaron en navegador al cerrar el change `lista-en-curso-primero`.
+> **Dos de estos requisitos tienen prueba desde ese día, en parte.** «Crear una tarea desde la lista»: dónde entra la recién creada lo fija `lista.test.ts` en Vitest y `lista.e2e.ts` en pantalla. «Cambiar el estado desde la propia fila»: que la fila no salte hasta la siguiente carga lo fija `lista.e2e.ts`. El resto de esos dos requisitos, y los otros trece, siguen sin prueba.
 
 > **Ese hueco se cerró el 2026-09-02.** Decía aquí que «Las tareas exigen sesión» solo tenía prueba sobre `POST /api/v1/tasks`. Al mirarlo era mayor y de otra forma: la prueba se llamaba «sin credencial, en todas las rutas protegidas» y su lista traía **tres de las siete**, todas de lectura. Ahora recorre las siete, y meter en la lista una ruta que no exige sesión la tumba.
 
@@ -141,7 +141,7 @@ Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD;
 
 Por orden de lo que más protege:
 
-1. Un runner de navegador, si en algún momento los 15 requisitos de pantalla dejan de ser un hueco aceptable. El de Vitest ya está, y cubre `lib/api.ts`; lo que falta es el que ve la pantalla.
+1. Extender las pruebas de navegador a los requisitos de pantalla que siguen sin prueba. El runner está desde el 2026-09-13; lo que falta es decidir cuáles merecen su coste en CI, empezando por los que protegen algo que ya se rompió una vez.
 2. Validar los 11 criterios `[PROPUESTO]` que quedan cuando se construya su historia, antes de escribir pruebas contra ellos.
 3. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
 

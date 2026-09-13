@@ -106,7 +106,7 @@ Idéntica. La base de test vive aparte, en `tmp/db-test.sqlite3`, y no está ver
 
 ## H-02 · Cero pruebas automatizadas en todo el proyecto
 
-**Severidad: alta.** **Cerrado.** De cero pruebas a una suite de backend y otra de frontend que corren en CI, con su trazabilidad requisito a requisito. Cuántas hay lo dice `CLAUDE.md`, y CI lo contrasta con lo que ejecuta el runner. El hueco que queda es otro y está declarado: no hay runner de navegador.
+**Severidad: alta.** **Cerrado.** De cero pruebas a una suite de backend, otra de frontend y pruebas de navegador, que corren en CI, con su trazabilidad requisito a requisito. Cuántas hay lo dice `CLAUDE.md`, y CI lo contrasta con lo que ejecuta el runner. El hueco que queda es otro y está declarado: no hay runner de navegador.
 
 | | Estado |
 |---|---|
@@ -1097,7 +1097,7 @@ Los nueve no son iguales, y conviene no meterlos en el mismo saco:
 
 ## H-37 · Rehidratar la sesión con un 401 depende de que otro efecto ya esté suscrito
 
-**Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Abierto**, registrado el 2026-09-12. Se resuelve en el paso del runner de navegador, que es donde se puede probar.
+**Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Vigilado** desde el 2026-09-13; registrado el 2026-09-12. La fragilidad del código sigue, a propósito, y ahora una prueba de navegador la vería.
 
 `frontend/src/auth/auth-provider.tsx:66`, en la rehidratación de la sesión al arrancar:
 
@@ -1117,6 +1117,8 @@ Ese `return` no cierra la sesión porque confía en que ya lo ha hecho el suscri
 
 **Qué lo vigilaría**: una prueba de componente o de navegador que arranque con un token revocado y exija llegar a la pantalla de acceso. Hoy, nada.
 
+**Qué lo vigila desde el 2026-09-13**: `frontend/e2e/sesion.e2e.ts`, «con un token revocado se llega al acceso explicando por qué», con Playwright y el backend real. Se vio fallar quitando el cierre de sesión del suscriptor: la página se quedó en `/tasks` sin llegar nunca a `/login`, que es exactamente el modo de fallo de arriba. Tiene entrada en el catálogo de mutaciones. No se ha tocado el código: la decisión de H-13 -un solo dueño para «una credencial rechazada cierra la sesión»- sigue en pie, y lo que faltaba era algo que se enterase si alguien la rompe.
+
 ## H-38 · Un comentario decía que el arranque no cierra la sesión, y la cierra
 
 **Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Cerrado** el 2026-09-13, el día que se encontró.
@@ -1135,6 +1137,8 @@ Es exactamente el escenario «Backend apagado al arrancar con sesión guardada»
 **El arreglo**: solo el comentario, que ahora dice qué se cierra, qué se conserva y por qué no se llama a `clearSession()`.
 
 **Por qué no tiene prueba**: el proveedor de sesión no lo monta ningún runner, que es el mismo hueco de H-37. Y lo que se arregló no es comportamiento sino una afirmación sobre él.
+
+**Desde el 2026-09-13 el comportamiento sí la tiene**: `frontend/e2e/sesion.e2e.ts`, «con el servidor caído se conserva el token y la sesión vuelve al recargar», simulando la caída con la petición de perfil cortada. Vista fallar llamando a `clearSession()` en esa rama: el token guardado pasa a `null`.
 
 ---
 
