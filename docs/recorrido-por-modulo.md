@@ -43,7 +43,7 @@ Cada celda es **inicio → fin** de esa sesión. Un guion significa que la sesi�
 
 **Ese salto es el mecanismo que produjo H-22 y los nueve defectos que volvieron.** No es una anomalía del curso: es la forma que tiene este proyecto de enseñar que un arreglo vive en una rama, no en el producto.
 
-**Diecisiete de los treinta y seis hallazgos salieron de los dos módulos que no añadieron funcionalidad.** Mirar encuentra más que construir, y eso es lo que dice este recorrido leído de arriba abajo.
+**Diecisiete de los treinta y siete hallazgos salieron de los dos módulos que no añadieron funcionalidad.** Mirar encuentra más que construir, y eso es lo que dice este recorrido leído de arriba abajo.
 
 ---
 
@@ -365,10 +365,11 @@ Actualizado el 2026-09-12. Ese día salieron dos filas: H-03, que abría esta ta
 |---|---|---|
 | **H-24** | La verificación no corre en el PR del curso | **Mitigado, no cerrado.** Corre en un PR del fork. Aprobar las ejecuciones pendientes no está en nuestra mano |
 | — | Los requisitos que solo se observan en pantalla | No hay runner de navegador. Vitest cubre `lib/api.ts`; falta el que ve la pantalla |
+| **H-37** | Rehidratar con un 401 depende de que otro efecto ya esté suscrito | **Abierto, baja.** Hoy funciona; moviendo la suscripción, la app se quedaría cargando sin error. Se resuelve con el runner de navegador |
 
 **Y dos que se cerraron aquí y conviene no dar por eternas**: el contrato tenía dos aproximaciones conviviendo y ahora tiene una, con su ADR; y el revisor adversarial pasó de «escrito y nunca visto morder» a haber encontrado un defecto real sin que nadie se lo plantara.
 
-Ninguna de las dos es deuda olvidada. **La diferencia entre un hueco conocido y una omisión es todo lo que este recorrido ha tratado de aprender.**
+Ninguna de esas filas es deuda olvidada. **La diferencia entre un hueco conocido y una omisión es todo lo que este recorrido ha tratado de aprender.**
 
 ---
 

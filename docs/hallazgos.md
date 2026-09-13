@@ -1095,6 +1095,28 @@ Los nueve no son iguales, y conviene no meterlos en el mismo saco:
 
 **Lo que no vigila**: la primera mitad de la regla. Que el bug se reprodujera antes de arreglarlo no deja rastro en el commit, y sigue siendo criterio.
 
+## H-37 · Rehidratar la sesión con un 401 depende de que otro efecto ya esté suscrito
+
+**Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Abierto**, registrado el 2026-09-12. Se resuelve en el paso del runner de navegador, que es donde se puede probar.
+
+`frontend/src/auth/auth-provider.tsx:66`, en la rehidratación de la sesión al arrancar:
+
+```ts
+if (error instanceof ApiError && error.status === 401) return
+```
+
+Ese `return` no cierra la sesión porque confía en que ya lo ha hecho el suscriptor de `onUnauthorized` (`auth-provider.tsx:102-107`), que desde H-13 es el dueño único de «una credencial rechazada cierra la sesión». Se dejó así el 2026-09-09 para no tener la misma regla escrita en dos sitios.
+
+**Lo que hoy lo sostiene**: los dos `useEffect` están en el mismo componente y corren en el mismo ciclo. La suscripción se registra antes de que la petición de perfil pueda resolverse, así que el suscriptor siempre está ahí cuando llega el 401.
+
+**Lo que lo rompería, y en silencio**: mover la suscripción a un componente que monte más tarde, a una condición, o a un hook que no siempre se use. El 401 llegaría sin nadie escuchando, el `return` no haría nada, y **`status` se quedaría en `loading` para siempre**: pantalla de carga sin error, ni en consola.
+
+**Cómo se encontró**: el revisor adversarial de CI lo señaló **dos veces**, sobre `5bb9037` y sobre `bb9e609`, con el mismo razonamiento. La segunda vez es la que lo convierte en entrada: un menor que vuelve no es ruido.
+
+**Por qué no se arregla ya**: las dos salidas obvias tienen coste. Volver a llamar a `clearSession()` en el `catch` deshace la decisión de H-13 y deja la regla en dos sitios. Hacer que el `catch` compruebe si hay suscriptor acopla el proveedor a un detalle interno de `lib/api.ts`. Lo que falta de verdad es **una prueba que lo fije**, y no hay runner que monte el proveedor: Vitest cubre `lib/api.ts` y nada más.
+
+**Qué lo vigilaría**: una prueba de componente o de navegador que arranque con un token revocado y exija llegar a la pantalla de acceso. Hoy, nada.
+
 ---
 
 # Al abrir el Módulo 5
