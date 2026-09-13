@@ -1117,6 +1117,25 @@ Ese `return` no cierra la sesión porque confía en que ya lo ha hecho el suscri
 
 **Qué lo vigilaría**: una prueba de componente o de navegador que arranque con un token revocado y exija llegar a la pantalla de acceso. Hoy, nada.
 
+## H-38 · Un comentario decía que el arranque no cierra la sesión, y la cierra
+
+**Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Cerrado** el 2026-09-13, el día que se encontró.
+
+`frontend/src/auth/auth-provider.tsx`, en la rehidratación, ante un fallo que no es 401. El comentario afirmaba «**un fallo que no sea 401 no debe cerrar la sesión**», y las tres líneas de debajo ponen el estado en `anonymous` y llevan a la pantalla de acceso.
+
+**Lo encontró el revisor de CI** sobre `916df84`, como grave de la categoría «Comentario que miente» de `REVIEW.md`. La categoría existe porque ya pasó una vez: un comentario prometía tres condiciones de vencimiento y el código comprobaba dos.
+
+**Cómo se verificó, antes de tocar nada**: el revisor leía que el comportamiento también estaba mal -«el estado en memoria y el almacenamiento quedan divergentes»-, y eso había que comprobarlo, no suponerlo. En navegador, con una cuenta de sonda:
+
+1. Token guardado y **backend apagado**: al arrancar, se llega a `/login` con «No se pudo conectar con el servidor», y **el token sigue en `localStorage`**.
+2. **Backend arrancado** y recarga: la sesión se restaura sola en `/tasks`, sin volver a entrar.
+
+Es exactamente el escenario «Backend apagado al arrancar con sesión guardada» de la spec de `auth`. **El código era correcto y el comentario no**: sí cierra la sesión en memoria; lo que conserva es el token guardado, y la divergencia que señalaba el revisor es la que el requisito pide.
+
+**El arreglo**: solo el comentario, que ahora dice qué se cierra, qué se conserva y por qué no se llama a `clearSession()`.
+
+**Por qué no tiene prueba**: el proveedor de sesión no lo monta ningún runner, que es el mismo hueco de H-37. Y lo que se arregló no es comportamiento sino una afirmación sobre él.
+
 ---
 
 # Al abrir el Módulo 5

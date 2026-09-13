@@ -66,10 +66,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error instanceof ApiError && error.status === 401) return
 
         // Lo que sí es propio del arranque, y por eso se queda: **un fallo que
-        // no sea 401 no debe cerrar la sesión**. Backend caído o error del
-        // servidor dejan el token intacto, porque puede seguir siendo bueno y
-        // basta con recargar cuando vuelva. Es la D4 del change
-        // `2026-08-26-fix-defectos-abiertos`.
+        // no sea 401 no borra el token guardado**. La sesión en memoria sí se
+        // cierra -se sale a la pantalla de acceso con el aviso-, pero el token
+        // sigue en `localStorage`, porque puede seguir siendo bueno: al recargar
+        // con el servidor de vuelta, la sesión se restaura sin volver a entrar.
+        // Por eso aquí no se llama a `clearSession()`, que lo borraría. Es la D4
+        // del change `2026-08-26-fix-defectos-abiertos` y el escenario «Backend
+        // apagado al arrancar con sesión guardada» de la spec de `auth`.
+        //
+        // Hasta el 2026-09-13 este comentario decía «no debe cerrar la sesión»,
+        // y el código de debajo la cierra: lo señaló como grave el revisor de
+        // CI. Comprobado en navegador con el backend apagado y después
+        // arrancado.
         setToken(null)
         setUser(null)
         setStatus('anonymous')
