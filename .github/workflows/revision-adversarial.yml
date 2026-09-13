@@ -359,8 +359,13 @@ jobs:
               echo "de «sin configurar». Mira si el token de \`claude setup-token\`"
               echo "ha caducado, o si la cuota de la suscripción está agotada."
               echo
+              # Los dos ficheros también aquí, por lo mismo que en el log. Hasta
+              # el 2026-09-13 el resumen solo leía `error.txt`, y con un token
+              # inválido -`401 Invalid bearer token`, que el CLI escribe en
+              # stdout- el bloque salía vacío. Es H-39.
               echo '```'
-              tail -c 2000 /tmp/error.txt
+              tail -c 2000 /tmp/error.txt || true
+              tail -c 2000 /tmp/informe.md || true
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
