@@ -206,7 +206,7 @@ const CATALOGO = [
     cambios: [
       ['let contrato: Promise<string> | null = null', 'let contrato: string | null = null'],
       [
-        'export function contratoServido(): Promise<string> {\n  contrato ??= openapi\n    .buildDocument()\n    .then((documento) => JSON.stringify(documento))\n    .catch((error) => {\n      contrato = null\n      throw error\n    })\n  return contrato\n}',
+        'export function contratoServido(): Promise<string> {\n  contrato ??= openapi.buildDocument().then((documento) => JSON.stringify(documento))\n  return contrato\n}',
         'export async function contratoServido(): Promise<string> {\n  contrato ??= JSON.stringify(await openapi.buildDocument())\n  return contrato\n}',
       ],
     ],

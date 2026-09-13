@@ -28,17 +28,15 @@ let contrato: Promise<string> | null = null
  * espera a la misma construcción en vez de lanzar otra. Cacheando el texto,
  * dos construcciones solapadas salían las dos con parámetros repetidos (H-35).
  *
- * Si la construcción falla se vacía la caché, para que el fallo no quede
- * servido durante toda la vida del proceso.
+ * Si la construcción falla, **el fallo se queda** hasta reiniciar el proceso,
+ * a propósito. Vaciar la caché para reintentar parece más amable y es peor: la
+ * construcción fallida ya acumuló metadata, y el reintento responde `200` con
+ * parámetros repetidos, que es H-26 servido en silencio. Medido el 2026-09-12:
+ * fallo en el primer intento, `200` con tres repetidos en el segundo. Un `500`
+ * se nota; un contrato inválido con `200`, no.
  */
 export function contratoServido(): Promise<string> {
-  contrato ??= openapi
-    .buildDocument()
-    .then((documento) => JSON.stringify(documento))
-    .catch((error) => {
-      contrato = null
-      throw error
-    })
+  contrato ??= openapi.buildDocument().then((documento) => JSON.stringify(documento))
   return contrato
 }
 
