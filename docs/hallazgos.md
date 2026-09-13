@@ -54,7 +54,7 @@ Qué encontró cada módulo. La atribución sale del commit que introdujo cada e
 | H-21 | El orden de validación difiere entre controladores | Baja | **Resuelto (2026-09-02)** · ADR-0006 |
 | H-22 | La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama | Alta | **Resuelto (2026-09-02)** |
 | H-23 | Cuatro rutas de `auth` están fuera del contrato generado | Media | **Resuelto (2026-09-09)** |
-| H-24 | La verificación nunca ha corrido en el repositorio donde vive el PR | Alta | **Abierto** · mitigado en el fork; aprobar las ejecuciones depende de los mantenedores del curso |
+| H-24 | La verificación nunca ha corrido en el repositorio donde vive el PR | Alta | Aceptado por los mantenedores (2026-09-13) · los PR se quedan abiertos y los resultados se leen en el fork |
 | H-25 | El contrato versionado declaraba públicas dos rutas protegidas | Alta | **Resuelto (2026-09-08)** |
 | H-26 | El documento servido en `/api.json` crece en cada petición | Media | **Resuelto (2026-09-09)** |
 | H-27 | La puerta del revisor buscaba el PR con una consulta que nunca encuentra nada | Alta | **Resuelto (2026-09-09)** |
@@ -71,7 +71,7 @@ Qué encontró cada módulo. La atribución sale del commit que introdujo cada e
 | H-38 | Un comentario decía que el arranque no cierra la sesión, y la cierra | Baja | **Resuelto (2026-09-13)** |
 | H-39 | El resumen del revisor daba vacío el diagnóstico de una credencial rota | Baja | **Resuelto (2026-09-13)** |
 
-> **Estado del registro al cerrar el proyecto, 2026-09-13.** De 39 hallazgos: **uno abierto**, H-24, que no depende del código; **dos vigilados**, H-09 y H-37, cuya fragilidad sigue a propósito con algo que la vería; **cuatro con los que se convive por decisión**, H-04, H-06, H-10 y H-12; y **32 resueltos**. Revisado entrada a entrada contra su cabecera, porque hasta ese día este índice decía «Abierto» en H-07 y H-23, cerrados cuatro días antes, y no llegaba más allá de H-23.
+> **Estado del registro al cerrar el proyecto, 2026-09-13.** De 39 hallazgos: **ninguno abierto**; **dos vigilados**, H-09 y H-37, cuya fragilidad sigue a propósito con algo que la vería; **cinco con los que se convive por decisión**, H-04, H-06, H-10 y H-12, y H-24, que decidieron los mantenedores del curso; y **32 resueltos**. Revisado entrada a entrada contra su cabecera, porque hasta ese día este índice decía «Abierto» en H-07 y H-23, cerrados cuatro días antes, y no llegaba más allá de H-23.
 
 > **Al abrir el Módulo 5**, la comprobación contra `s5/start` dice que **seis de los siete** vuelven rotos: H-11, H-13, H-14, H-15, H-16 y H-19. Solo H-17 llega arreglado. Evidencia y plan de acción de cada uno en la sección «Al abrir el Módulo 5», más abajo.
 
@@ -689,7 +689,7 @@ Dos cosas quedaron documentadas **como son y no como deberían ser**, que es lo 
 
 ## H-24 · La verificación nunca ha corrido en el repositorio donde vive el PR
 
-**Rama: todas. Severidad: alta.** Abierto. Encontrado en la Demo 1 del Módulo 5.
+**Rama: todas. Severidad: alta.** **Aceptado por los mantenedores del curso** el 2026-09-13; abierto hasta ese día. Encontrado en la Demo 1 del Módulo 5.
 
 `verificacion.yml` dispara en `pull_request` y bloquea. Pero nuestros PR son **cross-repo**: salen de `rene2bcore` y apuntan a `LIDR-academy`, así que el workflow lo ejecuta el repositorio del curso, y allí GitHub exige que un mantenedor del repositorio base apruebe cada ejecución. Ninguna se ha aprobado.
 
@@ -738,6 +738,10 @@ Se comprobó en las dos direcciones, que es lo que la hace contar:
 Es decir: el evento no solo corre, **muerde**. Y encontró en su primera ejecución un defecto que el verde en local no podía ver.
 
 **Lo que la mitigación no resuelve**: el PR que el curso mira sigue siendo el de `LIDR-academy`, y ahí los checks siguen sin correr. Son dos PR para el mismo cambio, uno donde se ejecuta y otro donde se lee. Cerrarlo del todo depende de que un mantenedor del repositorio base apruebe las ejecuciones, y eso no está en nuestra mano.
+
+**La respuesta de los mantenedores, 2026-09-13.** Los PR **se quedan abiertos donde están y no se fusionan**: es un ejercicio repartido entre más de treinta personas. Lo que les sirve es poder ver los resultados de las pruebas automatizadas, y eso ya lo tienen en las ejecuciones del fork. No se aprueban las del curso: ese mismo día, las 50 de `feat/sesion-5-guardarrailes` allí seguían en `action_required`.
+
+Así que el hallazgo no se cierra: **se acepta**, y por quien tenía que decidirlo. El hecho sigue en pie -el PR que se lee no lleva checks- y deja de ser un pendiente.
 
 ## H-25 · El contrato versionado declaraba públicas dos rutas protegidas
 

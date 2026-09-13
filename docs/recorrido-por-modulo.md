@@ -363,8 +363,8 @@ Actualizado el 2026-09-13. El 2026-09-12 salieron H-03, que abría esta tabla de
 
 | | Qué | Estado |
 |---|---|---|
-| **H-24** | La verificación no corre en el PR del curso | **Mitigado, no cerrado.** Corre en el fork sobre cada `push`. Aprobar las ejecuciones pendientes es de los mantenedores del curso |
-| — | Los seis PR abiertos en el repositorio del curso | **Pendientes de revisión** por los mantenedores. No se cierran ni se fusionan desde aquí |
+| **H-24** | La verificación no corre en el PR del curso | **Aceptado por los mantenedores el 2026-09-13.** Corre en el fork sobre cada `push`, y es ahí donde se leen los resultados. Las ejecuciones del curso no se aprueban |
+| — | Los seis PR abiertos en el repositorio del curso | **Se quedan abiertos, por decisión de los mantenedores.** Es un ejercicio de más de treinta personas y no se fusionan |
 | — | Los requisitos que solo se observan en pantalla | **Reducido, no cerrado.** Hay Playwright desde el 2026-09-13, con los pocos casos que nada más veía. La mayoría de los requisitos de pantalla siguen sin prueba, y cuáles está en `docs/trazabilidad.md` |
 
 **Y dos que se cerraron aquí y conviene no dar por eternas**: el contrato tenía dos aproximaciones conviviendo y ahora tiene una, con su ADR; y el revisor adversarial pasó de «escrito y nunca visto morder» a haber encontrado un defecto real sin que nadie se lo plantara.
@@ -382,7 +382,7 @@ Lo que el sistema tiene al cerrarse, y todo corre en CI en cada push:
 - **Reglas de proceso bajadas a código**: el hook de rama (R-01), el `fix:` sin prueba (R-08), el `pipefail` en los workflows (R-06).
 - **El contrato generado y vigilado**, el verificador de la documentación, y el revisor adversarial en cada cambio propuesto.
 
-Y el registro de hallazgos cierra con **uno abierto de 39**, H-24, que no se arregla con código.
+Y el registro de hallazgos cierra con **ninguno abierto de 39**. El último, H-24, no se arregló con código: lo aceptaron los mantenedores del curso, que eran quienes podían decidirlo.
 
 ---
 
