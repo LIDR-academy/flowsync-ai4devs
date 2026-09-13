@@ -72,7 +72,7 @@ Es el tipo de hueco que solo aparece al traducir requisitos a historias, y es un
 
 **Cuántos criterios de aceptación están cubiertos por pruebas.** Eso está en [`docs/trazabilidad.md`](trazabilidad.md), requisito a requisito, con los huecos declarados: de los requisitos de sistema de `tasks` los tiene todos, y los que solo se observan en pantalla no, porque no hay runner de navegador.
 
-**Cuáles de los criterios están validados.** **27 de los 118** siguen marcados `[PROPUESTO]`: no derivan del PRD, cubren huecos detectados al redactarlos, y están pendientes de validación. Escribir una prueba contra un criterio propuesto fija como contrato algo que nadie ha aprobado, así que el orden es validarlo primero. El recuento está en [`docs/trazabilidad.md`](trazabilidad.md).
+**Cuáles de los criterios están validados.** Los marcados `[PROPUESTO]` no derivan del PRD: cubren huecos detectados al redactarlos. Los de historias construidas se contrastaron el 2026-09-13 y pasaron a `[VALIDADO]`; los que siguen propuestos son de historias que todavía no existen. Escribir una prueba contra un criterio propuesto fija como contrato algo que nadie ha aprobado, así que el orden es validarlo primero. El recuento está en [`docs/trazabilidad.md`](trazabilidad.md).
 
 **Una nota sobre la numeración**, que es irregular y conviene no dar por buena: las historias de E2 van `E2-1` a `E2-7` y `E2-10`, con hueco en medio, y dos llevan identificadores de otro esquema -`FS-118` y `FS-142`- porque entraron por otra vía. El backlog es el registro de lo que se decidió, no una lista renumerada a posteriori.
 

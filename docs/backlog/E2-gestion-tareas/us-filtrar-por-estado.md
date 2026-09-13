@@ -8,7 +8,7 @@
 
 > Como miembro del equipo, quiero filtrar la lista por estado, para centrarme en lo pendiente sin que lo ya terminado me estorbe.
 
-> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos.
+> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos. Los marcados **[VALIDADO]** se contrastaron el 2026-09-13 contra la spec viva, el código y las pruebas.
 
 ---
 
@@ -32,7 +32,8 @@ DADO que hay tareas hechas, que por defecto no se ven
 CUANDO filtro por «Hecho»
 ENTONCES aparecen todas ellas.
 
-**CA-4 — Quitar el filtro devuelve a la vista por defecto** · **[PROPUESTO]**
+**CA-4 — Quitar el filtro devuelve a la vista por defecto** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisitos «Una sola lista compartida del espacio» y «El control para acotar la lista»: sin acotar no es «Todas», con prueba en `filtro.spec.ts`.*
 DADO que tengo aplicado un filtro
 CUANDO lo quito
 ENTONCES vuelvo a ver pendientes y en curso, sin las hechas
@@ -74,7 +75,8 @@ ENTONCES se me avisa de que ese filtro no es válido
 Y **no** se me devuelve una lista vacía en silencio
 Y se me ofrece volver a la vista por defecto.
 
-**CA-10 — El aviso distingue el error de la ausencia** · **[PROPUESTO]**
+**CA-10 — El aviso distingue el error de la ausencia** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisito «Una lista sin filas no significa siempre lo mismo», sobre el `422` que `filtro.spec.ts` distingue de la lista vacía.*
 DADO que se me ha avisado de un filtro no válido
 CUANDO leo el mensaje
 ENTONCES entiendo que el problema es lo que he pedido, no que el equipo no tenga trabajo en ese estado.
@@ -96,7 +98,8 @@ ENTONCES aparece en mi vista sin que yo haga nada.
 
 *Motivo de la propuesta de CA-11 y CA-12: el PRD define el filtro y la lista viva por separado y nunca dice qué ocurre cuando se cruzan. Sin esto, el comportamiento razonable —que el filtro siga siendo cierto en todo momento— queda sin escribir.*
 
-**CA-13 — Filtrar es una lente mía, no un cambio para todos** · **[PROPUESTO]**
+**CA-13 — Filtrar es una lente mía, no un cambio para todos** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «El filtro es una lente mía» de «Una sola vista de tareas, sin señales de presencia»; el filtro vive en la dirección de quien mira.*
 DADO que otra persona tiene la lista abierta
 CUANDO yo aplico o quito un filtro
 ENTONCES su vista no cambia en absoluto.
@@ -116,17 +119,22 @@ CUANDO busco opciones para acotar lo que veo
 ENTONCES la única disponible es el estado
 Y no existe ninguna forma de filtrar por responsable.
 
-**CA-16 — Un solo estado a la vez** · **[PROPUESTO]**
+**CA-16 — Un solo estado a la vez** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisito «El control para acotar la lista»: un solo estado a la vez, y el validador admite exactamente uno.*
 DADO que estoy filtrando por «Pendiente»
 CUANDO filtro por «En curso»
 ENTONCES sustituyo el filtro anterior en lugar de sumarlo.
 
 *Motivo de la propuesta: la vista por defecto ya muestra dos estados a la vez, así que sin decir esto queda ambiguo si el filtro admite selección múltiple. Se propone que no: la vista por defecto no es un filtro, es la ausencia de uno.*
 
-**CA-17 — El filtro no se queda pegado** · **[PROPUESTO]**
+**CA-17 — El filtro no se queda pegado** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: reformulado ese día. La versión anterior decía «cuando recargo», y recargar una dirección que ya lleva el estado lo conserva, que es lo que exige CA-9. Ver H-34.*
 DADO que he filtrado por «Hecho»
-CUANDO recargo o vuelvo a entrar más tarde
-ENTONCES aparezco en la vista por defecto, no en el filtro que dejé puesto.
+CUANDO vuelvo a entrar en la lista más tarde, sin el estado en la dirección
+ENTONCES aparezco en la vista por defecto, no en el filtro que dejé puesto
+Y ningún estado del filtro se guarda en el navegador para la próxima vez.
+
+Recargar una dirección que ya lleva el estado lo conserva: eso no es quedarse pegado, es CA-9 funcionando.
 
 *Motivo de la propuesta: es el riesgo de obsolescencia disfrazado. Quien se deje puesto «Hecho» y vuelva por la mañana verá una foto falsa del equipo y creerá que nadie está haciendo nada. Que el estado de partida sea siempre el mismo protege la promesa del producto.*
 

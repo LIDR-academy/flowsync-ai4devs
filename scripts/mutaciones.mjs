@@ -197,6 +197,27 @@ const CATALOGO = [
     ],
   },
   {
+    id: 'CA-13-fechas',
+    que: 'la API empieza a rechazar una fecha de vencimiento ya pasada',
+    fichero: 'backend/app/controllers/task_due_dates_controller.ts',
+    cambios: [
+      [
+        'async update({ params, request, serialize }',
+        'async update({ params, request, response, serialize }',
+      ],
+      [
+        '    const task = await Task.findOrFail(params.id)\n',
+        "    const task = await Task.findOrFail(params.id)\n    if (dueDate !== null && toCalendarDay(dueDate) < toCalendarDay(today)) return response.unprocessableEntity({ errors: [{ field: 'dueDate', rule: 'afterOrEqual', message: 'pasada' }] })\n",
+      ],
+    ],
+    muerden: [
+      [
+        pruebas('vencimiento'),
+        'una fecha ya pasada se acepta y la tarea vence en la misma respuesta',
+      ],
+    ],
+  },
+  {
     id: 'PA-3-orden',
     que: 'la lista vuelve a mezclar en curso y pendientes por recencia',
     fichero: 'backend/app/controllers/tasks_controller.ts',

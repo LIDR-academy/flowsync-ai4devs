@@ -8,7 +8,7 @@
 
 > Como miembro del equipo, quiero crear una tarea escribiendo únicamente su título, para que anotar en qué ando cueste segundos y no me frene un formulario.
 
-> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos.
+> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos. Los marcados **[VALIDADO]** se contrastaron el 2026-09-13 contra la spec viva, el código y las pruebas.
 
 ---
 
@@ -30,7 +30,8 @@ Y no se me ofrece ni se me sugiere indicar responsable, estado, fecha ni ningún
 
 ### Lo que ocurre justo después
 
-**CA-3 — La tarea recién creada se ve sin volver a pedirla** · **[PROPUESTO]**
+**CA-3 — La tarea recién creada se ve sin volver a pedirla** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisito «Crear una tarea desde la lista»: aparece sin recargar, en su sitio, y `lista.test.ts` fija dónde entra.*
 DADO que acabo de crear una tarea
 CUANDO termino de crearla
 ENTONCES la veo ya en la lista, sin recargar ni navegar a ninguna otra parte.

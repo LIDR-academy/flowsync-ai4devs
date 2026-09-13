@@ -11,7 +11,7 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 46 | — | — | 28 | parcial, ver §2 |
-| `tasks` | 33 | 131 | 12 | 118 | 43 | 18 de 18 requisitos de sistema, ver §3 |
+| `tasks` | 33 | 131 | 12 | 118 | 44 | 18 de 18 requisitos de sistema, ver §3 |
 | transversal | — | — | — | — | 15 | 6 de forma de los errores, 2 de aislamiento de la base, 6 de nombres de regla (H-05) y 1 del documento OpenAPI servido (H-35) |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
@@ -74,7 +74,7 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 33 requisitos, 131 escenarios, 43 pruebas
+## 3 · `tasks` · 33 requisitos, 131 escenarios, 44 pruebas
 
 La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHALL»** y **15 por «La interfaz SHALL»**. La cuenta de cobertura se hace sobre los 17, porque el proyecto no tiene runner de navegador y los otros 15 no son un hueco que estas pruebas puedan llenar.
 
@@ -95,7 +95,7 @@ La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHAL
 | Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna; `filtro.spec.ts` · una tarea marcada como hecha por error se recupera desde el filtro. **Hasta el 2026-09-13 ninguna prueba cambiaba una tarea desde `done`**: el escenario «Vuelta atrás desde hecho» estaba sin cubrir en un requisito que esta tabla contaba como cubierto, porque cuenta requisitos y no escenarios |
 | Las tareas exigen sesión | `errores.spec.ts` · las **siete** rutas protegidas sin credencial, más `creacion.spec.ts` |
 | Fecha de vencimiento opcional | `vencimiento.spec.ts` y `creacion.spec.ts` · nace sin fecha, y sin fecha no vence |
-| Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar, retirar, y una fecha imposible que se rechaza conservando la anterior; `lista_compartida.spec.ts` · sobre una tarea ajena |
+| Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar, retirar, una fecha ya pasada que se acepta y vence en la misma respuesta, y una fecha imposible que se rechaza conservando la anterior; `lista_compartida.spec.ts` · sobre una tarea ajena |
 | Cuándo una tarea está vencida | `vencimiento.spec.ts` · las tres condiciones y el borde estricto |
 | El día de referencia lo pone quien mira | `vencimiento.spec.ts` · obligatorio, y validado contra el calendario |
 | Consulta de una tarea suelta | `vencimiento.spec.ts`, `assignee.spec.ts`, `inexistente.spec.ts` |
@@ -118,18 +118,20 @@ No hay runner de navegador en el proyecto y este trabajo no añade uno. Es un hu
 
 ## 4 · Criterios marcados `[PROPUESTO]`
 
-27 de los 118 criterios llevan la marca `[PROPUESTO]`: no derivan del PRD, sino que cubren huecos detectados al redactarlos y **siguen pendientes de validación**.
+De los 118 criterios, **27 llevaban la marca `[PROPUESTO]`**: no derivan del PRD, sino que cubren huecos detectados al redactarlos.
 
-| Historia | Criterios propuestos |
-|---|---:|
-| `us-fechas-vencimiento` | 8 |
-| `us-filtrar-por-estado` | 8 |
-| `us-borrar-tarea` | 2 |
-| `us-reasignar-responsable` | 2 |
-| `us-lista-viva` | 2 |
-| `us-abrir-tarea`, `us-crear-tarea`, `us-editar-titulo`, `us-lista-compartida`, `us-titulo-obligatorio` | 1 cada uno |
+**El 2026-09-13 se contrastaron los 20 de historias construidas** contra la spec viva, el código y las pruebas: **16 quedan `[VALIDADO]`**, cada uno con la evidencia escrita debajo, y **uno de ellos reformulado**, el CA-17 del filtro, porque decía «cuando recargo» y lo construido conserva el filtro al recargar su dirección, que es lo que exige CA-9. Al validar CA-13 de fechas apareció que ninguna prueba mandaba una fecha pasada por la API; ahora `vencimiento.spec.ts` lo hace.
 
-Importa para la trazabilidad porque **una prueba escrita contra un criterio propuesto fija como contrato algo que nadie ha aprobado**. Los dos con más carga, vencimiento y filtro, son justamente los que más código nuevo tienen detrás.
+| Historia | Validados | Siguen propuestos | Por qué siguen |
+|---|---:|---:|---|
+| `us-fechas-vencimiento` | 7 | 1 | CA-18 depende de reasignar (E2-7) |
+| `us-filtrar-por-estado` | 5 | 3 | CA-11, CA-12 y CA-14 dependen de la lista viva (E3-2) |
+| `us-abrir-tarea`, `us-crear-tarea`, `us-titulo-obligatorio`, `us-lista-compartida` | 1 cada una | 0 | |
+| `us-borrar-tarea`, `us-reasignar-responsable`, `us-lista-viva`, `us-editar-titulo` | 0 | 7 | Historias sin construir |
+
+Quedan **11 propuestos**, todos de algo que no existe todavía.
+
+Importa para la trazabilidad porque **una prueba escrita contra un criterio propuesto fija como contrato algo que nadie ha aprobado**. Y conviene decirlo: en vencimiento y filtro las pruebas llegaron **antes** que la validación. No fijaron nada sin aprobar porque se escribieron contra la spec viva, que ya los recogía; la validación del 2026-09-13 lo que hace es ratificar que la spec y el backlog dicen lo mismo.
 
 Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD; los propuestos, solo después de validarse.
 
@@ -140,7 +142,7 @@ Al escribir pruebas, la regla es: primero los criterios que sí derivan del PRD;
 Por orden de lo que más protege:
 
 1. Un runner de navegador, si en algún momento los 15 requisitos de pantalla dejan de ser un hueco aceptable. El de Vitest ya está, y cubre `lib/api.ts`; lo que falta es el que ve la pantalla.
-2. Validar o descartar los 27 criterios `[PROPUESTO]` antes de escribir pruebas contra ellos.
+2. Validar los 11 criterios `[PROPUESTO]` que quedan cuando se construya su historia, antes de escribir pruebas contra ellos.
 3. Corregir en el backlog las tres historias que son criterios, para que la cadena no arranque torcida.
 
 Lo que **no** se propone: perseguir un porcentaje de cobertura. La métrica de esta matriz es qué escenario de la spec está cubierto, no qué línea se ejecuta.

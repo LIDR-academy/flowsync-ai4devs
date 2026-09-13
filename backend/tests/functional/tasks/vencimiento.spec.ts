@@ -103,6 +103,28 @@ test.group('Tasks | vencimiento', (group) => {
     assert.isFalse(tarea(despues).isOverdue)
   })
 
+  /**
+   * Escenario «Una fecha ya pasada se acepta», y CA-13 de la historia de
+   * fechas, validado el 2026-09-13. Hasta ese día las pruebas creaban tareas
+   * vencidas **por el modelo**, y ninguna mandaba una fecha pasada por la API:
+   * un validador que las rechazara habría dejado la suite en verde.
+   */
+  test('una fecha ya pasada se acepta y la tarea vence en la misma respuesta', async ({
+    client,
+    assert,
+  }) => {
+    const { usuario, creada } = await tareaCon(null, 'pending')
+
+    const respuesta = await client
+      .put(`/api/v1/tasks/${creada.id}/due-date`)
+      .json({ today: '2026-08-26', dueDate: '2026-08-20' })
+      .loginAs(usuario)
+
+    respuesta.assertStatus(200)
+    assert.equal(tarea(respuesta).dueDate, '2026-08-20')
+    assert.isTrue(tarea(respuesta).isOverdue)
+  })
+
   test('aplazarla la deja de vencer sin tener que volver a preguntar', async ({
     client,
     assert,
