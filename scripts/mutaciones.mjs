@@ -186,6 +186,17 @@ const CATALOGO = [
     ],
   },
   {
+    id: 'PA-7',
+    que: 'una tarea marcada como hecha deja de poder volver atrás',
+    fichero: 'backend/app/controllers/task_statuses_controller.ts',
+    cambios: [
+      ['    task.status = status\n', "    if (task.status !== 'done') task.status = status\n"],
+    ],
+    muerden: [
+      [pruebas('filtro'), 'una tarea marcada como hecha por error se recupera desde el filtro'],
+    ],
+  },
+  {
     id: 'H-03',
     que: 'el cierre de sesión vuelve a responder sin envoltorio',
     fichero: 'backend/app/controllers/access_tokens_controller.ts',

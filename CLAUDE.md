@@ -26,7 +26,7 @@ npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **84 pruebas functional**: 28 de `auth`, 41 de `tasks`, 6 de errores, 2 de aislamiento de la base, 6 que fijan los nombres de regla que el frontend traduce (H-05) y 1 sobre el documento OpenAPI servido (H-35). **`tests/unit/` no existe.** Qué escenario cubre cada una en `docs/trazabilidad.md`. **Este es el único sitio que da el número**, y CI lo contrasta con lo que ejecuta Japa (`scripts/recuento-pruebas.mjs`): al añadir una prueba, se actualiza aquí, total y desglose.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **85 pruebas functional**: 28 de `auth`, 42 de `tasks`, 6 de errores, 2 de aislamiento de la base, 6 que fijan los nombres de regla que el frontend traduce (H-05) y 1 sobre el documento OpenAPI servido (H-35). **`tests/unit/` no existe.** Qué escenario cubre cada una en `docs/trazabilidad.md`. **Este es el único sitio que da el número**, y CI lo contrasta con lo que ejecuta Japa (`scripts/recuento-pruebas.mjs`): al añadir una prueba, se actualiza aquí, total y desglose.
 
 Los ficheros de prueba declaran `group.each.setup(() => testUtils.db().withGlobalTransaction())`, que aísla un caso de otro dentro de la misma ejecución. Mantenlo al escribir uno nuevo.
 

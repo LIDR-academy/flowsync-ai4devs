@@ -129,6 +129,49 @@ test.group('Tasks | filtro por estado', (group) => {
     assert.notInclude(estados, 'done')
   })
 
+  /**
+   * El escenario «Vuelta atrás desde hecho» de «Cambio de estado de cualquier
+   * tarea», y la respuesta que el PRD ratificó para PA-7 el 2026-09-13: se
+   * puede volver de «Hecho», y el camino de vuelta es el filtro. Hasta ese día
+   * ninguna prueba cambiaba una tarea **desde** `done`; todas iban hacia él.
+   *
+   * Se recorre el camino entero de quien se equivocó, y no solo el `PATCH`:
+   * sale de la vista por defecto, se encuentra acotando por «Hecho», se
+   * devuelve a pendiente y vuelve a la vista por defecto.
+   */
+  test('una tarea marcada como hecha por error se recupera desde el filtro', async ({
+    client,
+    assert,
+  }) => {
+    const usuario = await espacioConTareas()
+
+    const porDefecto = await client.get('/api/v1/tasks').loginAs(usuario)
+    assert.notInclude(
+      tareas(porDefecto).map((t) => t.title),
+      'Ya terminada'
+    )
+
+    const hechas = await client.get('/api/v1/tasks').qs({ status: 'done' }).loginAs(usuario)
+    const [porError] = tareas(hechas)
+    assert.equal(porError.title, 'Ya terminada')
+
+    for (const destino of ['in_progress', 'pending'] as const) {
+      const vuelta = await client
+        .patch(`/api/v1/tasks/${porError.id}/status`)
+        .json({ status: destino })
+        .loginAs(usuario)
+      vuelta.assertStatus(200)
+      const guardada = await Task.findOrFail(porError.id)
+      assert.equal(guardada.status, destino)
+    }
+
+    const recuperada = await client.get('/api/v1/tasks').loginAs(usuario)
+    assert.include(
+      tareas(recuperada).map((t) => t.title),
+      'Ya terminada'
+    )
+  })
+
   test('acotar es solo lectura: ninguna tarea cambia por consultarla', async ({
     client,
     assert,

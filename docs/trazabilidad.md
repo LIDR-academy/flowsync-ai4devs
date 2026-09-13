@@ -11,7 +11,7 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 46 | — | — | 28 | parcial, ver §2 |
-| `tasks` | 33 | 127 | 12 | 118 | 41 | 18 de 18 requisitos de sistema, ver §3 |
+| `tasks` | 33 | 127 | 12 | 118 | 42 | 18 de 18 requisitos de sistema, ver §3 |
 | transversal | — | — | — | — | 15 | 6 de forma de los errores, 2 de aislamiento de la base, 6 de nombres de regla (H-05) y 1 del documento OpenAPI servido (H-35) |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
@@ -74,7 +74,7 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 33 requisitos, 127 escenarios, 41 pruebas
+## 3 · `tasks` · 33 requisitos, 127 escenarios, 42 pruebas
 
 La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHALL»** y **15 por «La interfaz SHALL»**. La cuenta de cobertura se hace sobre los 17, porque el proyecto no tiene runner de navegador y los otros 15 no son un hueco que estas pruebas puedan llenar.
 
@@ -92,7 +92,7 @@ La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHAL
 | Una sola lista compartida del espacio | `lista_compartida.spec.ts` · mismo conjunto, con y sin filtro, y el orden acordado |
 | Lo que cada tarea muestra de su responsable | `assignee.spec.ts` · conjunto cerrado de campos, en lista y en tarea suelta |
 | Tres estados fijos | `filtro.spec.ts` · el cambio de estado tampoco admite valores fuera del conjunto |
-| Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna |
+| Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna; `filtro.spec.ts` · una tarea marcada como hecha por error se recupera desde el filtro. **Hasta el 2026-09-13 ninguna prueba cambiaba una tarea desde `done`**: el escenario «Vuelta atrás desde hecho» estaba sin cubrir en un requisito que esta tabla contaba como cubierto, porque cuenta requisitos y no escenarios |
 | Las tareas exigen sesión | `errores.spec.ts` · las **siete** rutas protegidas sin credencial, más `creacion.spec.ts` |
 | Fecha de vencimiento opcional | `vencimiento.spec.ts` y `creacion.spec.ts` · nace sin fecha, y sin fecha no vence |
 | Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar, retirar, y una fecha imposible que se rechaza conservando la anterior; `lista_compartida.spec.ts` · sobre una tarea ajena |

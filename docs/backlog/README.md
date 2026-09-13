@@ -72,10 +72,10 @@ Condicionan cuándo se puede cerrar el trabajo, y ninguno se resuelve dentro de 
 | Bloqueo | Efecto |
 |---|---|
 | **No hay base de pruebas** (R-7) | No impide escribir código; impide **cerrar** cualquier ticket cuyo DoD pida pruebas |
-| **La vista de detalle no está contabilizada** (PA-6) | Prerrequisito de FS-118.4, y la razón por la que E2-5 no se puede descomponer todavía |
+| ~~**La vista de detalle no está contabilizada** (PA-6)~~ | **Resuelto en lo que tocaba a E2-5**, 2026-09-13: la pantalla de una tarea está construida. De PA-6 siguen abiertas las superficies de elegir persona (E2-7) y de aviso de frescura (E3-2) |
 | **Contradicción CA-9 / CA-17** (PA abierto en FS-142) | Decisión de producto sin tomar. Bloquea FS-142.1 |
 | **Sin regla de orden ni agrupación de la lista** (PA-3) | E3-1 promete enumerar el trabajo de cada persona, y sin orden esa promesa no se sostiene al crecer |
-| **Sin decisión sobre el choque de ediciones** (PA-8) | Lo provocan E2-7, E2-10 y E3-2 a la vez; cada implementación lo resolvería distinto |
+| **Sin decisión sobre el choque de ediciones** (PA-8) | Lo provocan E2-6, E2-7, E2-10 y E3-2; cada implementación lo resolvería distinto. **Desde el 2026-09-13 es regla escrita en el PRD**: el comportamiento visible se decide antes de construir cualquiera de las cuatro. Hasta entonces gana la última escritura, sin aviso |
 
 > **Ya no son bloqueos, son trabajo.** La lista compartida y la lista viva figuraban aquí como ausencias del sustrato. Ahora son **E3-1** y **E3-2**, con criterios y sitio en el orden. Un bloqueo que se puede escribir como historia deja de ser un bloqueo.
 
