@@ -13,6 +13,7 @@
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -236,7 +237,9 @@ comprobar('AGENTS.md se puede leer en cualquier sistema', () => {
 
   const modo = entrada.split(/\s+/)[0]
   if (modo === '120000') {
-    throw new Error('AGENTS.md ha vuelto a ser un symlink: en Windows se lee como texto suelto (H-08)')
+    throw new Error(
+      'AGENTS.md ha vuelto a ser un symlink: en Windows se lee como texto suelto (H-08)'
+    )
   }
 
   const contenido = leer('AGENTS.md')
@@ -403,7 +406,9 @@ comprobar('Toda operación decorada declara el error que no estaba previsto', ()
     throw new Error(`fuera del contrato, sin declarar: ${inesperados.join(', ')}`)
   }
   if (yaDecorados.length) {
-    throw new Error(`ya no están fuera del contrato, quítalos de HUECO_CONOCIDO: ${yaDecorados.join(', ')}`)
+    throw new Error(
+      `ya no están fuera del contrato, quítalos de HUECO_CONOCIDO: ${yaDecorados.join(', ')}`
+    )
   }
 
   // Esto es aviso temprano, no la garantía. La garantía es la prueba, que
@@ -838,6 +843,53 @@ comprobar('Los documentos que el README enlaza existen', () => {
   if (faltan.length) throw new Error(`faltan: ${faltan.join(', ')}`)
 
   return `${new Set(enlaces).size} enlaces del README`
+})
+
+comprobar('Toda tubería de un workflow declara pipefail', () => {
+  // R-06: se verifica por código de salida, nunca por la última línea. Una
+  // tubería devuelve el código de su último comando, así que `npm test | tee`
+  // sale 0 aunque la suite falle. En Actions, un `run:` sin `shell:` explícito
+  // corre con `bash -e`, **sin** `pipefail`: la tubería tapa el rojo en
+  // silencio. Ya pasó tres veces fuera de CI -un `tail -1` que se comió el
+  // error del lint, el `$?` de un `tail` en ADR-0007, `gh run list` leyendo
+  // veinte filas-, y esta es la parte de la regla que sí se puede computar.
+  //
+  // Se leen los workflows como YAML, no con expresiones regulares sobre el
+  // fichero, y se quitan comentarios y cadenas entre comillas antes de buscar
+  // la tubería: el `|` de un filtro de `jq` no es una tubería del shell.
+  const YAML = createRequire(join(RAIZ, 'backend', 'package.json'))('yaml')
+  const directorio = join(RAIZ, '.github', 'workflows')
+  const conTuberia = /(^|[^|])\|(?!\|)/
+  const sinCadenas = (linea) =>
+    linea
+      .replace(/'[^']*'/g, "''")
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/(^|\s)#.*$/, '$1')
+
+  let revisados = 0
+  const sinPipefail = []
+  for (const fichero of readdirSync(directorio).filter((f) => /\.ya?ml$/.test(f))) {
+    const workflow = YAML.parse(leer(`.github/workflows/${fichero}`))
+    for (const [idJob, job] of Object.entries(workflow.jobs ?? {})) {
+      for (const [i, paso] of (job.steps ?? []).entries()) {
+        if (typeof paso.run !== 'string') continue
+        const shell = paso.shell ?? job.defaults?.run?.shell ?? workflow.defaults?.run?.shell
+        // Con `shell: bash` explícito Actions ya añade `-o pipefail`.
+        if (shell === 'bash') continue
+        const lineas = paso.run.split('\n').map(sinCadenas)
+        if (!lineas.some((l) => conTuberia.test(l))) continue
+        revisados++
+        if (!/\bset\s+-[a-z]*o\s+pipefail\b|\bset\s+-o\s+pipefail\b/.test(paso.run)) {
+          sinPipefail.push(`${fichero} · ${idJob} · ${paso.name ?? `paso ${i + 1}`}`)
+        }
+      }
+    }
+  }
+
+  if (!revisados)
+    throw new Error('no se encontró ningún paso con tubería: la lectura dejó de ver algo')
+  if (sinPipefail.length) throw new Error(`sin pipefail: ${sinPipefail.join('; ')}`)
+  return `${revisados} pasos con tubería, todos con pipefail`
 })
 
 for (const { nombre, ok, detalle } of comprobaciones) {

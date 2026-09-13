@@ -156,10 +156,15 @@ jobs:
           DESPUES: ${{ github.sha }}
           RAMA: ${{ github.ref_name }}
         run: |
+          set -o pipefail
           if git cat-file -e "$ANTES^{commit}" 2>/dev/null; then
             node scripts/fix-con-prueba.mjs "$ANTES..$DESPUES"
           else
-            otras=$(git for-each-ref --format='%(refname)' refs/remotes/origin | grep -vxF "refs/remotes/origin/$RAMA" || true)
+            # Las refs primero y aparte: si `git` falla, el paso cae aquí. Dentro
+            # de la tubería, el `|| true` del filtro lo taparía y se revisaría
+            # el historial entero.
+            refs=$(git for-each-ref --format='%(refname)' refs/remotes/origin)
+            otras=$(printf '%s\n' "$refs" | grep -vxF "refs/remotes/origin/$RAMA" || true)
             node scripts/fix-con-prueba.mjs "$DESPUES" --not $otras
           fi
 

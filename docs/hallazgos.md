@@ -1281,6 +1281,7 @@ Este documento **viaja con el proyecto**, no con la rama. Ya se perdió una vez 
 **Al empezar cada módulo:**
 
 1. Traer `docs/hallazgos.md` a la rama nueva antes de tocar nada.
+1 bis. Traer `scripts/` y ejecutar `node scripts/mutaciones.mjs`. **Desde el 2026-09-12, esta es la parte del contraste que se computa**: cada entrada del catálogo es un arreglo, y en la rama nueva sale `NO APLICA` si el código que arreglaba ya no está, o `SOBREVIVE` si está pero nada lo vigila. Las dos cosas son un hallazgo que no cruzó. De los nueve que volvieron rotos en `s5/start`, siete tienen hoy entrada en el catálogo; el runner de frontend y el `.gitignore`, no, y siguen dependiendo del paso 2.
 2. Releer las entradas abiertas y comprobar **una a una** si el defecto sigue vivo en esa rama. No suponerlo: la rama del curso llega a la misma funcionalidad por otro camino, así que algunas se arreglan solas y otras reaparecen.
 3. Marcar en cada entrada **qué rama describe** cada apartado. Un «Resuelto» sin rama es una afirmación falsa esperando a que alguien la lea.
 

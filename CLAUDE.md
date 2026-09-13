@@ -162,6 +162,11 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 - El commit sí es por petición: al cerrar cada una, usar la skill `/commit`.
 - Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el contrato y el README de esa capability al día. **Sí hay fichero que generar** desde [ADR-0007](docs/adr/0007-el-contrato-se-genera-se-versiona-y-se-vigila-la-deriva.md): `npm run openapi:generate` escribe `docs/api/openapi.json`, y `openapi:check` pone la build en rojo si se olvida. Se commitea también el diff regenerado de `.adonisjs/`; el README es `docs/capabilities/<nombre>/README.md`.
 - `gh pr create` (con una descripción completa de los cambios en el cuerpo del PR) y el pase del subagente `adversarial-reviewer` sobre ese PR van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición. El review adversarial es lo último, antes de dar la unidad por terminada.
+- **Se verifica por código de salida, nunca por la última línea impresa** (R-06). · *Fallo silencioso.*
+  `npm test; echo $?`, no `npm test | tail -1`: una tubería devuelve el código de su último comando. Pasó tres veces: un `tail -1` que se comió el error del lint, el `$?` de un `tail` al comprobar `openapi:check` ([ADR-0007](docs/adr/0007-el-contrato-se-genera-se-versiona-y-se-vigila-la-deriva.md)), y `gh run list` leyendo solo sus veinte filas por defecto ([H-24](docs/hallazgos.md)).
+  **En los workflows lo comprueba el verificador**: todo `run:` con tubería declara `set -o pipefail`, porque Actions usa `bash -e` sin él. Lo que se ejecuta en local sigue siendo criterio.
+- **Al saltar a una rama nueva del curso, los hallazgos cruzan y se comprueban uno a uno** (R-07). · *Fallo silencioso: costó nueve defectos vivos.*
+  `docs/hallazgos.md` viaja con el proyecto, no con la rama. Lo primero en la rama nueva es traerlo y ejecutar `node scripts/mutaciones.mjs`: cada `NO APLICA` o `SOBREVIVE` es un arreglo que no cruzó, y se registra antes de tocar nada. Lo que no está en el catálogo se comprueba a mano, entrada a entrada. Una tabla dio por cerrados tres hallazgos sin mirarlos ([H-22](docs/hallazgos.md)). El procedimiento completo, al final de `docs/hallazgos.md`.
 
 ### Calidad del cambio
 

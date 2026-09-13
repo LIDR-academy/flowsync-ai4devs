@@ -272,6 +272,18 @@ const CATALOGO = [
     muerden: [[VITEST, 'no avisa por un error que no es de credencial']],
   },
   {
+    id: 'R-06',
+    que: 'una tubería de CI vuelve a tapar el código de salida de la suite',
+    fichero: '.github/workflows/verificacion.yml',
+    cambios: [
+      [
+        '          set -o pipefail\n          npm test 2>&1 | tee ../salida-pruebas.txt\n          node ../scripts/recuento-pruebas.mjs backend',
+        '          npm test 2>&1 | tee ../salida-pruebas.txt\n          node ../scripts/recuento-pruebas.mjs backend',
+      ],
+    ],
+    muerden: [[VERIFICADOR, 'Toda tubería de un workflow declara pipefail']],
+  },
+  {
     id: 'R-01',
     que: 'el hook de rama deja de rechazar main',
     fichero: '.githooks/pre-commit',
