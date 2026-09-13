@@ -8,7 +8,7 @@
 >
 > **Para rehacerlo, no para leerlo**: los pasos concretos, con los comandos, están en [`guia-de-replicacion.md`](guia-de-replicacion.md). Este documento cuenta qué pasó; esa guía cuenta cómo volver a hacerlo.
 >
-> Última revisión: 2026-09-09.
+> Última revisión: 2026-09-13.
 
 ## El resumen, antes del detalle
 
@@ -19,7 +19,7 @@
 | **Rama** | `feat/login-frontend` | `docs/alcance-mvp` | `s3/start` | `s4/start` | `feat/sesion-5-guardarrailes` |
 | **PR** | [#12](https://github.com/LIDR-academy/flowsync-ai4devs/pull/12) | [#14](https://github.com/LIDR-academy/flowsync-ai4devs/pull/14) | [#15](https://github.com/LIDR-academy/flowsync-ai4devs/pull/15) | [#21](https://github.com/LIDR-academy/flowsync-ai4devs/pull/21) | [#26](https://github.com/LIDR-academy/flowsync-ai4devs/pull/26) |
 | **Funcionalidad nueva** | Cuentas en pantalla | **Ninguna** | Tareas, entero | **Ninguna** | **Ninguna** |
-| **Hallazgos** | - | **H-01 a H-10** | H-11 a H-14 | **H-15 a H-22** | **H-23 a H-34**, y nueve que volvieron |
+| **Hallazgos** | - | **H-01 a H-10** | H-11 a H-14 | **H-15 a H-22** | **H-23 a H-38**, y nueve que volvieron |
 
 ### Cómo cambió el proyecto, medido
 

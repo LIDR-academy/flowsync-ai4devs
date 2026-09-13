@@ -303,12 +303,18 @@ export class SignupBody {
   @ApiProperty({ type: 'string', format: 'email', maxLength: 254 })
   email!: string
 
-  @ApiProperty({ type: 'string', format: 'password', minLength: 8 })
+  @ApiProperty({ type: 'string', format: 'password', minLength: 8, maxLength: 32 })
   password!: string
 
+  // Pasa por las mismas reglas que `password` en el validador, además de
+  // `sameAs`. Hasta el 2026-09-13 el contrato solo declaraba `minLength` en
+  // `password` y nada en este campo: una contraseña de 33 caracteres recibía
+  // 422 sin que el contrato lo avisara.
   @ApiProperty({
     type: 'string',
     format: 'password',
+    minLength: 8,
+    maxLength: 32,
     description: 'Debe coincidir con `password`.',
   })
   passwordConfirmation!: string
