@@ -69,8 +69,9 @@ Qué encontró cada módulo. La atribución sale del commit que introdujo cada e
 | H-36 | R-08 se declaró cumplida y en cuatro días se incumplió nueve veces | Media | **Resuelto hacia delante (2026-09-12)** · CI lo impide |
 | H-37 | Rehidratar la sesión con un 401 depende de que otro efecto ya esté suscrito | Baja | Vigilado · prueba de navegador desde 2026-09-13 |
 | H-38 | Un comentario decía que el arranque no cierra la sesión, y la cierra | Baja | **Resuelto (2026-09-13)** |
+| H-39 | El resumen del revisor daba vacío el diagnóstico de una credencial rota | Baja | **Resuelto (2026-09-13)** |
 
-> **Estado del registro al cerrar el proyecto, 2026-09-13.** De 38 hallazgos: **uno abierto**, H-24, que no depende del código; **dos vigilados**, H-09 y H-37, cuya fragilidad sigue a propósito con algo que la vería; **cuatro con los que se convive por decisión**, H-04, H-06, H-10 y H-12; y **31 resueltos**. Revisado entrada a entrada contra su cabecera, porque hasta ese día este índice decía «Abierto» en H-07 y H-23, cerrados cuatro días antes, y no llegaba más allá de H-23.
+> **Estado del registro al cerrar el proyecto, 2026-09-13.** De 39 hallazgos: **uno abierto**, H-24, que no depende del código; **dos vigilados**, H-09 y H-37, cuya fragilidad sigue a propósito con algo que la vería; **cuatro con los que se convive por decisión**, H-04, H-06, H-10 y H-12; y **32 resueltos**. Revisado entrada a entrada contra su cabecera, porque hasta ese día este índice decía «Abierto» en H-07 y H-23, cerrados cuatro días antes, y no llegaba más allá de H-23.
 
 > **Al abrir el Módulo 5**, la comprobación contra `s5/start` dice que **seis de los siete** vuelven rotos: H-11, H-13, H-14, H-15, H-16 y H-19. Solo H-17 llega arreglado. Evidencia y plan de acción de cada uno en la sección «Al abrir el Módulo 5», más abajo.
 
@@ -1156,6 +1157,22 @@ Es exactamente el escenario «Backend apagado al arrancar con sesión guardada»
 **Por qué no tiene prueba**: el proveedor de sesión no lo monta ningún runner, que es el mismo hueco de H-37. Y lo que se arregló no es comportamiento sino una afirmación sobre él.
 
 **Desde el 2026-09-13 el comportamiento sí la tiene**: `frontend/e2e/sesion.e2e.ts`, «con el servidor caído se conserva el token y la sesión vuelve al recargar», simulando la caída con la petición de perfil cortada. Vista fallar llamando a `clearSession()` en esa rama: el token guardado pasa a `null`.
+
+## H-39 · El resumen del revisor daba vacío el diagnóstico de una credencial rota
+
+**Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Cerrado** el 2026-09-13, el día que se encontró.
+
+`.github/workflows/revision-adversarial.yml`, en el paso «Revisar», cuando `claude -p` falla. El log volcaba stdout y stderr del CLI; el resumen del job, **solo stderr**. Con un token inválido el CLI escribe `401 Invalid bearer token` en **stdout**, así que el resumen salía con su título -«La revisión adversarial no pudo ejecutarse»- y un bloque de código vacío debajo.
+
+**Cómo se encontró**: provocando a propósito lo que el workflow promete, que con la credencial configurada y rota el job sale en rojo. Salió en rojo, con el 401 en el log, y el resumen sin nada que leer.
+
+**Por qué importa aunque sea baja**: es el mismo defecto que el comentario de ese bloque ya registraba para el log el 2026-09-09 -«no asumas en qué descriptor escribe un programa, mira los dos»-, arreglado en una de las dos salidas y no en la otra. Un rojo sin motivo visible manda a quien lo lee a buscar el log, que es justo lo que el resumen existe para ahorrar.
+
+**El arreglo**: el resumen vuelca también `informe.md`. Commit `d44d034`, con `Sin-prueba:` porque es un workflow sin suite.
+
+**Cómo se verificó**: con el token inválido todavía puesto, el push del arreglo volvió a salir en rojo con el 401 (`34788706888`), y con el token real, verde y con informe (`34789571139`). **Lo que no se leyó desde aquí es el resumen en sí**: GitHub no lo muestra sin sesión.
+
+**Cómo se llegó a la prueba, que también enseña**: el primer intento salió **verde**, y no por un fallo del workflow. El valor inválido nunca se había guardado: `gh secret list` seguía fechando el secreto el 2026-09-09, y la ejecución hizo una revisión completa. Se comprobó la fecha antes de dar el verde por hallazgo.
 
 ---
 

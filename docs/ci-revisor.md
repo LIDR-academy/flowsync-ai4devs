@@ -117,4 +117,6 @@ El primero ya se ha visto morder, así que el argumento que lo bloqueaba ha caí
 
 **Revisado el 2026-09-13, con muchas más ejecuciones delante, y la decisión se mantiene: aplazada.** En la unidad `feat/sesion-5-guardarrailes` el revisor dio **dos graves, los dos reales** y reproducidos antes de arreglarlos (H-35 y H-38), y un puñado de menores casi todos reales: uno repetido tres veces y uno cosmético. **Ningún grave falso.** El segundo revisor de la cascada existiría para filtrar falsos positivos, y no los hay; el tercero, para priorizar, y con dos graves al mes se prioriza leyendo. Se reabre si aparecen graves falsos, que es la señal que la haría rentable.
 
-**Y lo que queda sin comprobar del revisor**, dicho aquí para que nadie lo dé por hecho: que con una credencial **caducada** el job se ponga en rojo. Está escrito así en el workflow y no se ha provocado; se decidió no hacerlo el 2026-09-13. Detalle en `.github/calibracion-revision.md`.
+**La credencial rota, provocada el 2026-09-13.** Con un valor inválido en `CLAUDE_CODE_OAUTH_TOKEN`, el job sale **rojo** con `401 Invalid bearer token`, y con el token real vuelve a verde con informe. La asimetría de arriba está vista en sus dos mitades también con la credencial configurada. Y la prueba encontró [H-39](hallazgos.md): el log tenía el diagnóstico, pero el resumen del job lo daba vacío.
+
+Lo que queda sin ver es un token **caducado**, que debería llegar como el mismo 401. Detalle en `.github/calibracion-revision.md`.

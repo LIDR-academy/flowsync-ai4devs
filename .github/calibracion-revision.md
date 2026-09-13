@@ -151,7 +151,8 @@ Los dos pasos que faltaban -la credencial y verla morder- están hechos. `R-03` 
 
 Lo que no está probado y conviene no dar por hecho:
 
-- **Que un token caducado se vea en rojo.** La asimetría está escrita -sin credencial, verde; con credencial rota, rojo- y **no se ha provocado**. El 2026-09-13 se decidió no provocarlo: el revisor no bloquea nada y su informe se lee en cada push, así que un token caducado se notaría al leerlo aunque el job no se pusiera en rojo. Queda como no comprobado, no como comprobado.
+- ~~Que una credencial rota se vea en rojo.~~ **Provocado el 2026-09-13**, tras haber decidido no hacerlo esa misma mañana. Con `token-invalido-paso-17` en el secreto, el paso «Revisar» sale con `exit 1` y `401 Invalid bearer token` en el log (ejecuciones `34788613655` y `34789313285`); con el token real, verde y con informe (`34789571139`). **Y destapó H-39**: el resumen del job daba el diagnóstico vacío. Lo que se probó es un token **inválido**, no uno **caducado**: los dos deberían llegar como 401 al mismo paso, pero el caducado no se ha visto.
+  **Y la primera vez salió verde**, porque el valor inválido no se había guardado: el secreto seguía fechado el 2026-09-09. Antes de leer un resultado, se comprueba que el cambio se aplicó.
 - **Que el informe llegue al PR del curso.** Comprobado el 2026-09-09: **no llega**. El token de nuestro repositorio no puede comentar en `LIDR-academy`, así que el informe cae al resumen del job, que es lo que el diseño ya preveía. **Aceptado así el 2026-09-13**: arreglarlo exige que el PR viva en un repositorio donde tengamos permisos, que es H-24.
 - ~~Que la puerta acierte al decir «no hay nada que revisar».~~ Arreglada con H-27 y **vista disparar por `push`** en cada empujón de 2026-09-12 y 13.
 

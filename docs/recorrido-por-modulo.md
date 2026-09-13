@@ -19,7 +19,7 @@
 | **Rama** | `feat/login-frontend` | `docs/alcance-mvp` | `s3/start` | `s4/start` | `feat/sesion-5-guardarrailes` |
 | **PR** | [#12](https://github.com/LIDR-academy/flowsync-ai4devs/pull/12) | [#14](https://github.com/LIDR-academy/flowsync-ai4devs/pull/14) | [#15](https://github.com/LIDR-academy/flowsync-ai4devs/pull/15) | [#21](https://github.com/LIDR-academy/flowsync-ai4devs/pull/21) | [#26](https://github.com/LIDR-academy/flowsync-ai4devs/pull/26) |
 | **Funcionalidad nueva** | Cuentas en pantalla | **Ninguna** | Tareas, entero | **Ninguna** | **Ninguna** |
-| **Hallazgos** | - | **H-01 a H-10** | H-11 a H-14 | **H-15 a H-22** | **H-23 a H-38**, y nueve que volvieron |
+| **Hallazgos** | - | **H-01 a H-10** | H-11 a H-14 | **H-15 a H-22** | **H-23 a H-39**, y nueve que volvieron |
 
 ### Cómo cambió el proyecto, medido
 
@@ -43,7 +43,7 @@ Cada celda es **inicio → fin** de esa sesión. Un guion significa que la sesi�
 
 **Ese salto es el mecanismo que produjo H-22 y los nueve defectos que volvieron.** No es una anomalía del curso: es la forma que tiene este proyecto de enseñar que un arreglo vive en una rama, no en el producto.
 
-**Diecisiete de los treinta y ocho hallazgos salieron de los dos módulos que no añadieron funcionalidad.** Mirar encuentra más que construir, y eso es lo que dice este recorrido leído de arriba abajo.
+**Diecisiete de los treinta y nueve hallazgos salieron de los dos módulos que no añadieron funcionalidad.** Mirar encuentra más que construir, y eso es lo que dice este recorrido leído de arriba abajo.
 
 ---
 
@@ -359,13 +359,12 @@ Y lo que más enseña de este módulo: **nueve defectos cerrados volvieron rotos
 
 ## Lo que queda abierto hoy
 
-Actualizado el 2026-09-13. El 2026-09-12 salieron H-03, que abría esta tabla desde el Módulo 2, y R-01, que ya no depende de acordarse. El 2026-09-13 salió H-37, que ahora vigila una prueba de navegador.
+Actualizado el 2026-09-13. El 2026-09-12 salieron H-03, que abría esta tabla desde el Módulo 2, y R-01, que ya no depende de acordarse. El 2026-09-13 salió H-37, que ahora vigila una prueba de navegador, y el revisor con una credencial rota, que se provocó y salió en rojo como dice el workflow, destapando H-39 por el camino.
 
 | | Qué | Estado |
 |---|---|---|
 | **H-24** | La verificación no corre en el PR del curso | **Mitigado, no cerrado.** Corre en el fork sobre cada `push`. Aprobar las ejecuciones pendientes es de los mantenedores del curso |
 | — | Los seis PR abiertos en el repositorio del curso | **Pendientes de revisión** por los mantenedores. No se cierran ni se fusionan desde aquí |
-| — | El revisor de CI con una credencial caducada | **No comprobado, por decisión.** El workflow dice que sale en rojo; no se ha provocado. El revisor no bloquea y su informe se lee en cada push |
 | — | Los requisitos que solo se observan en pantalla | **Reducido, no cerrado.** Hay Playwright desde el 2026-09-13, con los pocos casos que nada más veía. La mayoría de los requisitos de pantalla siguen sin prueba, y cuáles está en `docs/trazabilidad.md` |
 
 **Y dos que se cerraron aquí y conviene no dar por eternas**: el contrato tenía dos aproximaciones conviviendo y ahora tiene una, con su ADR; y el revisor adversarial pasó de «escrito y nunca visto morder» a haber encontrado un defecto real sin que nadie se lo plantara.
@@ -383,7 +382,7 @@ Lo que el sistema tiene al cerrarse, y todo corre en CI en cada push:
 - **Reglas de proceso bajadas a código**: el hook de rama (R-01), el `fix:` sin prueba (R-08), el `pipefail` en los workflows (R-06).
 - **El contrato generado y vigilado**, el verificador de la documentación, y el revisor adversarial en cada cambio propuesto.
 
-Y el registro de hallazgos cierra con **uno abierto de 38**, H-24, que no se arregla con código.
+Y el registro de hallazgos cierra con **uno abierto de 39**, H-24, que no se arregla con código.
 
 ---
 
