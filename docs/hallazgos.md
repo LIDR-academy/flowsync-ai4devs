@@ -36,11 +36,11 @@ Qué encontró cada módulo. La atribución sale del commit que introdujo cada e
 | H-11 | El email distingue mayúsculas y minúsculas: la misma persona puede registrarse dos veces | Alta | **Resuelto** · `s3/start` 2026-08-26, `s4/start` 2026-09-02 |
 | H-03 | `/account/logout` no envuelve la respuesta en `data` | Media | **Resuelto (2026-09-12)** · change `fix-logout-envelope` |
 | H-04 | `fullName` es `nullable`, no `optional` | Media | Documentado y sorteado |
-| H-05 | La traducción de errores depende de los nombres de regla del backend | Media | Vigilado por pruebas |
+| H-05 | La traducción de errores depende de los nombres de regla del backend | Media | **Resuelto (2026-09-09)** · lo fija `nombres_de_regla.spec.ts` contra la API |
 | H-06 | El token vive en `localStorage` | Media | Deuda aceptada |
-| H-07 | El hook de formateo depende de `jq`, que no está instalado | Baja | Abierto |
-| H-08 | `AGENTS.md` es un symlink que Windows no materializa | Baja | Sin impacto hoy |
-| H-09 | `database/schema.ts` se regenera sin formato y rompe el lint | Baja | Reincidente |
+| H-07 | El hook de formateo depende de `jq`, que no está instalado | Media | **Resuelto (2026-09-09)** |
+| H-08 | `AGENTS.md` es un symlink que Windows no materializa | Baja | **Resuelto (2026-09-09)** |
+| H-09 | `database/schema.ts` se regenera sin formato y rompe el lint | Baja | Vigilado · reincidente por construcción |
 | H-10 | Los tipos de issue de Jira en `LID` están en dos idiomas | Baja | Sorteado |
 | H-13 | Una sesión que caduca con la lista abierta deja al usuario sin salida | Media | **Resuelto** · `s3/start` 2026-08-26, `s4/start` 2026-09-02 |
 | H-12 | El registro tipado de Tuyau solo modela la respuesta de éxito | Baja | Sorteado |
@@ -53,7 +53,24 @@ Qué encontró cada módulo. La atribución sale del commit que introdujo cada e
 | H-20 | Dos requisitos de la spec viva se contradecían sobre `today` | Media | **Resuelto (2026-08-26)** |
 | H-21 | El orden de validación difiere entre controladores | Baja | **Resuelto (2026-09-02)** · ADR-0006 |
 | H-22 | La tabla «Lo que se arrastra» dio por cerrados tres hallazgos sin comprobarlos en la rama | Alta | **Resuelto (2026-09-02)** |
-| H-23 | Cuatro rutas de `auth` están fuera del contrato generado | Media | Abierto · declarado con lista cerrada |
+| H-23 | Cuatro rutas de `auth` están fuera del contrato generado | Media | **Resuelto (2026-09-09)** |
+| H-24 | La verificación nunca ha corrido en el repositorio donde vive el PR | Alta | **Abierto** · mitigado en el fork; aprobar las ejecuciones depende de los mantenedores del curso |
+| H-25 | El contrato versionado declaraba públicas dos rutas protegidas | Alta | **Resuelto (2026-09-08)** |
+| H-26 | El documento servido en `/api.json` crece en cada petición | Media | **Resuelto (2026-09-09)** |
+| H-27 | La puerta del revisor buscaba el PR con una consulta que nunca encuentra nada | Alta | **Resuelto (2026-09-09)** |
+| H-28 | La lista de negación del revisor nombraba una herramienta que su versión no conoce | Media | **Resuelto (2026-09-09)** |
+| H-29 | Dos comprobaciones del verificador se satisfacían con un comentario | Alta | **Resuelto (2026-09-09)** |
+| H-30 | El PR es demasiado grande para una sola revisión | Media | **Resuelto (2026-09-09)** · partiendo la unidad de trabajo |
+| H-31 | El change archivado que las decisiones citaban no cruzó de rama | Baja | **Resuelto (2026-09-09)** |
+| H-32 | La regla del 401 estaba escrita en dos sitios | Baja | **Resuelto (2026-09-09)** |
+| H-33 | El tablero de Jira llevaba dieciséis días contradiciendo al repositorio | Media | **Resuelto (2026-09-09)** |
+| H-34 | Una decisión de producto declarada pendiente se resolvió en el código, y nadie la escribió | Media | **Resuelto (2026-09-09)** |
+| H-35 | La caché del contrato servido dejaba pasar dos construcciones a la vez | Media | **Resuelto (2026-09-12)** |
+| H-36 | R-08 se declaró cumplida y en cuatro días se incumplió nueve veces | Media | **Resuelto hacia delante (2026-09-12)** · CI lo impide |
+| H-37 | Rehidratar la sesión con un 401 depende de que otro efecto ya esté suscrito | Baja | Vigilado · prueba de navegador desde 2026-09-13 |
+| H-38 | Un comentario decía que el arranque no cierra la sesión, y la cierra | Baja | **Resuelto (2026-09-13)** |
+
+> **Estado del registro al cerrar el proyecto, 2026-09-13.** De 38 hallazgos: **uno abierto**, H-24, que no depende del código; **dos vigilados**, H-09 y H-37, cuya fragilidad sigue a propósito con algo que la vería; **cuatro con los que se convive por decisión**, H-04, H-06, H-10 y H-12; y **31 resueltos**. Revisado entrada a entrada contra su cabecera, porque hasta ese día este índice decía «Abierto» en H-07 y H-23, cerrados cuatro días antes, y no llegaba más allá de H-23.
 
 > **Al abrir el Módulo 5**, la comprobación contra `s5/start` dice que **seis de los siete** vuelven rotos: H-11, H-13, H-14, H-15, H-16 y H-19. Solo H-17 llega arreglado. Evidencia y plan de acción de cada uno en la sección «Al abrir el Módulo 5», más abajo.
 

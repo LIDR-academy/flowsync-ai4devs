@@ -103,7 +103,7 @@ El módulo pide construir el revisor **con la acción oficial** `anthropics/clau
 |---|---|---|
 | Acción oficial | `claude -p` en un `run` | La acción exige que el PR viva donde está instalada la GitHub App. El nuestro vive en `LIDR-academy`, donde no somos administradores |
 | Disparar en `pull_request` | Disparar también en `push` + buscar el PR arriba | Un `pull_request` desde un fork no recibe secretos, y en el repositorio del curso el workflow ni siquiera corre: [H-24](hallazgos.md) |
-| Publicar los hallazgos como comentarios | Se intenta, y si el PR vive en otro repositorio cae al resumen del job | El token de nuestro repositorio no puede comentar allí |
+| Publicar los hallazgos como comentarios | Se intenta, y si el PR vive en otro repositorio cae al resumen del job | El token de nuestro repositorio no puede comentar allí. **Aceptado así el 2026-09-13**: cambiarlo depende de H-24 |
 
 **El propio material del módulo anticipa la causa**: «en un repositorio público, un cambio propuesto desde un fork no recibe los secretos... tu revisor no va a correr sobre tu propio cambio propuesto. No está roto: está funcionando como debe.» Lo que hicimos es tomar esa consecuencia y buscarle una vuelta -el disparador `push`- en vez de dejar el guardarraíl presente e inerte.
 
@@ -115,4 +115,6 @@ Todo lo demás va con los valores exactos que pide: `--model sonnet`, `--effort 
 
 El primero ya se ha visto morder, así que el argumento que lo bloqueaba ha caído. Sigue sin implementarse por otro, más débil pero honesto: **lleva dos hallazgos en dos ejecuciones, y con eso no hay nada que priorizar ni falsos positivos que descartar**. Un verificador de falsos positivos necesita falsos positivos que ver.
 
-Cuando el revisor lleve unas cuantas revisiones de cambios de verdad, esa cascada será la siguiente pieza.
+**Revisado el 2026-09-13, con muchas más ejecuciones delante, y la decisión se mantiene: aplazada.** En la unidad `feat/sesion-5-guardarrailes` el revisor dio **dos graves, los dos reales** y reproducidos antes de arreglarlos (H-35 y H-38), y un puñado de menores casi todos reales: uno repetido tres veces y uno cosmético. **Ningún grave falso.** El segundo revisor de la cascada existiría para filtrar falsos positivos, y no los hay; el tercero, para priorizar, y con dos graves al mes se prioriza leyendo. Se reabre si aparecen graves falsos, que es la señal que la haría rentable.
+
+**Y lo que queda sin comprobar del revisor**, dicho aquí para que nadie lo dé por hecho: que con una credencial **caducada** el job se ponga en rojo. Está escrito así en el workflow y no se ha provocado; se decidió no hacerlo el 2026-09-13. Detalle en `.github/calibracion-revision.md`.

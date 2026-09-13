@@ -363,12 +363,27 @@ Actualizado el 2026-09-13. El 2026-09-12 salieron H-03, que abría esta tabla de
 
 | | Qué | Estado |
 |---|---|---|
-| **H-24** | La verificación no corre en el PR del curso | **Mitigado, no cerrado.** Corre en un PR del fork. Aprobar las ejecuciones pendientes no está en nuestra mano |
+| **H-24** | La verificación no corre en el PR del curso | **Mitigado, no cerrado.** Corre en el fork sobre cada `push`. Aprobar las ejecuciones pendientes es de los mantenedores del curso |
+| — | Los seis PR abiertos en el repositorio del curso | **Pendientes de revisión** por los mantenedores. No se cierran ni se fusionan desde aquí |
+| — | El revisor de CI con una credencial caducada | **No comprobado, por decisión.** El workflow dice que sale en rojo; no se ha provocado. El revisor no bloquea y su informe se lee en cada push |
 | — | Los requisitos que solo se observan en pantalla | **Reducido, no cerrado.** Hay Playwright desde el 2026-09-13, con los pocos casos que nada más veía. La mayoría de los requisitos de pantalla siguen sin prueba, y cuáles está en `docs/trazabilidad.md` |
 
 **Y dos que se cerraron aquí y conviene no dar por eternas**: el contrato tenía dos aproximaciones conviviendo y ahora tiene una, con su ADR; y el revisor adversarial pasó de «escrito y nunca visto morder» a haber encontrado un defecto real sin que nadie se lo plantara.
 
 Ninguna de esas filas es deuda olvidada. **La diferencia entre un hueco conocido y una omisión es todo lo que este recorrido ha tratado de aprender.**
+
+## Cierre, 2026-09-13
+
+El plan de pendientes que salió al repasar de S5 hacia atrás tenía 22 pasos, y **se cerró entero**: los de código, con su prueba vista fallar; los de decisión, escritos en su documento con fecha; y los que no dependen de nosotros, dichos en la tabla de arriba.
+
+Lo que el sistema tiene al cerrarse, y todo corre en CI en cada push:
+
+- **Pruebas de backend, de frontend y de navegador**, con el número contrastado contra lo que ejecuta cada runner.
+- **Un catálogo de mutaciones** que reintroduce defectos que ya existieron y exige que la comprobación que dice cubrirlos se ponga en rojo por ese motivo.
+- **Reglas de proceso bajadas a código**: el hook de rama (R-01), el `fix:` sin prueba (R-08), el `pipefail` en los workflows (R-06).
+- **El contrato generado y vigilado**, el verificador de la documentación, y el revisor adversarial en cada cambio propuesto.
+
+Y el registro de hallazgos cierra con **uno abierto de 38**, H-24, que no se arregla con código.
 
 ---
 

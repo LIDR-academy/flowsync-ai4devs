@@ -137,12 +137,12 @@ Todo lo demás, y es la mayor parte:
 
 | Qué | Por qué no |
 |---|---|
-| La detección del PR abierto en el repositorio del curso | La puerta sale antes, por falta de clave |
-| La invocación de `claude -p` con sus flags | Nunca se ha ejecutado. Los flags están escritos con cuidado y el YAML valida, pero la primera ejecución real puede pedir ajustes |
-| Que `--disallowed-tools` acote de verdad al revisor | Es la corrección del hallazgo de la sexta revisión: `--allowed-tools` preaprueba, no restringe, y con `bypassPermissions` no acotaba nada. La negativa explícita es lo correcto por documentación, y **no se ha visto aplicarse**. Mientras tanto la defensa que sí está en pie es que el diff se entrega en un fichero, así que el revisor no necesita shell |
-| Que `CLAUDE_CODE_OAUTH_TOKEN` autentique al CLI en el runner | `claude setup-token` existe y lo dice el propio CLI, pero el nombre exacto de la variable no se ha comprobado contra una ejecución. Si falla, el resumen del job lo dirá y se ajusta |
-| La extracción del prompt desde `.claude/agents/` | Probada en local, no en el runner |
-| La publicación del informe, y su caída al resumen cuando el PR vive en otro repositorio | Nunca se ha llegado ahí |
+| ~~La detección del PR abierto en el repositorio del curso~~ | **Vista** desde el arreglo de H-27: cada push de la rama de 2026-09-12 y 13 encontró el PR y disparó la revisión |
+| ~~La invocación de `claude -p` con sus flags~~ | **Vista** en todas esas ejecuciones |
+| Que `--disallowed-tools` acote de verdad al revisor | **Sigue sin verse aplicarse**: el revisor nunca ha intentado usar una herramienta negada. La defensa que sí está en pie es que el diff se entrega en un fichero, así que no necesita shell |
+| ~~Que `CLAUDE_CODE_OAUTH_TOKEN` autentique al CLI en el runner~~ | **Visto** desde el 2026-09-09 |
+| ~~La extracción del prompt desde `.claude/agents/`~~ | **Vista** en el runner |
+| ~~La publicación del informe, y su caída al resumen cuando el PR vive en otro repositorio~~ | **Vista** el 2026-09-09: no llega al PR del curso y cae al resumen del job |
 | ~~Que el revisor encuentre algo~~ | **Visto el 2026-09-09.** Ver arriba |
 
 ### Qué queda
@@ -151,10 +151,9 @@ Los dos pasos que faltaban -la credencial y verla morder- están hechos. `R-03` 
 
 Lo que no está probado y conviene no dar por hecho:
 
-- **Que el informe llegue al PR del curso.** Aquí se publicó en un PR del fork. En `LIDR-academy` el token de nuestro repositorio no puede comentar, y el informe cae al resumen del job.
-- **Que un token caducado se vea en rojo.** La asimetría está escrita y no se ha provocado.
-- **Que la puerta acierte al decir «no hay nada que revisar».** Estuvo diciéndolo siempre, y era mentira: [H-27](../docs/hallazgos.md). Arreglado el 2026-09-09 y **todavía sin ver una revisión disparada por `push`**.
-- **Que el informe llegue al PR del curso.** Comprobado el 2026-09-09: **no llega**. El token de nuestro repositorio no puede comentar en `LIDR-academy`, así que el informe cae al resumen del job, que es lo que el diseño ya preveía. En el PR del curso solo comenta `coderabbitai`, que es del repositorio de arriba.
+- **Que un token caducado se vea en rojo.** La asimetría está escrita -sin credencial, verde; con credencial rota, rojo- y **no se ha provocado**. El 2026-09-13 se decidió no provocarlo: el revisor no bloquea nada y su informe se lee en cada push, así que un token caducado se notaría al leerlo aunque el job no se pusiera en rojo. Queda como no comprobado, no como comprobado.
+- **Que el informe llegue al PR del curso.** Comprobado el 2026-09-09: **no llega**. El token de nuestro repositorio no puede comentar en `LIDR-academy`, así que el informe cae al resumen del job, que es lo que el diseño ya preveía. **Aceptado así el 2026-09-13**: arreglarlo exige que el PR viva en un repositorio donde tengamos permisos, que es H-24.
+- ~~Que la puerta acierte al decir «no hay nada que revisar».~~ Arreglada con H-27 y **vista disparar por `push`** en cada empujón de 2026-09-12 y 13.
 
 ### Cuántos de sus hallazgos acaban en código
 
