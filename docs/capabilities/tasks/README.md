@@ -5,8 +5,7 @@ apuntar algo cuesta escribir un título y donde el responsable y el estado de ca
 abrir nada.
 
 > **Dónde está la verdad.** Las reglas de esta capability viven en
-> **[`openspec/specs/tasks/spec.md`](../../../openspec/specs/tasks/spec.md)** — 32 requisitos, 124
-> scenarios— y este README **no las repite**: enlaza a cada una y dice dónde está implementada. Lo que
+> **[`openspec/specs/tasks/spec.md`](../../../openspec/specs/tasks/spec.md)** y este README **no las repite**: enlaza a cada una y dice dónde está implementada. Lo que
 > sí describe de primera mano es lo que se lee del código: qué rutas existen, qué acepta cada una y
 > cómo se arranca y se prueba todo en local. Si algo de aquí y la spec no concuerdan, manda la spec
 > (ver [ADR 0001](../../adr/0001-openspec-como-fuente-de-verdad.md)).
@@ -72,8 +71,10 @@ Las formas que se repiten viven en
 transformers: así el documento **no puede** enseñar el vencimiento en la lista.
 
 Ese fichero es documentación, no validación: describe lo que los controladores ya hacen. Si cambia un
-transformer o un validador, se actualiza en el mismo commit. El documento se construye en cada
-petición y no hay fichero que generar; lo que se commitea es el diff de `.adonisjs/`.
+transformer o un validador, se actualiza en el mismo commit, y también el contrato versionado:
+`npm run openapi:generate` escribe [`docs/api/openapi.json`](../../api/openapi.json), y
+`npm run openapi:check` pone CI en rojo si se olvida ([ADR-0007](../../adr/0007-el-contrato-se-genera-se-versiona-y-se-vigila-la-deriva.md)).
+Se commitea además el diff de `.adonisjs/`.
 
 ## Reglas de negocio: dónde vive cada una
 
@@ -86,7 +87,7 @@ qué exige cada una, se abre el enlace de la derecha.
 | Título vacío, en blanco o recortado | `createTaskValidator`, con `trim()` antes de `minLength()` | [Ninguna tarea sin título](../../../openspec/specs/tasks/spec.md#requirement-ninguna-tarea-sin-título) |
 | Longitud máxima del título | `createTaskValidator`, `maxLength(200)` sobre el título ya recortado | [Aviso ante un título demasiado largo](../../../openspec/specs/tasks/spec.md#requirement-aviso-ante-un-título-demasiado-largo) |
 | Responsable y estado los pone el sistema | `TasksController.store`: el validador no acepta esos campos | [Creación de una tarea con solo el título](../../../openspec/specs/tasks/spec.md#requirement-creación-de-una-tarea-con-solo-el-título) |
-| Alcance y orden de la lista | `DEFAULT_LIST_STATUSES` · [`models/task.ts`](../../../backend/app/models/task.ts) y `TasksController.index` | [Una sola lista compartida del espacio](../../../openspec/specs/tasks/spec.md#requirement-una-sola-lista-compartida-del-espacio) |
+| Alcance y orden de la lista | `DEFAULT_LIST_STATUSES` · [`models/task.ts`](../../../backend/app/models/task.ts), y el orden en `TasksController.index`: en curso, pendiente, hecha, y dentro de cada estado lo más reciente primero (PA-3) | [Una sola lista compartida del espacio](../../../openspec/specs/tasks/spec.md#requirement-una-sola-lista-compartida-del-espacio) |
 | Qué se ve del responsable | `TaskAssigneeTransformer` | [Lo que cada tarea muestra de su responsable](../../../openspec/specs/tasks/spec.md#requirement-lo-que-cada-tarea-muestra-de-su-responsable) |
 | Los tres estados | `TASK_STATUSES` · `models/task.ts`, y `updateTaskStatusValidator` con `vine.enum` | [Tres estados fijos](../../../openspec/specs/tasks/spec.md#requirement-tres-estados-fijos) |
 | Cambiar de estado, sin permisos por responsable | `TaskStatusesController.update` | [Cambio de estado de cualquier tarea](../../../openspec/specs/tasks/spec.md#requirement-cambio-de-estado-de-cualquier-tarea) |
@@ -127,18 +128,19 @@ node ace test --tests="el responsable llega con su nombre y sus iniciales"
 ```
 
 Los tests de esta capability están en
-[`backend/tests/functional/tasks/`](../../../backend/tests/functional/tasks/). **Hoy solo hay uno**,
-`assignee.spec.ts`, que cubre 3 de los 124 scenarios de la spec: los del requisito *Lo que cada tarea
-muestra de su responsable*. Todo lo demás está sin cubrir, así que el verde de la suite **no** es
-señal de que la capability cumpla su spec.
+[`backend/tests/functional/tasks/`](../../../backend/tests/functional/tasks/), uno por área:
+creación, lista compartida, responsable, filtro, vencimiento, tarea inexistente, orden de validación
+y escritura contra lectura. Cuántos son lo dice `CLAUDE.md`, que es el único sitio que da el número;
+qué escenario cubre cada uno y cuáles siguen sin prueba, [`docs/trazabilidad.md`](../../trazabilidad.md).
+Los requisitos de interfaz tienen muy poca cobertura, así que el verde de la suite **no** es señal de
+que la pantalla cumpla su spec.
 
 Dos cosas que hay que saber antes de escribir un test aquí:
 
-- La suite functional pega contra **el mismo fichero SQLite que el servidor de desarrollo**:
-  [`config/database.ts`](../../../backend/config/database.ts) declara una sola conexión sin override
-  por entorno. Aísla siempre con `testUtils.db().withGlobalTransaction()` en un `group.each.setup`,
-  como hacen los tests existentes. **No** uses truncate: se llevaría por delante los datos con los que
-  estés trabajando.
+- La suite escribe en **su propio fichero**, `tmp/db-test.sqlite3`, nunca en la base de desarrollo
+  ([ADR-0003](../../adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md)). Aun así, aísla cada caso
+  con `testUtils.db().withGlobalTransaction()` en un `group.each.setup`, como hacen los existentes:
+  sin eso, un caso ve las filas del anterior.
 - Un test por scenario, citando el requisito en la cabecera del fichero. Es lo que permite leer la
   spec y saber qué falta.
 
@@ -190,12 +192,16 @@ cd frontend && npm install && npm run dev       # http://localhost:5173
 ```
 
 La lista está en `/tasks`, una tarea en `/tasks/:id`, y el filtro viaja en la URL como `?status=`.
-**El frontend no tiene runner de tests instalado**, así que los requisitos de interfaz de la spec
-—más de la mitad de sus scenarios— solo se pueden comprobar a mano.
+El frontend tiene **Vitest** para `lib/` (`npm test`) y **Playwright** para el navegador
+(`npm run test:e2e`, en `frontend/e2e/`). Playwright cubre a propósito pocos casos; el resto de los
+requisitos de interfaz se comprueba a mano, y cuáles son está en la trazabilidad.
 
 ### Antes de dar algo por terminado
 
 ```bash
-cd backend  && npm run lint && npm run typecheck && node ace test
-cd frontend && npm run lint && npm run build     # el typecheck del front vive en build
+cd backend  && npm run lint && npm run typecheck && node ace test && npm run openapi:check
+cd frontend && npm run lint && npm run build && npm test   # el typecheck del front vive en build
 ```
+
+Las pruebas de navegador (`npm run test:e2e`) no se lanzan a la vez que las del backend: comparten
+la base de pruebas y el puerto 3334.

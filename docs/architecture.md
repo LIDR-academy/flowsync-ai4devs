@@ -21,7 +21,7 @@ C4Container
         Container(spa, "SPA de FlowSync", "React 19 + react-router + Vite 8 + Tailwind v4 + shadcn/ui", "Pantallas de login registro perfil lista de tareas y tarea suelta. Los guards ProtectedRoute y PublicOnlyRoute deciden a que se llega con sesion y a que sin ella")
         ContainerDb(storage, "localStorage del navegador", "Web Storage API", "Guarda el token de acceso bajo la clave flowsync.token. Al arrancar la SPA lo revalida contra el perfil antes de darlo por bueno")
         Container(api, "API de FlowSync", "AdonisJS 7 sobre Node escuchando en el puerto 3333", "Expone las rutas bajo /api/v1. Valida con VineJS 4 autentica con access tokens opacos y devuelve toda respuesta envuelta en data por el serializer del ApiProvider")
-        ContainerDb(db, "Base de datos de FlowSync", "SQLite mediante better-sqlite3 en el fichero backend/tmp/db.sqlite3", "Tablas users auth_access_tokens y tasks. El esquema se genera desde las migraciones")
+        ContainerDb(db, "Base de datos de FlowSync", "SQLite mediante better-sqlite3 en backend/tmp/db.sqlite3, y db-test.sqlite3 en pruebas", "Tablas users auth_access_tokens y tasks. El esquema se genera desde las migraciones")
     }
 
     Rel(miembro, spa, "Usa desde el navegador", "HTTP en el puerto 5173")
@@ -50,6 +50,11 @@ C4Container
   | GET | `/api/v1/tasks/:id` | `TasksController.show` | sí |
   | PATCH | `/api/v1/tasks/:id/status` | `TaskStatusesController.update` | sí |
   | PUT | `/api/v1/tasks/:id/due-date` | `TaskDueDatesController.update` | sí |
+  | GET | `/api`, `/api.json`, `/api.yaml` | documento OpenAPI de `@foadonis/openapi` | no |
+
+  El documento lo construye [`app/openapi/document.ts`](../backend/app/openapi/document.ts) desde
+  los decoradores de los controladores, una sola vez por proceso (H-26 y H-35), y su copia
+  versionada vive en [`docs/api/openapi.json`](api/openapi.json) ([ADR-0007](adr/0007-el-contrato-se-genera-se-versiona-y-se-vigila-la-deriva.md)).
 
 - **Validadores** ([`backend/app/validators/`](../backend/app/validators/)) — VineJS 4 con
   `vine.create()`, consumidos con `request.validateUsing(...)`. `user.ts` cubre registro y
@@ -70,11 +75,18 @@ C4Container
   [`providers/api_provider.ts`](../backend/providers/api_provider.ts), que inyecta
   `ctx.serialize()` en cada `HttpContext`.
 
-**Base de datos** — una única conexión SQLite declarada en
-[`backend/config/database.ts`](../backend/config/database.ts), sin override por entorno. Tres
-tablas creadas por las migraciones de [`backend/database/migrations/`](../backend/database/migrations/):
+- **Errores** ([`backend/app/exceptions/handler.ts`](../backend/app/exceptions/handler.ts)) —
+  toda respuesta de error sale con la forma del proyecto y sin traza, rutas ni SQL, salvo que
+  se encienda el volcado de depuración a propósito (H-19, [ADR-0005](adr/0005-el-volcado-de-depuracion-va-apagado.md)).
+
+**Base de datos** — una conexión SQLite declarada en
+[`backend/config/database.ts`](../backend/config/database.ts), que **elige el fichero según el
+entorno**: `tmp/db.sqlite3` en desarrollo y `tmp/db-test.sqlite3` en pruebas, con `bin/test.ts`
+forzando `NODE_ENV=test` ([ADR-0003](adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md)).
+Tres tablas creadas por las migraciones de [`backend/database/migrations/`](../backend/database/migrations/):
 `users`, `auth_access_tokens` y `tasks`, esta última con `assignee_id` apuntando a `users` con
-`onDelete CASCADE` y una `due_date` nulable.
+`onDelete CASCADE` y una `due_date` nulable. Dos migraciones más normalizan el email existente a
+minúsculas y lo hacen único sin distinguir mayúsculas (H-11).
 
 **SPA de FlowSync** — [`frontend/src/lib/api.ts`](../frontend/src/lib/api.ts) es el único punto
 de contacto con el backend: envuelve `fetch`, desenvuelve el `{ data }`, adjunta el `Bearer` y
@@ -96,6 +108,8 @@ vencimiento. La sesión vive en [`frontend/src/auth/`](../frontend/src/auth/) y 
 - **El guard `web` de sesión no se dibuja.** Está configurado en `config/auth.ts` junto al
   guard `api`, pero ninguna ruta lo usa; el `default` es `api` y toda la autenticación real va
   por access tokens opacos.
-- **Los tests no son un contenedor.** Las suites de `backend/tests/` no se ejecutan en
-  producción; conviene saber, eso sí, que pegan contra el mismo fichero SQLite que el servidor
-  de desarrollo, porque `config/database.ts` no tiene override por entorno.
+- **Los tests no son un contenedor.** Las suites de `backend/tests/`, Vitest y Playwright no se
+  ejecutan en producción. Escriben en `tmp/db-test.sqlite3`, nunca en la base de desarrollo:
+  lo decide `config/database.ts` por entorno y lo fija `aislamiento.spec.ts`
+  ([ADR-0003](adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md)). Hasta el 2026-09-02 este
+  párrafo decía lo contrario, y era cierto en la rama del curso: es H-01.
