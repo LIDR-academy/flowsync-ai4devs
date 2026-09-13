@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [clearSession])
+  }, [])
 
   /**
    * Cualquier 401 posterior al arranque cierra la sesión, venga de la operación
