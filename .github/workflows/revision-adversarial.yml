@@ -49,7 +49,7 @@ jobs:
     # módulo con este valor exacto.
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # El revisor compara contra la base, así que necesita historial.
           fetch-depth: 0
@@ -182,7 +182,7 @@ jobs:
           echo "repo_pr=$upstream" >> "$GITHUB_OUTPUT"
           echo "seguir=si" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.puerta.outputs.seguir == 'si'
         with:
           node-version: '24'
