@@ -26,7 +26,7 @@ npm run format                                  # prettier --write
 npm run typecheck                               # tsc --noEmit
 ```
 
-Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **85 pruebas functional**: 28 de `auth`, 42 de `tasks`, 6 de errores, 2 de aislamiento de la base, 6 que fijan los nombres de regla que el frontend traduce (H-05) y 1 sobre el documento OpenAPI servido (H-35). **`tests/unit/` no existe.** Qué escenario cubre cada una en `docs/trazabilidad.md`. **Este es el único sitio que da el número**, y CI lo contrasta con lo que ejecuta Japa (`scripts/recuento-pruebas.mjs`): al añadir una prueba, se actualiza aquí, total y desglose.
+Tests (Japa). Dos suites declaradas en `adonisrc.ts`: `unit` (`tests/unit/**/*.spec.ts`, timeout 2s) y `functional` (`tests/functional/**/*.spec.ts`, timeout 30s). Hoy hay **86 pruebas functional**: 28 de `auth`, 43 de `tasks`, 6 de errores, 2 de aislamiento de la base, 6 que fijan los nombres de regla que el frontend traduce (H-05) y 1 sobre el documento OpenAPI servido (H-35). **`tests/unit/` no existe.** Qué escenario cubre cada una en `docs/trazabilidad.md`. **Este es el único sitio que da el número**, y CI lo contrasta con lo que ejecuta Japa (`scripts/recuento-pruebas.mjs`): al añadir una prueba, se actualiza aquí, total y desglose.
 
 Los ficheros de prueba declaran `group.each.setup(() => testUtils.db().withGlobalTransaction())`, que aísla un caso de otro dentro de la misma ejecución. Mantenlo al escribir uno nuevo.
 
@@ -56,7 +56,7 @@ npm run lint      # oxlint (NO eslint)
 npm run format    # prettier --write .
 ```
 
-El frontend corre **Vitest** (`npm test`): 28 pruebas sobre `src/lib/api.test.ts`, que es el único punto de contacto con el backend. El número lo contrasta CI igual que el del backend. No hay runner de **navegador**, así que los requisitos que solo se observan en pantalla siguen sin cubrir.
+El frontend corre **Vitest** (`npm test`): 33 pruebas, 28 sobre `src/lib/api.test.ts`, que es el único punto de contacto con el backend, y 5 sobre `src/lib/lista.test.ts`, dónde entra en pantalla una tarea recién creada. El número lo contrasta CI igual que el del backend. No hay runner de **navegador**, así que los requisitos que solo se observan en pantalla siguen sin cubrir.
 
 ## Arquitectura del backend
 

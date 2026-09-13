@@ -184,6 +184,42 @@ test.group('Tasks | la lista es del espacio, no de quien la mira', (group) => {
     )
   })
 
+  /**
+   * PA-3, decidido el 2026-09-13: la vista por defecto responde «¿en qué anda
+   * el equipo?», así que lo que está en curso va arriba aunque sea antiguo.
+   * La tarea en curso se crea la **más vieja** a propósito: con el orden por
+   * recencia de antes, llegaba la última, y esta prueba lo distingue.
+   */
+  test('sin acotar, lo que está en curso va primero aunque sea más antiguo', async ({
+    client,
+    assert,
+  }) => {
+    const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
+
+    for (const [title, status, dia] of [
+      ['En curso desde hace días', 'in_progress', '2026-08-01'],
+      ['Pendiente de ayer', 'pending', '2026-08-19'],
+      ['Pendiente de hoy', 'pending', '2026-08-20'],
+    ] as const) {
+      const creada = await Task.create({ title, status, assigneeId: ada.id })
+      await Task.query()
+        .where('id', creada.id)
+        .update({ created_at: `${dia} 09:00:00` })
+    }
+
+    const porDefecto = await client.get('/api/v1/tasks').loginAs(ada)
+    assert.deepEqual(
+      tareas(porDefecto).map((t) => t.title),
+      ['En curso desde hace días', 'Pendiente de hoy', 'Pendiente de ayer']
+    )
+
+    const acotada = await client.get('/api/v1/tasks').qs({ status: 'pending' }).loginAs(ada)
+    assert.deepEqual(
+      tareas(acotada).map((t) => t.title),
+      ['Pendiente de hoy', 'Pendiente de ayer']
+    )
+  })
+
   test('no existe ninguna vista de «mis tareas»', async ({ client, assert }) => {
     const ada = await cuenta('ada@flowsync.test', 'Ada Lovelace')
     const grace = await cuenta('grace@flowsync.test', 'Grace Hopper')

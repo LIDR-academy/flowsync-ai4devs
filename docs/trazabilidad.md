@@ -11,7 +11,7 @@
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
 | `auth` | 19 | 46 | — | — | 28 | parcial, ver §2 |
-| `tasks` | 33 | 127 | 12 | 118 | 42 | 18 de 18 requisitos de sistema, ver §3 |
+| `tasks` | 33 | 131 | 12 | 118 | 43 | 18 de 18 requisitos de sistema, ver §3 |
 | transversal | — | — | — | — | 15 | 6 de forma de los errores, 2 de aislamiento de la base, 6 de nombres de regla (H-05) y 1 del documento OpenAPI servido (H-35) |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
@@ -74,7 +74,7 @@ Es la única capability con verificación automática.
 
 ---
 
-## 3 · `tasks` · 33 requisitos, 127 escenarios, 42 pruebas
+## 3 · `tasks` · 33 requisitos, 131 escenarios, 43 pruebas
 
 La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHALL»** y **15 por «La interfaz SHALL»**. La cuenta de cobertura se hace sobre los 17, porque el proyecto no tiene runner de navegador y los otros 15 no son un hueco que estas pruebas puedan llenar.
 
@@ -89,7 +89,7 @@ La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHAL
 | Creación de una tarea con solo el título | `creacion.spec.ts` · un título basta, y el responsable lo pone el servidor |
 | Ninguna tarea sin título | `creacion.spec.ts` · vacío y solo espacios |
 | Aviso ante un título demasiado largo | `creacion.spec.ts` · 200 pasa, 201 se rechaza y no se guarda recortado |
-| Una sola lista compartida del espacio | `lista_compartida.spec.ts` · mismo conjunto, con y sin filtro, y el orden acordado |
+| Una sola lista compartida del espacio | `lista_compartida.spec.ts` · mismo conjunto, con y sin filtro, y el orden acordado: desde el 2026-09-13 (PA-3), sin acotar, lo que está en curso va primero aunque sea más antiguo |
 | Lo que cada tarea muestra de su responsable | `assignee.spec.ts` · conjunto cerrado de campos, en lista y en tarea suelta |
 | Tres estados fijos | `filtro.spec.ts` · el cambio de estado tampoco admite valores fuera del conjunto |
 | Cambio de estado de cualquier tarea | `lista_compartida.spec.ts` · una tarea ajena se cambia igual, y no se reasigna; `filtro.spec.ts` · una tarea marcada como hecha por error se recupera desde el filtro. **Hasta el 2026-09-13 ninguna prueba cambiaba una tarea desde `done`**: el escenario «Vuelta atrás desde hecho» estaba sin cubrir en un requisito que esta tabla contaba como cubierto, porque cuenta requisitos y no escenarios |
@@ -111,6 +111,8 @@ Los tres escenarios «Tarea inexistente», que viven repartidos entre tres de es
 **Los 15 requisitos de pantalla**: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, no tener fecha no se penaliza, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, una sola vista sin señales de presencia, el aviso al intentar crear sin un título válido, y el aviso ante una fecha que no vale.
 
 No hay runner de navegador en el proyecto y este trabajo no añade uno. Es un hueco declarado, no una omisión.
+
+> **Una pieza de «crear desde la lista» sí tiene prueba desde el 2026-09-13**: dónde entra la tarea recién creada -la primera de las pendientes, debajo de lo que está en curso- se sacó de la pantalla a `src/lib/lista.ts`, y la fija `lista.test.ts` en Vitest. El resto del requisito, y «la fila no salta» al cambiar un estado, siguen sin prueba; se verificaron en navegador al cerrar el change `lista-en-curso-primero`.
 
 > **Ese hueco se cerró el 2026-09-02.** Decía aquí que «Las tareas exigen sesión» solo tenía prueba sobre `POST /api/v1/tasks`. Al mirarlo era mayor y de otra forma: la prueba se llamaba «sin credencial, en todas las rutas protegidas» y su lista traía **tres de las siete**, todas de lectura. Ahora recorre las siete, y meter en la lista una ruta que no exige sesión la tumba.
 

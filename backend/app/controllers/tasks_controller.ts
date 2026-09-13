@@ -44,7 +44,7 @@ export default class TasksController {
   @ApiOperation({
     summary: 'La lista compartida del espacio',
     description:
-      'Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, de la más reciente a la más antigua y sin paginar. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.',
+      'Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, sin paginar. Sin acotar, primero las que están en curso y después las pendientes, cada grupo de la más reciente a la más antigua; acotada por un estado, de la más reciente a la más antigua. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.',
   })
   @ApiQuery({
     name: 'status',
@@ -89,6 +89,10 @@ export default class TasksController {
     }
 
     const tasks = await query
+      // Lo que está en curso primero (PA-3): la vista por defecto responde
+      // «¿en qué anda el equipo?». Acotada por un estado, el rango es el mismo
+      // para todas y el orden se queda en la recencia.
+      .orderByRaw("CASE status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END")
       .orderBy('createdAt', 'desc')
       // Desempate estable: dos tareas creadas en el mismo milisegundo tienen
       // la misma marca de tiempo, y sin esto su orden relativo sería el que

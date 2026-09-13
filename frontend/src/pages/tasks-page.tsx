@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { AlertCircleIcon, InfoIcon, Loader2Icon } from 'lucide-react'
 import * as api from '@/lib/api'
 import { ApiError } from '@/lib/api'
+import { colocarRecienCreada } from '@/lib/lista'
 import { useAuth } from '@/auth/use-auth'
 import { useAuthForm } from '@/auth/use-auth-form'
 import { TaskItem } from '@/components/task-item'
@@ -138,9 +139,9 @@ export function TasksPage() {
 
     return submit(async () => {
       const created = await api.createTask({ title }, token)
-      // La API devuelve la lista con las más recientes primero, así que la
-      // recién creada entra por arriba. Sin recargar ni volver a pedirla.
-      setTasks((current) => [created, ...(current ?? [])])
+      // Entra donde la pondría la API al volver a pedir la lista: la primera
+      // de las pendientes, debajo de lo que está en curso. Sin recargar.
+      setTasks((current) => colocarRecienCreada(current ?? [], created))
       setTitle('')
 
       // Toda tarea nace pendiente, así que con el filtro puesto en otro estado
@@ -162,6 +163,11 @@ export function TasksPage() {
       // El estado se pinta antes de que conteste el servidor: esperar a la red
       // no es «de inmediato». Si la petición falla, la fila vuelve al estado
       // real más abajo — dejarla mintiendo sería peor que no ser instantáneo.
+      //
+      // Y la fila se queda donde está, aunque el nuevo estado la pondría en
+      // otro sitio del orden (D2 de `lista-en-curso-primero`): moverla bajo el
+      // cursor recién pulsada hace perder lo que se acaba de tocar. La
+      // siguiente carga de la lista la coloca.
       setTasks(
         (current) =>
           current?.map((item) =>

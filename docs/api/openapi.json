@@ -648,7 +648,7 @@
     "/api/v1/tasks": {
       "get": {
         "summary": "La lista compartida del espacio",
-        "description": "Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, de la más reciente a la más antigua y sin paginar. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.",
+        "description": "Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, sin paginar. Sin acotar, primero las que están en curso y después las pendientes, cada grupo de la más reciente a la más antigua; acotada por un estado, de la más reciente a la más antigua. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.",
         "tags": [
           "Tasks"
         ],

@@ -197,6 +197,35 @@ const CATALOGO = [
     ],
   },
   {
+    id: 'PA-3-orden',
+    que: 'la lista vuelve a mezclar en curso y pendientes por recencia',
+    fichero: 'backend/app/controllers/tasks_controller.ts',
+    cambios: [
+      [
+        "      .orderByRaw(\"CASE status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END\")\n",
+        '',
+      ],
+    ],
+    muerden: [
+      [
+        pruebas('lista_compartida'),
+        'sin acotar, lo que está en curso va primero aunque sea más antiguo',
+      ],
+    ],
+  },
+  {
+    id: 'PA-3-colocar',
+    que: 'la tarea recién creada vuelve a pintarse delante de todo',
+    fichero: 'frontend/src/lib/lista.ts',
+    cambios: [
+      [
+        '  const posicion = primeraNoEnCurso === -1 ? tareas.length : primeraNoEnCurso',
+        '  const posicion = 0',
+      ],
+    ],
+    muerden: [[VITEST, 'entra debajo de las en curso y encima de las pendientes']],
+  },
+  {
     id: 'H-03',
     que: 'el cierre de sesión vuelve a responder sin envoltorio',
     fichero: 'backend/app/controllers/access_tokens_controller.ts',
