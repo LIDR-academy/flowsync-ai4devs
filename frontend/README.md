@@ -12,17 +12,17 @@ Lo que **no** hace: decidir reglas de negocio. Quién es responsable, cuándo ve
 
 ## Estructura
 
-| Carpeta | Qué hay |
-|---|---|
-| `src/lib/api.ts` | **El único punto de contacto con el backend.** Envuelve `fetch`, desenvuelve `{ data }`, adjunta `Authorization: Bearer` y traduce los errores a `ApiError`. Toda llamada nueva va aquí, no en un componente |
-| `src/lib/lista.ts` | Dónde entra en pantalla una tarea recién creada, sin volver a pedir la lista |
-| `src/auth/` | La sesión: contexto, proveedor (token en `localStorage` bajo `flowsync.token`, revalidado contra el perfil al arrancar) y hooks |
-| `src/routes/` | Rutas y los guards `ProtectedRoute` y `PublicOnlyRoute` |
-| `src/pages/` | `/login`, `/register`, `/profile`, `/tasks` y `/tasks/:id`. Cualquier otra dirección lleva a `/tasks` |
-| `src/components/` | Componentes propios |
-| `src/components/ui/` | Generados por shadcn (`npx shadcn@latest add <componente>`). **No se editan a mano** |
-| `src/index.css` | Los tokens de Tailwind v4. No hay `tailwind.config.js` |
-| `e2e/` | Pruebas de navegador con Playwright |
+| Carpeta              | Qué hay                                                                                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/lib/api.ts`     | **El único punto de contacto con el backend.** Envuelve `fetch`, desenvuelve `{ data }`, adjunta `Authorization: Bearer` y traduce los errores a `ApiError`. Toda llamada nueva va aquí, no en un componente |
+| `src/lib/lista.ts`   | Dónde entra en pantalla una tarea recién creada, sin volver a pedir la lista                                                                                                                                 |
+| `src/auth/`          | La sesión: contexto, proveedor (token en `localStorage` bajo `flowsync.token`, revalidado contra el perfil al arrancar) y hooks                                                                              |
+| `src/routes/`        | Rutas y los guards `ProtectedRoute` y `PublicOnlyRoute`                                                                                                                                                      |
+| `src/pages/`         | `/login`, `/register`, `/profile`, `/tasks` y `/tasks/:id`. Cualquier otra dirección lleva a `/tasks`                                                                                                        |
+| `src/components/`    | Componentes propios                                                                                                                                                                                          |
+| `src/components/ui/` | Generados por shadcn (`npx shadcn@latest add <componente>`). **No se editan a mano**                                                                                                                         |
+| `src/index.css`      | Los tokens de Tailwind v4. No hay `tailwind.config.js`                                                                                                                                                       |
+| `e2e/`               | Pruebas de navegador con Playwright                                                                                                                                                                          |
 
 El alias `@/*` apunta a `src/*`, declarado a la vez en `tsconfig.app.json` y en `vite.config.ts`.
 

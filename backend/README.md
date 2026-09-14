@@ -13,21 +13,21 @@ Lo que **no** hace: servir el frontend, enviar correo, ni hablar con ningún sis
 
 ## Estructura
 
-| Carpeta | Qué hay |
-|---|---|
-| `start/routes.ts` | Las rutas. Referencian controladores por el mapa generado en `.adonisjs/server/controllers.ts` |
-| `start/kernel.ts` | Middleware: `silent_auth` en todas las rutas, `force_json_response`, y `auth()` en los grupos protegidos |
-| `app/controllers/` | Un controlador por recurso, decorado con `@foadonis/openapi` |
-| `app/validators/` | VineJS 4 con `vine.create()`; los campos comunes (`email()`, `password()`) se comparten |
-| `app/models/` | `User` y `Task`. **No declaran columnas**: extienden las clases de `database/schema.ts` |
-| `app/transformers/` | Qué sale por el cable. Nunca se devuelve un modelo crudo |
-| `app/exceptions/handler.ts` | La forma de los errores y el volcado de depuración, apagado por defecto |
-| `app/openapi/` | Esquemas del contrato, construcción del documento y el comparador de `openapi:check` |
-| `providers/api_provider.ts` | Inyecta `ctx.serialize()`, que envuelve toda respuesta en `{ data }` |
-| `database/migrations/` | La única forma de cambiar el modelo de datos |
-| `database/schema.ts` | **Autogenerado** desde las migraciones. No se edita |
-| `.adonisjs/` | Código generado, **versionado** para que un clon limpio compile |
-| `tests/functional/` | Pruebas Japa contra la API real, por capability |
+| Carpeta                     | Qué hay                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `start/routes.ts`           | Las rutas. Referencian controladores por el mapa generado en `.adonisjs/server/controllers.ts`           |
+| `start/kernel.ts`           | Middleware: `silent_auth` en todas las rutas, `force_json_response`, y `auth()` en los grupos protegidos |
+| `app/controllers/`          | Un controlador por recurso, decorado con `@foadonis/openapi`                                             |
+| `app/validators/`           | VineJS 4 con `vine.create()`; los campos comunes (`email()`, `password()`) se comparten                  |
+| `app/models/`               | `User` y `Task`. **No declaran columnas**: extienden las clases de `database/schema.ts`                  |
+| `app/transformers/`         | Qué sale por el cable. Nunca se devuelve un modelo crudo                                                 |
+| `app/exceptions/handler.ts` | La forma de los errores y el volcado de depuración, apagado por defecto                                  |
+| `app/openapi/`              | Esquemas del contrato, construcción del documento y el comparador de `openapi:check`                     |
+| `providers/api_provider.ts` | Inyecta `ctx.serialize()`, que envuelve toda respuesta en `{ data }`                                     |
+| `database/migrations/`      | La única forma de cambiar el modelo de datos                                                             |
+| `database/schema.ts`        | **Autogenerado** desde las migraciones. No se edita                                                      |
+| `.adonisjs/`                | Código generado, **versionado** para que un clon limpio compile                                          |
+| `tests/functional/`         | Pruebas Japa contra la API real, por capability                                                          |
 
 ## Cómo se usa
 
@@ -51,15 +51,15 @@ El documento navegable de la API queda en `http://localhost:3333/api`. Un recorr
 
 Validadas al arrancar por `start/env.ts`. Una nueva se añade con `node ace env:add`, que la escribe en `.env`, `.env.example` y el esquema.
 
-| Variable | Valor por defecto en `.env.example` | Para qué |
-|---|---|---|
-| `PORT`, `HOST` | `3333`, `localhost` | Dónde escucha. En pruebas, `PORT=3334` (`.env.test`) |
-| `NODE_ENV` | `development` | `development`, `production` o `test`. Decide el fichero de base de datos |
-| `APP_KEY` | vacío | Secreto de la aplicación. Lo genera `node ace generate:key` |
-| `APP_URL` | `http://${HOST}:${PORT}` | URL pública de la API |
-| `LOG_LEVEL` | `info` | En pruebas, `fatal`, para que los errores provocados a propósito no llenen el log |
-| `SESSION_DRIVER` | `cookie` | Configurado pero sin uso real: la autenticación va por access tokens |
-| `DEBUG_HTTP_ERRORS` | `false` | Encendido, los errores devuelven traza y SQL. **Nunca fuera de una máquina local** ([ADR-0005](../docs/adr/0005-el-volcado-de-depuracion-va-apagado.md)) |
+| Variable            | Valor por defecto en `.env.example` | Para qué                                                                                                                                                 |
+| ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`, `HOST`      | `3333`, `localhost`                 | Dónde escucha. En pruebas, `PORT=3334` (`.env.test`)                                                                                                     |
+| `NODE_ENV`          | `development`                       | `development`, `production` o `test`. Decide el fichero de base de datos                                                                                 |
+| `APP_KEY`           | vacío                               | Secreto de la aplicación. Lo genera `node ace generate:key`                                                                                              |
+| `APP_URL`           | `http://${HOST}:${PORT}`            | URL pública de la API                                                                                                                                    |
+| `LOG_LEVEL`         | `info`                              | En pruebas, `fatal`, para que los errores provocados a propósito no llenen el log                                                                        |
+| `SESSION_DRIVER`    | `cookie`                            | Configurado pero sin uso real: la autenticación va por access tokens                                                                                     |
+| `DEBUG_HTTP_ERRORS` | `false`                             | Encendido, los errores devuelven traza y SQL. **Nunca fuera de una máquina local** ([ADR-0005](../docs/adr/0005-el-volcado-de-depuracion-va-apagado.md)) |
 
 ### Cambiar el modelo de datos
 

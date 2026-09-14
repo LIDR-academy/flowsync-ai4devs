@@ -105,13 +105,31 @@ describe('Traducción de errores por regla', () => {
     meta?: Record<string, unknown>
     contiene: string
   }> = [
-    { rule: 'database.unique', field: 'email', contiene: 'Ese email ya está registrado' },
-    { rule: 'sameAs', field: 'passwordConfirmation', contiene: 'Las contraseñas no coinciden' },
+    {
+      rule: 'database.unique',
+      field: 'email',
+      contiene: 'Ese email ya está registrado',
+    },
+    {
+      rule: 'sameAs',
+      field: 'passwordConfirmation',
+      contiene: 'Las contraseñas no coinciden',
+    },
     { rule: 'email', field: 'email', contiene: 'email válida' },
     { rule: 'required', field: 'title', contiene: 'Falta rellenar el título' },
     { rule: 'required', field: 'email', contiene: 'Falta rellenar el email' },
-    { rule: 'minLength', field: 'password', meta: { min: 8 }, contiene: 'al menos 8 caracteres' },
-    { rule: 'maxLength', field: 'title', meta: { max: 200 }, contiene: 'no puede superar los 200' },
+    {
+      rule: 'minLength',
+      field: 'password',
+      meta: { min: 8 },
+      contiene: 'al menos 8 caracteres',
+    },
+    {
+      rule: 'maxLength',
+      field: 'title',
+      meta: { max: 200 },
+      contiene: 'no puede superar los 200',
+    },
     { rule: 'date', field: 'dueDate', contiene: 'Esa fecha no existe' },
     { rule: 'date', field: 'today', contiene: 'qué día es hoy' },
   ]
@@ -119,28 +137,40 @@ describe('Traducción de errores por regla', () => {
   it.each(casos)(
     'la regla $rule sobre $field sale en castellano',
     async ({ rule, field, meta, contiene }) => {
-      stubFetch(responde(422, { errors: [{ message: 'in english', rule, field, meta }] }))
+      stubFetch(
+        responde(422, {
+          errors: [{ message: 'in english', rule, field, meta }],
+        }),
+      )
 
       await expect(createTask({ title: 'x' }, 't')).rejects.toThrow(contiene)
-    }
+    },
   )
 
   it('un mínimo de un carácter se dice como lo que es: el campo en blanco', async () => {
     stubFetch(
       responde(422, {
-        errors: [{ message: 'x', rule: 'minLength', field: 'title', meta: { min: 1 } }],
-      })
+        errors: [
+          { message: 'x', rule: 'minLength', field: 'title', meta: { min: 1 } },
+        ],
+      }),
     )
 
-    await expect(createTask({ title: '' }, 't')).rejects.toThrow('Falta rellenar el título')
+    await expect(createTask({ title: '' }, 't')).rejects.toThrow(
+      'Falta rellenar el título',
+    )
   })
 
   it('una regla que el diccionario no conoce no rompe, pero tampoco inventa', async () => {
     stubFetch(
-      responde(422, { errors: [{ message: 'x', rule: 'regla.que.no.existe', field: 'title' }] })
+      responde(422, {
+        errors: [{ message: 'x', rule: 'regla.que.no.existe', field: 'title' }],
+      }),
     )
 
-    await expect(createTask({ title: 'x' }, 't')).rejects.toThrow('Revisa el título')
+    await expect(createTask({ title: 'x' }, 't')).rejects.toThrow(
+      'Revisa el título',
+    )
   })
 })
 
@@ -164,7 +194,7 @@ describe('Un estado que no existe se explica como tal', () => {
             meta: { choices: ['pending', 'in_progress', 'done'] },
           },
         ],
-      })
+      }),
     )
 
     const error = await listTasks('t', 'archivado').catch((e) => e)
@@ -176,7 +206,11 @@ describe('Un estado que no existe se explica como tal', () => {
   })
 
   it('sin `choices` sigue diciendo que no existe, en vez del genérico', async () => {
-    stubFetch(responde(422, { errors: [{ message: 'x', rule: 'enum', field: 'status' }] }))
+    stubFetch(
+      responde(422, {
+        errors: [{ message: 'x', rule: 'enum', field: 'status' }],
+      }),
+    )
 
     const error = await listTasks('t', 'archivado').catch((e) => e)
 
@@ -191,9 +225,14 @@ describe('Desglose por campo', () => {
       responde(422, {
         errors: [
           { message: 'x', rule: 'email', field: 'email' },
-          { message: 'x', rule: 'minLength', field: 'password', meta: { min: 8 } },
+          {
+            message: 'x',
+            rule: 'minLength',
+            field: 'password',
+            meta: { min: 8 },
+          },
         ],
-      })
+      }),
     )
 
     const error = await login({ email: 'a', password: 'b' }).catch((e) => e)
@@ -212,7 +251,7 @@ describe('Desglose por campo', () => {
           { message: 'x', rule: 'required', field: 'email' },
           { message: 'x', rule: 'email', field: 'email' },
         ],
-      })
+      }),
     )
 
     const error = await login({ email: '', password: 'b' }).catch((e) => e)
@@ -264,7 +303,9 @@ describe('Errores que no vienen de la validación', () => {
    * mensaje: cae al genérico, que es lo correcto.
    */
   it('un 500 del backend sale como fallo del servidor, sin desglose', async () => {
-    stubFetch(responde(500, { errors: [{ message: 'Error interno del servidor' }] }))
+    stubFetch(
+      responde(500, { errors: [{ message: 'Error interno del servidor' }] }),
+    )
 
     const error = await updateTaskStatus(1, 'done', 't').catch((e) => e)
 
@@ -285,7 +326,7 @@ describe('Errores que no vienen de la validación', () => {
         json: async () => {
           throw new SyntaxError('Unexpected token <')
         },
-      } as unknown as Response)
+      } as unknown as Response),
     )
 
     const error = await updateTaskStatus(1, 'done', 't').catch((e) => e)
@@ -326,7 +367,11 @@ describe('Aviso de credencial rechazada', () => {
     stubFetch(vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
     await listTasks('t').catch(() => undefined)
 
-    stubFetch(responde(422, { errors: [{ message: 'x', rule: 'required', field: 'title' }] }))
+    stubFetch(
+      responde(422, {
+        errors: [{ message: 'x', rule: 'required', field: 'title' }],
+      }),
+    )
     await createTask({ title: '' }, 't').catch(() => undefined)
 
     stubFetch(responde(404, { errors: [{ message: 'No se ha encontrado' }] }))
