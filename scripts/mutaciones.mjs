@@ -419,6 +419,18 @@ const CATALOGO = [
     muerden: [[HOOK, 'main · aceptado']],
   },
   {
+    id: 'seguridad-cita',
+    que: 'un supuesto de seguridad se queda sin lo que lo vigila',
+    fichero: 'docs/seguridad.md',
+    cambios: [
+      [
+        '| `login.spec.ts` «un email desconocido responde igual que una contraseña equivocada» |',
+        '| Se comprueba a mano |',
+      ],
+    ],
+    muerden: [[VERIFICADOR, 'sin lo que lo vigila']],
+  },
+  {
     id: 'agents-import',
     que: 'CLAUDE.md deja de importar AGENTS.md',
     fichero: 'CLAUDE.md',

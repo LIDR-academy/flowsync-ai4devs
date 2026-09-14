@@ -121,6 +121,47 @@ C4Component
     Rel(apiclient, api, "fetch a /api/v1")
 ```
 
+## Modelo de datos
+
+Leído de `backend/database/migrations/`, que es la única forma de cambiarlo; `database/schema.ts` se genera de ahí. Tres tablas, dos de ellas del starter de autenticación.
+
+```mermaid
+erDiagram
+    users {
+        int id PK
+        string full_name "nulable, no opcional (H-04)"
+        string email "254 max, unico sin distinguir mayusculas (H-11)"
+        string password "hash scrypt"
+        timestamp created_at
+        timestamp updated_at
+    }
+    auth_access_tokens {
+        int id PK
+        int tokenable_id FK "users.id, on delete cascade"
+        string type
+        string name
+        string hash "el token opaco nunca se guarda en claro"
+        text abilities
+        timestamp created_at
+        timestamp updated_at
+        timestamp last_used_at
+        timestamp expires_at "siempre null: no caducan"
+    }
+    tasks {
+        int id PK
+        string title "200 max"
+        string status "pending in_progress done, por defecto pending"
+        int assignee_id FK "users.id, on delete cascade"
+        date due_date "nulable"
+        timestamp created_at
+        timestamp updated_at
+    }
+    users ||--o{ auth_access_tokens : "abre sesiones"
+    users ||--o{ tasks : "es responsable de"
+```
+
+Lo que el esquema **no** impone y decide la aplicación: que `status` sea uno de tres (lo impone el validador con `vine.enum`, no un `CHECK`); que el email se guarde en minúsculas (lo normaliza el validador, y una migración lo hizo con lo ya guardado); y qué es «vencida», que no se almacena: se calcula al mirar. La política de migraciones, con qué se puede deshacer y qué no, en [`backend/README.md`](../backend/README.md#cambiar-el-modelo-de-datos).
+
 ## Qué hay dentro de cada contenedor
 
 **API de FlowSync** — las cuatro capas que atraviesa cada petición, en orden:

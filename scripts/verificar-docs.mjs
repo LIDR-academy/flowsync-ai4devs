@@ -825,6 +825,29 @@ comprobar('Las pruebas no pueden escribir sobre la base de desarrollo', () => {
   return `${enTest} en test, ${fuera} fuera`
 })
 
+comprobar('Cada supuesto de seguridad cita lo que lo vigila', () => {
+  // docs/seguridad.md promete que ningún supuesto va sin su prueba, hallazgo,
+  // ADR o comprobación. Un supuesto sin cita es una esperanza escrita como
+  // garantía, que es el modo de fallo que este verificador existe para cazar.
+  const texto = leer('docs/seguridad.md')
+  const seccion = texto.split(/^## Supuestos.*$/m)[1]?.split(/^## /m)[0]
+  if (!seccion) throw new Error('no se encuentra la sección «Supuestos» en docs/seguridad.md')
+
+  const filas = seccion
+    .split(/\r?\n/)
+    .filter((l) => l.startsWith('| ') && !l.startsWith('| Supuesto') && !/^\|\s*-/.test(l))
+  if (filas.length < 5) throw new Error(`solo ${filas.length} supuestos: la tabla no se ha leído bien`)
+
+  const cita = /H-\d+|ADR-\d+|\.spec\.ts|verificador|scripts\/|\.yml|\.env|config\/|models\/|Runbooks|Dependabot|REVIEW\.md/
+  const huerfanos = filas
+    .map((l) => l.split('|').map((c) => c.trim()))
+    .filter(([, , vigila]) => !cita.test(vigila ?? ''))
+    .map(([, supuesto]) => supuesto)
+  if (huerfanos.length) throw new Error(`sin lo que lo vigila: ${huerfanos.join('; ')}`)
+
+  return `${filas.length} supuestos, todos con cita`
+})
+
 comprobar('Los documentos que el README enlaza existen', () => {
   // Se derivan de los enlaces del README y no de una lista escrita a mano:
   // una lista a mano no falla cuando el README enlaza algo que no esta.

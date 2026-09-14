@@ -71,6 +71,15 @@ node ace migration:run          # regenera database/schema.ts
 
 Al modelo se añaden solo relaciones, mixins, getters y lógica.
 
+**Política de migraciones**, escrita el 2026-09-13 leyendo las seis que hay:
+
+- **Una migración fusionada no se edita.** Se escribe otra encima. Lo que ya corrió en una base no se puede reescribir.
+- **Cada migración declara en su docblock si se puede deshacer.** Las de esquema tienen `down` real (`dropTable`, `dropColumn`, `drop index`). La que reescribe datos (`normalize_user_emails`) tiene `down` vacío **a propósito**: bajar a mayúsculas lo que se normalizó no tiene sentido, y un `down` que finge revertir es peor que uno que dice que no. Si una migración no puede deshacerse, lo dice ahí y en el hallazgo o ADR que la motivó.
+- **Ningún `down` está probado en CI.** Es un hueco declarado (runbooks §7): antes de desplegar por primera vez, cada `down` se ejecuta contra una copia de la base y se anota.
+- **Una migración que toca datos normaliza con la misma función que el runtime**, importada, no reimplementada: `normalizeUserEmail` sale de `validators/user.ts`. Que las dos normalicen distinto tiene que ser imposible, no cuestión de acordarse.
+- **En pruebas, `--no-schema-generate`** en todo `migration:run`, `reset` y `fresh` que lance un script: el generador reescribe `database/schema.ts` y una vez lo dejó vacío (H-09). CI comprueba que Playwright no lo toca.
+- El diagrama de las tablas está en [`docs/architecture.md`](../docs/architecture.md#modelo-de-datos).
+
 ### Cambiar una ruta, un controlador, un validador o un transformer
 
 ```bash
