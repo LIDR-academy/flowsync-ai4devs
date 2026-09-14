@@ -3,6 +3,7 @@
 > **Estado:** borrador para construir · **Fecha:** 2026-08-07
 > **Base de alcance:** [alcance-mvp.md](./alcance-mvp.md). Ese documento manda: si este PRD y el alcance se contradicen, gana el alcance.
 > **Nota de documento:** aquí no hay diseño técnico. Ni modelo de datos, ni arquitectura, ni endpoints. Solo qué debe hacer el producto y cómo se comprueba.
+> **Casos de uso:** el recorrido de una persona por cada requisito, con sus flujos alternativos y qué funciona hoy, en [casos-de-uso.md](./casos-de-uso.md).
 
 ---
 

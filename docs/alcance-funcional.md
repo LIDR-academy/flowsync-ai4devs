@@ -4,7 +4,7 @@
 >
 > Esto no sustituye al backlog ni a la spec viva: el backlog dice **qué se pidió**, `openspec/specs/` dice **qué comportamiento es contrato**, y esto dice **qué de lo pedido existe**. Las tres cosas se contradicen con facilidad, y por eso están separadas.
 >
-> Última revisión: 2026-09-03.
+> Última revisión: 2026-09-13. El recorrido de una persona por cada historia, con lo que puede torcerse, está en [`docs/prd/casos-de-uso.md`](prd/casos-de-uso.md).
 
 ## Los módulos, y cuál añadió funcionalidad
 
@@ -14,7 +14,7 @@
 | **2** · Spec-Driven Development | PRD, alcance del MVP y backlog de la épica E2 | **Ninguna.** Es el módulo que decide qué construir |
 | **3** · OpenSpec | La gestión de tareas entera, más la base de pruebas | Lista, crear, cambiar estado, vencimiento, filtro |
 | **4** · Verificación | Trazabilidad, documentación que se contrasta, revisión adversarial | **Ninguna.** Lo que salió fueron nueve defectos de lo ya construido |
-| **5** · Controles y guardarraíles | Solo el prework, y portar los cierres del Módulo 4 | **Ninguna.** La sesión no ha ocurrido |
+| **5** · Controles y guardarraíles | Portar los cierres del Módulo 4, bajar reglas de proceso a CI, el revisor en CI y pruebas de navegador | **Casi ninguna.** Un solo cambio visible: la lista pone primero lo que está en curso (PA-3). Y cerrar sesión responde envuelto en `data` (H-03), que no se ve en pantalla |
 
 **Dos de los cinco módulos no añadieron funcionalidad, y son los que más cambiaron el proyecto.** Uno decidió qué construir y el otro descubrió que lo construido tenía nueve defectos con la suite en verde.
 
@@ -70,7 +70,7 @@ Es el tipo de hueco que solo aparece al traducir requisitos a historias, y es un
 
 ## Lo que este documento no dice
 
-**Cuántos criterios de aceptación están cubiertos por pruebas.** Eso está en [`docs/trazabilidad.md`](trazabilidad.md), requisito a requisito, con los huecos declarados: de los requisitos de sistema de `tasks` los tiene todos, y los que solo se observan en pantalla no, porque no hay runner de navegador.
+**Cuántos criterios de aceptación están cubiertos por pruebas.** Eso está en [`docs/trazabilidad.md`](trazabilidad.md), requisito a requisito, con los huecos declarados: de los requisitos de sistema de `tasks` los tiene todos, y de los que solo se observan en pantalla, muy pocos: hay runner de navegador desde el 2026-09-13, y cubre a propósito solo los casos que nada más veía.
 
 **Cuáles de los criterios están validados.** Los marcados `[PROPUESTO]` no derivan del PRD: cubren huecos detectados al redactarlos. Los de historias construidas se contrastaron el 2026-09-13 y pasaron a `[VALIDADO]`; los que siguen propuestos son de historias que todavía no existen. Escribir una prueba contra un criterio propuesto fija como contrato algo que nadie ha aprobado, así que el orden es validarlo primero. El recuento está en [`docs/trazabilidad.md`](trazabilidad.md).
 

@@ -101,7 +101,7 @@ Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbook
 
 | Qué | Dónde |
 |---|---|
-| Producto: PRD, casos de uso y backlog | [`docs/prd/flowsync-mvp.md`](docs/prd/flowsync-mvp.md), [`docs/backlog/README.md`](docs/backlog/README.md) |
+| Producto: PRD, casos de uso y backlog | [`docs/prd/flowsync-mvp.md`](docs/prd/flowsync-mvp.md), [`docs/prd/casos-de-uso.md`](docs/prd/casos-de-uso.md), [`docs/backlog/README.md`](docs/backlog/README.md) |
 | Specs vivas y changes archivados | [`openspec/specs/`](openspec/specs/), [`openspec/changes/archive/`](openspec/changes/archive/) |
 | Trazabilidad ticket, criterio, prueba y código | [`docs/trazabilidad.md`](docs/trazabilidad.md) |
 | Arquitectura y decisiones | [`docs/architecture.md`](docs/architecture.md), [`docs/adr/`](docs/adr/) |
