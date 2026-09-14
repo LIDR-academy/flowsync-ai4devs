@@ -74,6 +74,12 @@ const HOOK = {
   args: ['scripts/probar-hook-rama.mjs'],
   fallo: /^FALLA\b/,
 }
+const MENSAJE = {
+  nombre: 'probar-hook-mensaje',
+  cwd: '.',
+  args: ['scripts/probar-hook-mensaje.mjs'],
+  fallo: /^FALLA\b/,
+}
 const FIX = {
   nombre: 'probar-fix-con-prueba',
   cwd: '.',
@@ -396,6 +402,13 @@ const CATALOGO = [
     fichero: 'scripts/fix-con-prueba.mjs',
     cambios: [['/^fix(\\([^)]*\\))?!?:/', '/^fix(\\([^)]*\\))?:/']],
     muerden: [[FIX, 'fix(tasks)!: sin prueba y rompiendo']],
+  },
+  {
+    id: 'commit-msg',
+    que: 'el hook de mensaje deja de rechazar',
+    fichero: '.githooks/commit-msg',
+    cambios: [['  exit 1', '  exit 0']],
+    muerden: [[MENSAJE, 'arreglo el bug']],
   },
   {
     // Pasó: `api.test.ts` y dos README llegaron sin formatear el 2026-09-13, el

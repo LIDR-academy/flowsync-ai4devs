@@ -92,9 +92,9 @@ La lista completa, con filtros de pruebas y generadores de `ace`, en [`CLAUDE.md
 2. **Si cambia el comportamiento, primero la spec.** Un change de OpenSpec (`/opsx:propose`) se revisa antes de escribir código; al terminar, `/opsx:archive` lo fusiona en `openspec/specs/`. Un arreglo pequeño que no cambia lo que la spec dice no necesita change.
 3. **Un bug se reproduce antes de arreglarlo, y deja una prueba.** CI rechaza un commit `fix:` que no toque una prueba, salvo que el mensaje lleve `Sin-prueba: <motivo>`.
 4. **Si tocas rutas, controladores, validadores o transformers**, en el mismo commit: `npm run openapi:generate`, el diff de `backend/.adonisjs/` y el README de la capability.
-5. **Al índice por nombre** (`git add <fichero>`), commits convencionales (`feat:`, `fix:`, `docs:`, `chore:`...) y **nunca `--no-verify`**.
+5. **Al índice por nombre** (`git add <fichero>`), commits convencionales (`tipo(ámbito): qué`; el hook `commit-msg` rechaza lo demás) y **nunca `--no-verify`**.
 6. **Antes de abrir el PR**, lo mismo que corre en CI: lint, formato, tipos, pruebas de las dos capas, `npm audit` y `openapi:check`. Si añades una prueba, actualiza su número en `CLAUDE.md`: CI lo contrasta.
-7. **Un solo PR al terminar la unidad**, con la descripción completa. El revisor adversarial corre solo en cada push de una rama con PR abierto; su informe queda en el resumen del job.
+7. **Un solo PR al terminar la unidad**, con la plantilla de `.github/PULL_REQUEST_TEMPLATE.md` rellena, incluida la sección "Lo que este PR NO arregla". El revisor adversarial corre solo en cada push de una rama con PR abierto; su informe queda en el resumen del job.
 
 Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbooks.md). Las reglas completas, con el modo de fallo de cada una: [`CLAUDE.md`](CLAUDE.md).
 

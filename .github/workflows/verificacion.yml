@@ -203,6 +203,9 @@ jobs:
       - name: El hook de rama rechaza main y sN/* (R-01)
         run: node scripts/probar-hook-rama.mjs
 
+      - name: El hook de mensaje exige commits convencionales
+        run: node scripts/probar-hook-mensaje.mjs
+
       - name: La comprobación de R-08 decide bien
         run: node scripts/probar-fix-con-prueba.mjs
 

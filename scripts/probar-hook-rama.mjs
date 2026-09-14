@@ -11,7 +11,8 @@
  * Monta un repositorio desechable, le apunta `core.hooksPath` al directorio
  * del proyecto, y commitea en cada rama esperando el código de salida. El
  * commit base se crea con `commit-tree`, que no pasa por hooks: si se hiciera
- * con `git commit` sobre `main`, el propio hook lo rechazaría.
+ * con `git commit` sobre `main`, el propio hook lo rechazaría. El asunto es
+ * convencional porque `commit-msg` también corre aquí.
  */
 import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, rmSync } from 'node:fs'
@@ -50,7 +51,7 @@ try {
     if (rama === null) git('checkout', '-q', '--detach', 'base')
     else git('checkout', '-q', '-B', rama, 'base')
 
-    const { status } = spawnSync('git', ['commit', '--allow-empty', '-q', '-m', 'prueba'], {
+    const { status } = spawnSync('git', ['commit', '--allow-empty', '-q', '-m', 'test: prueba'], {
       cwd: repo,
       encoding: 'utf8',
     })

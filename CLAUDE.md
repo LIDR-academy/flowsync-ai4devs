@@ -201,7 +201,7 @@ Siete reglas, y ninguna viene del curso. Las **seis primeras** son las que renel
 - **Los hooks no se saltan.** · *Fallo ruidoso.*
   Nada de `--no-verify`. Si un hook falla, se investiga la causa.
   Saltarlo convierte la comprobación en decorado, y es un acto deliberado que hay que teclear.
-  Hasta el 2026-09-12 no había hooks y la regla no protegía nada. Ahora sí: `--no-verify` es la única forma de commitear en `main` o en una `sN/*` pese a `.githooks/pre-commit`.
+  Hasta el 2026-09-12 no había hooks y la regla no protegía nada. Ahora sí: `--no-verify` es la única forma de commitear en `main` o en una `sN/*` pese a `.githooks/pre-commit`, o con un asunto que no sea `tipo(ámbito): qué` pese a `.githooks/commit-msg` (desde el 2026-09-13; lo prueba `scripts/probar-hook-mensaje.mjs`).
 
 - **Todo atajo tomado por velocidad se escribe como deuda técnica.** · *Fallo silencioso, y el que más decae.*
   Explícito, con su motivo, en el sitio donde alguien lo vaya a leer. Un atajo sin registrar deja de ser una decisión y pasa a ser cómo funciona el sistema.

@@ -1,0 +1,23 @@
+# La mitad que `npm audit` en CI no cubre: detectar es una cosa, y que el
+# arreglo llegue como PR sin que nadie se acuerde es otra. El 2026-09-13 había
+# cuatro vulnerabilidades en el backend, dos altas, y nadie lo sabía.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      dependencias:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      dependencias:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -182,6 +182,10 @@ git commit ...
 
 **No** uses `--no-verify`: es la única forma de saltarse la regla y es un acto deliberado.
 
+### El hook rechaza el mensaje: «el asunto no sigue 'tipo(ámbito): qué'»
+
+El asunto va como `feat: ...`, `fix(tasks): ...`, `docs: ...`. Los tipos admitidos los imprime el propio hook. R-08 lee ese prefijo para saber si un commit es un arreglo, así que no es estética. `Merge`, `Revert`, `fixup!` y `squash!` pasan.
+
 ### El hook no se ejecuta
 
 Lo activa el script `prepare` al hacer `npm install` en `backend/` o `frontend/`. Si se clonó sin instalar: `git config core.hooksPath .githooks`.
