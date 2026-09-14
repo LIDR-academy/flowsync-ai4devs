@@ -44,6 +44,7 @@ Diagramas C4 y el detalle por capas: [`docs/architecture.md`](docs/architecture.
 | Git | cualquiera reciente | `npm install` activa el hook de `.githooks/` |
 | GNU Make | opcional | Solo para los atajos. **Windows sin WSL no está soportado por el `Makefile`**; ahí se arranca a mano |
 | Chromium de Playwright | opcional | Solo para las pruebas de navegador: `npx playwright install chromium` en `frontend/` |
+| Docker | opcional | `docker compose up` levanta los dos servidores sin instalar Node ni `make`. Es la salida para Windows sin WSL |
 
 ## Instalación
 
@@ -54,6 +55,12 @@ git clone https://github.com/LIDR-academy/flowsync-ai4devs.git
 cd flowsync-ai4devs
 make setup   # instala dependencias, crea los .env, genera APP_KEY y migra
 make start   # backend en :3333 y frontend en :5173; Ctrl-C para los dos
+```
+
+Con Docker, en cualquier sistema:
+
+```bash
+docker compose up   # backend en :3333 y frontend en :5173; la primera vez tarda en instalar
 ```
 
 A mano, en cualquier sistema:
@@ -107,16 +114,34 @@ La lista completa, con filtros de pruebas y generadores de `ace`, en [`AGENTS.md
 6. **Antes de abrir el PR**, lo mismo que corre en CI: lint, formato, tipos, pruebas de las dos capas, `npm audit` y `openapi:check`. Si añades una prueba, actualiza su número en `AGENTS.md`: CI lo contrasta.
 7. **Un solo PR al terminar la unidad**, con la plantilla de `.github/PULL_REQUEST_TEMPLATE.md` rellena, incluida la sección "Lo que este PR NO arregla". El revisor adversarial corre solo en cada push de una rama con PR abierto; su informe queda en el resumen del job.
 
+### Definition of Done
+
+Una unidad de trabajo está terminada cuando todo esto es cierto. Cada punto dice qué lo comprueba; los marcados **criterio** no los ve ninguna máquina.
+
+| Hecho cuando | Lo comprueba |
+|---|---|
+| Lo que cambia de comportamiento está en `openspec/specs/`, con su change archivado sin casillas mudas | `openspec validate` y el verificador, en CI |
+| Cada escenario nuevo de la spec tiene prueba, en la capa más baja que lo vea | **criterio**, con `docs/trazabilidad.md` como lista |
+| Lint, formato, tipos, pruebas de las tres capas y `npm audit` en verde | Los jobs Backend, Frontend y Playwright |
+| El contrato regenerado si cambió una ruta, y el README de la capability al día | `openapi:check` en CI; el README es **criterio** |
+| El número de pruebas actualizado en `AGENTS.md` | `recuento-pruebas.mjs` en CI |
+| Toda comprobación nueva tiene entrada en el catálogo y se ha visto morder | `mutaciones.mjs` en CI |
+| Cada `fix:` deja una prueba o dice por qué no | R-08 en CI |
+| Los hallazgos nuevos están en `docs/hallazgos.md` con sus casillas y su reproducción | **criterio**; la plantilla de PR los pide |
+| El PR lleva la plantilla rellena, incluida «lo que NO arregla» | **criterio** |
+| El informe del revisor adversarial leído, y cada grave reproducido o refutado por escrito | **criterio**; el revisor informa, no bloquea |
+
 Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbooks.md). Las reglas completas, con el modo de fallo de cada una: [`AGENTS.md`](AGENTS.md).
 
 ## Documentación
 
 | Qué | Dónde |
 |---|---|
-| Producto: PRD, casos de uso y backlog | [`docs/prd/flowsync-mvp.md`](docs/prd/flowsync-mvp.md), [`docs/prd/casos-de-uso.md`](docs/prd/casos-de-uso.md), [`docs/backlog/README.md`](docs/backlog/README.md) |
+| Producto: PRD, casos de uso, glosario y backlog | [`docs/prd/flowsync-mvp.md`](docs/prd/flowsync-mvp.md), [`docs/prd/casos-de-uso.md`](docs/prd/casos-de-uso.md), [`docs/prd/glosario.md`](docs/prd/glosario.md), [`docs/backlog/README.md`](docs/backlog/README.md) |
 | Specs vivas y changes archivados | [`openspec/specs/`](openspec/specs/), [`openspec/changes/archive/`](openspec/changes/archive/) |
 | Trazabilidad ticket, criterio, prueba y código; estrategia de pruebas | [`docs/trazabilidad.md`](docs/trazabilidad.md), [`docs/estrategia-de-pruebas.md`](docs/estrategia-de-pruebas.md) |
-| Arquitectura y decisiones | [`docs/architecture.md`](docs/architecture.md), [`docs/adr/`](docs/adr/) |
+| Arquitectura, modelo de datos y decisiones | [`docs/architecture.md`](docs/architecture.md), [`docs/adr/`](docs/adr/) |
+| Seguridad: fronteras, supuestos y lo que no se defiende | [`docs/seguridad.md`](docs/seguridad.md) |
 | Contrato de la API | [`docs/api/openapi.json`](docs/api/openapi.json), servido también en `/api` |
 | Operación, CI e incidentes | [`docs/runbooks.md`](docs/runbooks.md) |
 | Hallazgos y su estado | [`docs/hallazgos.md`](docs/hallazgos.md) |
