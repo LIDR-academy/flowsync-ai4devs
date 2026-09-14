@@ -29,7 +29,7 @@ Diagramas C4 y el detalle por capas: [`docs/architecture.md`](docs/architecture.
 
 | | Versión | Nota |
 |---|---|---|
-| Node.js | **24** | La que usa CI. Trae npm |
+| Node.js | **24** | La que usa CI; `.nvmrc` la fija y `engine-strict` rechaza otra al instalar. Trae npm |
 | Git | cualquiera reciente | `npm install` activa el hook de `.githooks/` |
 | GNU Make | opcional | Solo para los atajos. **Windows sin WSL no está soportado por el `Makefile`**; ahí se arranca a mano |
 | Chromium de Playwright | opcional | Solo para las pruebas de navegador: `npx playwright install chromium` en `frontend/` |

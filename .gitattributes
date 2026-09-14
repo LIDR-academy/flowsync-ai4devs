@@ -1,0 +1,12 @@
+# Todo texto se guarda con LF. En Windows, `core.autocrlf` convertía al
+# extraer y volvía a convertir al añadir, y un `migration:reset` dejó 45
+# ficheros "cambiados" sin un solo byte de contenido distinto. Con esto el
+# repositorio tiene una sola verdad y el árbol de trabajo sale igual en todos.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.sqlite3 binary
