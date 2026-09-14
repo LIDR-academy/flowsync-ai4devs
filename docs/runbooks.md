@@ -31,6 +31,10 @@ El 3333 es el servidor de desarrollo; el 3334, la suite de Japa y el backend de 
 2. Si es un `node ace serve` o una ejecución de pruebas que quedó colgada, páralo.
 3. No cambies el puerto en `.env.test`: hasta el 2026-09-12 la suite heredaba el 3333 del `.env` y caía con cero pruebas ejecutadas cuando el servidor de desarrollo estaba arriba.
 
+### `make` no funciona, o no hay Node en la máquina
+
+`docker compose up` desde la raíz levanta los dos servidores con la misma imagen de Node que CI. Las dependencias van en volúmenes propios y la base en `backend/tmp/`, que persiste. Para empezar de cero: `docker compose down -v`. **No ejecutado todavía en ninguna máquina**: el fichero pasa `docker compose config` y nada más; quien lo levante primero, que anote qué hubo que tocar.
+
 ### La base de desarrollo tiene datos basura
 
 ```bash
