@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# R-01: nunca se commitea directo en `main` ni en una `sN/*`.
+#
+# La regla estuvo escrita en el fichero de instrucciones desde el Módulo 1 y se incumplió 45
+# veces sin que nadie lo notara: 12 commits sobre `s3/start` y 33 sobre
+# `s4/start` (docs/auditoria-reglas-de-proceso.md). Auditar el pasado no es
+# computable -git no guarda en qué rama se hizo un commit-, pero impedirlo sí:
+# la rama actual existe en el momento de commitear.
+#
+# Lo prueba scripts/probar-hook-rama.mjs, que corre en CI.
+
+# Sin rama no hay nada que decidir: un HEAD desacoplado es como trabajan
+# rebase, bisect y cherry-pick a mitad, y bloquearlos rompería a quien arregla
+# su propia rama de trabajo.
+rama=$(git symbolic-ref --short -q HEAD) || exit 0
+
+case "$rama" in
+  main | s[0-9]*/*)
+    echo "pre-commit: no se commitea directo en '$rama' (R-01, AGENTS.md)." >&2
+    echo "La rama es por unidad de trabajo: git switch -c feat/<slug>" >&2
+    exit 1
+    ;;
+esac

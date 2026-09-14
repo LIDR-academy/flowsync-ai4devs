@@ -25,17 +25,30 @@ El artefacto que dirige la implementación es el de este repositorio: los criter
 
 ## Las historias
 
-Doce historias cubren las dos épicas, **todas con criterios de aceptación escritos**. Dos están además descompuestas en tickets.
+Doce ficheros cubren las dos épicas, **todos con criterios de aceptación escritos**. Dos están además descompuestos en tickets. Tres de los doce no son historias sino criterios de otra, y se marcan abajo: se conservan porque el backlog es el registro de lo que se decidió, no una lista renumerada.
+
+### Prioridad MoSCoW, con cupo
+
+> Puesta el 2026-09-13, **retroactiva**: el backlog se escribió con Impacto y Complejidad (tabla más abajo) y sin cupo, y se construyeron siete de doce. El lineamiento del Proyecto Final pide **3-5 must y 1-2 should** antes de escribir la primera historia, y esto es lo que habría salido de aplicarlo aquí. Se deja para que el siguiente proyecto arranque con el cupo puesto, no para reescribir lo que pasó.
+
+| Prioridad | Historias | Por qué |
+|---|---|---|
+| **Must** (4) | E3-1 la lista compartida · E2-1 crear con solo el título (con E2-2 y E2-3 como sus criterios) · E2-4 cambiar el estado desde la fila · FS-142 filtrar por estado | Es la vertical del PRD entera: entro, veo, cambio en un gesto. Sin cualquiera de las cuatro no hay nada que demostrar |
+| **Should** (2) | E2-5 abrir una tarea, con FS-118 fecha de vencimiento · E3-2 la lista se actualiza sola | La primera es lo que la lista no muestra; la segunda es lo que el PRD llama la razón de ser del producto, y **no se construyó**: dependía de decidir cómo viaja el cambio (PA-8) |
+| **Could** (1) | E2-7 reasignar | Sirve al eje «elegir lo siguiente sabiendo qué está libre», y cabe sin tocar el modelo |
+| **Won't**, en este MVP (2) | E2-6 editar título · E2-10 borrar | Corrección e higiene. Ninguna sirve a la promesa central |
+
+Lo construido coincide con los cuatro must y uno de los dos should. Lo que enseña la tabla puesta a posteriori: **el should que no se construyó era el que el PRD consideraba imprescindible**, y un cupo escrito el día 0 lo habría obligado a ser must o a bajar del PRD.
 
 ### E2 · Gestión de tareas
 
 | Historia | Qué resuelve | Tickets |
 |---|---|---|
 | [**E2-1** — Crear tarea con solo el título](./E2-gestion-tareas/us-crear-tarea.md) | Anotar en qué andas cuesta segundos, sin formulario | — |
-| [**E2-2** — Título obligatorio](./E2-gestion-tareas/us-titulo-obligatorio.md) | Ninguna fila de la lista queda sin decir de qué trabajo habla | — |
-| [**E2-3** — Nace mía y pendiente](./E2-gestion-tareas/us-responsable-y-estado-por-defecto.md) | La tarea nueva ya viene a tu nombre y en «Pendiente» | — |
+| [**E2-2** — Título obligatorio](./E2-gestion-tareas/us-titulo-obligatorio.md) | Ninguna fila de la lista queda sin decir de qué trabajo habla. **Es un criterio de E2-1**, no una historia | — |
+| [**E2-3** — Nace mía y pendiente](./E2-gestion-tareas/us-responsable-y-estado-por-defecto.md) | La tarea nueva ya viene a tu nombre y en «Pendiente». **Es un criterio de E2-1**, no una historia | — |
 | [**E2-4** — Cambiar el estado desde la lista](./E2-gestion-tareas/us-cambiar-estado.md) | Mantener al día en qué andas cuesta un gesto | — |
-| [**E2-5** — Abrir una tarea](./E2-gestion-tareas/us-abrir-tarea.md) | La superficie donde vive lo que la lista no muestra | — |
+| [**E2-5** — Abrir una tarea](./E2-gestion-tareas/us-abrir-tarea.md) | La superficie donde vive lo que la lista no muestra. **Superficie, no valor entregable**: llega con FS-118 | — |
 | [**E2-6** — Editar el título](./E2-gestion-tareas/us-editar-titulo.md) | Corregir un título que no dice lo que parecía decir | — |
 | [**E2-7** — Reasignar responsable](./E2-gestion-tareas/us-reasignar-responsable.md) | Coger una tarea libre sin pedir permiso a nadie | — |
 | [**E2-10** — Borrar tarea](./E2-gestion-tareas/us-borrar-tarea.md) | Quitar de en medio lo que ya no se va a hacer | — |
@@ -72,10 +85,10 @@ Condicionan cuándo se puede cerrar el trabajo, y ninguno se resuelve dentro de 
 | Bloqueo | Efecto |
 |---|---|
 | **No hay base de pruebas** (R-7) | No impide escribir código; impide **cerrar** cualquier ticket cuyo DoD pida pruebas |
-| **La vista de detalle no está contabilizada** (PA-6) | Prerrequisito de FS-118.4, y la razón por la que E2-5 no se puede descomponer todavía |
+| ~~**La vista de detalle no está contabilizada** (PA-6)~~ | **Resuelto en lo que tocaba a E2-5**, 2026-09-13: la pantalla de una tarea está construida. De PA-6 siguen abiertas las superficies de elegir persona (E2-7) y de aviso de frescura (E3-2) |
 | **Contradicción CA-9 / CA-17** (PA abierto en FS-142) | Decisión de producto sin tomar. Bloquea FS-142.1 |
-| **Sin regla de orden ni agrupación de la lista** (PA-3) | E3-1 promete enumerar el trabajo de cada persona, y sin orden esa promesa no se sostiene al crecer |
-| **Sin decisión sobre el choque de ediciones** (PA-8) | Lo provocan E2-7, E2-10 y E3-2 a la vez; cada implementación lo resolvería distinto |
+| ~~**Sin regla de orden** de la lista~~ (PA-3) | **Resuelto el 2026-09-13**: lo que está en curso va primero, change `lista-en-curso-primero`. **Sigue sin agrupación por persona**, que queda fuera con RF-20 y PA-5, así que la promesa de E3-1 de enumerar el trabajo de cada uno se sostiene mejor que antes pero no del todo al crecer |
+| **Sin decisión sobre el choque de ediciones** (PA-8) | Lo provocan E2-6, E2-7, E2-10 y E3-2; cada implementación lo resolvería distinto. **Desde el 2026-09-13 es regla escrita en el PRD**: el comportamiento visible se decide antes de construir cualquiera de las cuatro. Hasta entonces gana la última escritura, sin aviso |
 
 > **Ya no son bloqueos, son trabajo.** La lista compartida y la lista viva figuraban aquí como ausencias del sustrato. Ahora son **E3-1** y **E3-2**, con criterios y sitio en el orden. Un bloqueo que se puede escribir como historia deja de ser un bloqueo.
 
@@ -131,6 +144,6 @@ Respeta a la vez prioridad de producto y dependencias. **La dependencia manda so
 | 9 | **E2-5** Abrir una tarea | Habilitadora de lo que viene detrás; bloqueada por PA-6 |
 | 10 | **E2-6** Editar el título | Cae casi sola una vez existe E2-5 |
 | 11 | **FS-118** Fecha de vencimiento | Impacto bajo y depende de E2-5 |
-| 12 | **E2-10** Borrar tarea | Higiene, sin urgencia |
+| 12 | **E2-10** Borrar tarea | Higiene, sin urgencia. **Al planificarla se reabren PA-2 y PA-10** |
 
 **Lo más rentable ahora mismo no es un ticket:** es resolver la contradicción **CA-9 / CA-17** de FS-142. Cuesta una conversación y desbloquea la historia de alto impacto más avanzada del backlog.

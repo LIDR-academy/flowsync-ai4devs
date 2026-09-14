@@ -8,7 +8,7 @@
 
 > Como miembro del equipo, quiero ver una sola lista con todas las tareas del espacio y su responsable y estado a la vista, para saber en qué anda cada uno sin preguntar a nadie.
 
-> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos.
+> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos. Los marcados **[VALIDADO]** se contrastaron el 2026-09-13 contra la spec viva, el código y las pruebas.
 
 > **Por qué esta historia va la primera junto a la creación.** Es el sustrato de la épica de gestión de tareas: sin lista no hay dónde cambiar un estado desde la propia fila, ni nada que filtrar, ni nada donde enseñar un vencimiento. El backlog la señalaba como bloqueo transversal antes de existir; ahora es trabajo con criterios, no una nota al pie.
 
@@ -84,7 +84,8 @@ DADO que hay tareas en varios estados
 CUANDO abro la lista y la recorro
 ENTONCES ninguna tarea cambia de estado, de responsable ni de fecha.
 
-**CA-12 — La lista no muestra quién está conectado** · **[PROPUESTO]**
+**CA-12 — La lista no muestra quién está conectado** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «Sin señales de presencia» de la spec viva.*
 DADO que otras personas del equipo están usando la aplicación a la vez que yo
 CUANDO miro la lista
 ENTONCES no veo ninguna señal de presencia, ni quién está en línea, ni actividad por persona.

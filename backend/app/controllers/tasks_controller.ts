@@ -44,14 +44,14 @@ export default class TasksController {
   @ApiOperation({
     summary: 'La lista compartida del espacio',
     description:
-      'Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, de la más reciente a la más antigua y sin paginar. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.',
+      'Devuelve el mismo conjunto para cualquier cuenta que pida el mismo alcance, sin paginar. Sin acotar, primero las que están en curso y después las pendientes, cada grupo de la más reciente a la más antigua; acotada por un estado, de la más reciente a la más antigua. Sin acotar, el alcance son las pendientes y las que están en curso; las hechas se quedan fuera y solo se alcanzan pidiéndolas por su estado. No informa del vencimiento, y por eso no pide día de referencia.',
   })
   @ApiQuery({
     name: 'status',
     required: false,
     enum: [...TASK_STATUSES],
     description:
-      'Acota la lista a un estado. El estado es la única dimensión por la que se puede acotar. Sin él llegan `pending` e `in_progress`. Hoy el validador solo comprueba que sea texto, así que un valor fuera de estos tres no se rechaza: devuelve una lista vacía.',
+      'Acota la lista a un estado. El estado es la única dimensión por la que se puede acotar. Sin él llegan `pending` e `in_progress`. Un valor que no sea uno de los tres se rechaza con `422` señalando el campo, y **nunca** devuelve una lista vacía: confundir «no existe ese estado» con «no hay nada en ese estado» es el fallo silencioso que este filtro existe para evitar.',
   })
   @ApiResponse({
     status: 200,
@@ -62,6 +62,18 @@ export default class TasksController {
   @ApiResponse({
     status: 401,
     description: 'Falta el token o no es válido. No se devuelve ninguna tarea.',
+    type: () => ErrorResponse,
+  })
+  @ApiResponse({
+    status: 422,
+    description:
+      'El estado por el que se pide acotar no es ninguno de los tres del dominio. Se rechaza señalando el campo, y **no** se devuelve una lista vacía: confundir «no existe ese estado» con «no hay nada en ese estado» es el fallo silencioso que este filtro existe para evitar.',
+    type: () => ValidationErrorResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
     type: () => ErrorResponse,
   })
   async index({ request, serialize }: HttpContext) {
@@ -77,6 +89,10 @@ export default class TasksController {
     }
 
     const tasks = await query
+      // Lo que está en curso primero (PA-3): la vista por defecto responde
+      // «¿en qué anda el equipo?». Acotada por un estado, el rango es el mismo
+      // para todas y el orden se queda en la recencia.
+      .orderByRaw("CASE status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END")
       .orderBy('createdAt', 'desc')
       // Desempate estable: dos tareas creadas en el mismo milisegundo tienen
       // la misma marca de tiempo, y sin esto su orden relativo sería el que
@@ -123,6 +139,12 @@ export default class TasksController {
     description: 'Falta `today` o no es una fecha válida. No se devuelve ninguna tarea.',
     type: () => ValidationErrorResponse,
   })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
+  })
   async show({ params, request, serialize }: HttpContext) {
     const { today } = await request.validateUsing(taskReferenceDayValidator)
     const task = await Task.findOrFail(params.id)
@@ -157,6 +179,12 @@ export default class TasksController {
       'El título falta, está vacío, es solo espacios o pasa de 200 caracteres. No se crea ninguna tarea ni se guarda una versión recortada.',
     type: () => ValidationErrorResponse,
   })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Algo falló y no estaba previsto. El cuerpo es siempre el mismo y no depende de qué excepción se lanzara: el mensaje de un error inesperado lo escribe la librería que falló y describe el fallo, no el producto (ADR-0005). No lleva traza, ni rutas del disco, ni la sentencia SQL.',
+    type: () => ErrorResponse,
+  })
   async store({ request, response, auth, serialize }: HttpContext) {
     const { title } = await request.validateUsing(createTaskValidator)
     const user = auth.getUserOrFail()
@@ -165,12 +193,11 @@ export default class TasksController {
     // el modelo recién creado no vuelve a leerse de la base de datos, así que
     // ese defecto no llegaría a la respuesta.
     const task = await Task.create({ title, status: 'pending', assigneeId: user.id })
-    await task.load('assignee')
 
     // El estado se marca aparte y el cuerpo se devuelve: `serialize()` entrega
     // una promesa que resuelve el pipeline al devolverla, y pasársela a
     // `response.created()` deja la respuesta con el cuerpo vacío.
     response.status(201)
-    return serialize(TaskTransformer.transform(task))
+    return serialize(TaskTransformer.transform(await Task.releerConResponsable(task.id)))
   }
 }

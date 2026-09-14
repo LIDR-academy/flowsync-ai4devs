@@ -2,7 +2,9 @@
 
 ## Purpose
 Da al equipo su lista de trabajo: una sola lista compartida con todas las tareas del espacio, donde apuntar algo cuesta escribir un título y donde el responsable y el estado de cada tarea se leen sin abrir nada. Es la capability que permite responder «¿en qué anda cada uno?» sin preguntar a nadie.
+
 ## Requirements
+
 ### Requirement: Creación de una tarea con solo el título
 
 El sistema SHALL crear una tarea a partir únicamente de su título cuando se envíe `POST /api/v1/tasks` con `{"title": "..."}`, sin exigir ningún otro dato, y SHALL devolver la tarea ya creada.
@@ -62,7 +64,7 @@ El sistema SHALL aceptar títulos de hasta 200 caracteres y SHALL rechazar con `
 
 ### Requirement: Una sola lista compartida del espacio
 
-El sistema SHALL devolver en `GET /api/v1/tasks` las tareas del espacio que correspondan al alcance pedido, el mismo conjunto para cualquier cuenta que pida ese mismo alcance, ordenadas de la más reciente a la más antigua por su fecha de creación. Sin acotar, el alcance SHALL ser las tareas pendientes y en curso, dejando fuera las hechas; NO SHALL existir ningún alcance que devuelva las hechas mezcladas con el resto. No SHALL existir ninguna forma de crear una tarea que otras cuentas no puedan ver, ni ninguna colección de tareas distinta de esta.
+El sistema SHALL devolver en `GET /api/v1/tasks` las tareas del espacio que correspondan al alcance pedido, el mismo conjunto para cualquier cuenta que pida ese mismo alcance. Sin acotar, SHALL devolver primero las tareas en curso y después las pendientes, y dentro de cada uno de esos dos grupos, de la más reciente a la más antigua por su fecha de creación; acotada por un estado, de la más reciente a la más antigua. Sin acotar, el alcance SHALL ser las tareas pendientes y en curso, dejando fuera las hechas; NO SHALL existir ningún alcance que devuelva las hechas mezcladas con el resto. No SHALL existir ninguna forma de crear una tarea que otras cuentas no puedan ver, ni ninguna colección de tareas distinta de esta.
 
 #### Scenario: Sin filtro no es «todas»
 
@@ -81,8 +83,18 @@ El sistema SHALL devolver en `GET /api/v1/tasks` las tareas del espacio que corr
 
 #### Scenario: Orden de la lista
 
-- **WHEN** se solicita la lista después de haber creado tres tareas seguidas
+- **WHEN** se solicita la lista después de haber creado tres tareas seguidas, todas en el mismo estado
 - **THEN** llegan con la creada en último lugar la primera y la creada en primer lugar la última
+
+#### Scenario: Lo que está en curso va primero
+
+- **WHEN** se solicita la lista sin acotar en un espacio con una tarea en curso creada hace días y dos pendientes creadas después
+- **THEN** llega primero la que está en curso, y detrás las dos pendientes, la más reciente antes
+
+#### Scenario: Acotada, el orden es la recencia
+
+- **WHEN** se solicita la lista acotada por un estado
+- **THEN** llegan las de ese estado de la más reciente a la más antigua
 
 #### Scenario: La lista llega entera
 
@@ -225,12 +237,17 @@ La interfaz SHALL explicar de qué va la lista y ofrecer crear la primera tarea 
 
 ### Requirement: Crear una tarea desde la lista
 
-La interfaz SHALL permitir crear una tarea desde la propia lista escribiendo solo su título, NO SHALL pedir ni sugerir ningún otro dato, y SHALL mostrar la tarea recién creada en la lista sin recargar la página ni navegar a otra pantalla.
+La interfaz SHALL permitir crear una tarea desde la propia lista escribiendo solo su título, NO SHALL pedir ni sugerir ningún otro dato, y SHALL mostrar la tarea recién creada en la lista sin recargar la página ni navegar a otra pantalla, en el sitio que el orden de la lista le da: la primera de las pendientes.
 
 #### Scenario: Apuntar algo en un gesto
 
 - **WHEN** se escribe un título y se confirma la creación
 - **THEN** la tarea aparece en la lista, a nombre de quien la ha creado y como "Pendiente", sin haber salido de la pantalla ni recargado nada
+
+#### Scenario: La nueva no se cuela delante de lo que está en curso
+
+- **WHEN** se crea una tarea en la vista por defecto, con tareas en curso a la vista
+- **THEN** la nueva aparece debajo de todas las que están en curso y encima de las pendientes que ya había
 
 #### Scenario: El formulario no pide nada más
 
@@ -263,12 +280,17 @@ La interfaz SHALL explicar el problema junto al propio campo del título, en len
 
 ### Requirement: Cambiar el estado desde la propia fila
 
-La interfaz SHALL permitir cambiar el estado de cualquier tarea desde su fila de la lista, sin abrir la tarea, sin diálogo de confirmación y sin rellenar ningún campo, ofreciendo como únicos destinos los tres estados, y SHALL reflejar el nuevo estado en la vista de inmediato.
+La interfaz SHALL permitir cambiar el estado de cualquier tarea desde su fila de la lista, sin abrir la tarea, sin diálogo de confirmación y sin rellenar ningún campo, ofreciendo como únicos destinos los tres estados, y SHALL reflejar el nuevo estado en la vista de inmediato. Mientras siga en la vista, la fila NO SHALL cambiar de posición por el cambio de estado: el orden se recompone la siguiente vez que se carga la lista.
 
 #### Scenario: Cambio sin salir de la lista
 
 - **WHEN** se cambia el estado de una tarea desde su fila
 - **THEN** la fila pasa a mostrar el nuevo estado al momento, sin haber abierto la tarea, sin confirmar en ningún diálogo y sin rellenar ningún campo
+
+#### Scenario: La fila no salta
+
+- **WHEN** se pasa a "En curso" una tarea pendiente que está en mitad de la lista
+- **THEN** la fila muestra el nuevo estado sin moverse de su sitio, y ocupa el que le corresponde al volver a cargar la lista
 
 #### Scenario: Los únicos destinos posibles
 
@@ -349,7 +371,7 @@ El sistema SHALL permitir establecer la fecha de vencimiento de una tarea existe
 
 #### Scenario: Poner una fecha a una tarea que no tenía
 
-- **WHEN** se envía `PUT /api/v1/tasks/:id/due-date` con `{"dueDate": "2026-09-30"}` sobre una tarea sin fecha
+- **WHEN** se envía `PUT /api/v1/tasks/:id/due-date` con `{"today": "2026-08-26", "dueDate": "2026-09-30"}` sobre una tarea sin fecha
 - **THEN** la respuesta es `200` con la tarea ya con esa fecha, y las siguientes consultas la devuelven con ella
 
 #### Scenario: Cambiar la fecha por otra
@@ -359,7 +381,7 @@ El sistema SHALL permitir establecer la fecha de vencimiento de una tarea existe
 
 #### Scenario: Quitar la fecha
 
-- **WHEN** se envía `{"dueDate": null}` sobre una tarea con fecha
+- **WHEN** se envía `{"today": "2026-08-26", "dueDate": null}` sobre una tarea con fecha
 - **THEN** la respuesta es `200`, la tarea queda sin fecha y deja de estar vencida si lo estaba
 
 #### Scenario: Una fecha ya pasada se acepta
@@ -449,6 +471,27 @@ El sistema SHALL resolver el vencimiento en el momento de cada consulta y contra
 
 - **WHEN** se indica un `today` mal formado o imposible
 - **THEN** la respuesta es `422` con un error sobre ese parámetro, y no se devuelve ninguna tarea
+
+### Requirement: Una petición mal formada se rechaza antes de buscar nada
+
+El sistema SHALL validar la petición antes de resolver el identificador de la ruta, de modo que una petición mal formada sobre un identificador inexistente SHALL responder `422` y no `404`.
+
+Un `404` afirma que la petición se entendió y que el recurso no está. Esa afirmación NO SHALL hacerse sobre una petición que el sistema no ha podido entender.
+
+#### Scenario: Estado inventado sobre una tarea que no existe
+
+- **WHEN** se envía `PATCH /api/v1/tasks/:id/status` con un estado que no pertenece al dominio y un identificador que no corresponde a ninguna tarea
+- **THEN** la respuesta es `422` señalando el campo del estado, y no `404`
+
+#### Scenario: Fecha inválida sobre una tarea que no existe
+
+- **WHEN** se envía `PUT /api/v1/tasks/:id/due-date` con una fecha que no existe en el calendario y un identificador que no corresponde a ninguna tarea
+- **THEN** la respuesta es `422` señalando el campo de la fecha, y no `404`
+
+#### Scenario: Petición bien formada sobre una tarea que no existe
+
+- **WHEN** la petición es válida y el identificador no corresponde a ninguna tarea
+- **THEN** la respuesta es `404`, porque ahí sí se entendió lo que se pedía
 
 ### Requirement: Consulta de una tarea suelta
 
@@ -750,4 +793,3 @@ La interfaz SHALL sacar de la vista al instante toda tarea que deje de cumplir e
 
 - **WHEN** se crea una tarea estando la lista acotada por un estado distinto de «Pendiente»
 - **THEN** la tarea se crea igualmente y se avisa de que ha nacido pendiente y por eso no aparece en esta vista, en lugar de dejar la impresión de que el formulario no ha hecho nada
-

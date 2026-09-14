@@ -2,6 +2,9 @@
   "name": "backend",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": ">=24"
+  },
   "type": "module",
   "license": "MIT",
   "exports": {
@@ -15,7 +18,11 @@
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "format:check": "prettier --check --end-of-line auto .",
+    "typecheck": "tsc --noEmit",
+    "openapi:generate": "node openapi.js generate",
+    "openapi:check": "node openapi.js check",
+    "prepare": "git -C .. config core.hooksPath .githooks"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",

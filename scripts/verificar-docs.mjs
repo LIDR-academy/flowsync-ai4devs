@@ -1,0 +1,963 @@
+#!/usr/bin/env node
+/**
+ * Contrasta la documentación viva contra el código.
+ *
+ * No genera nada: comprueba. La diferencia importa, porque un generador
+ * produce documentos que nadie lee y que quedan bien aunque el código haga
+ * otra cosa; esto falla cuando el documento y el código dejan de coincidir,
+ * que es el único momento en que el documento importa.
+ *
+ * Se ejecuta con `node scripts/verificar-docs.mjs` y en CI. Sale con código 1
+ * si encuentra una discrepancia, para que rompa la build en vez de avisar en un
+ * log que nadie mira.
+ */
+import { appendFileSync, readFileSync, existsSync, readdirSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..')
+const problemas = []
+const comprobaciones = []
+
+const leer = (ruta) => readFileSync(join(RAIZ, ruta), 'utf8')
+
+/**
+ * Lee un fichero con los comentarios fuera.
+ *
+ * No es cosmética. La revisión adversarial del PR #21 demostró que cuatro de
+ * estas comprobaciones se satisfacían con un comentario: bastaba dejar la
+ * palabra `TaskAssigneeTransformer` en un JSDoc, o `app.inTest` en una nota,
+ * para que el verificador diera luz verde sobre código que hacía lo contrario.
+ *
+ * Una comprobación que un comentario puede satisfacer no comprueba nada.
+ */
+const leerCodigo = (ruta) =>
+  leer(ruta)
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1')
+
+function comprobar(nombre, fn) {
+  try {
+    const detalle = fn()
+    comprobaciones.push({ nombre, ok: true, detalle })
+  } catch (error) {
+    comprobaciones.push({ nombre, ok: false, detalle: error.message })
+    problemas.push(`${nombre}: ${error.message}`)
+  }
+}
+
+/**
+ * Las rutas que el framework tiene registradas de verdad.
+ *
+ * Se preguntan a `node ace list:routes --json` en vez de leer `start/routes.ts`
+ * con expresiones regulares. El parseo a mano fallo tres veces seguidas y
+ * siempre de la misma forma: cada revision adversarial encontro una sintaxis
+ * valida que el parser no veia. `router.any()` registraba seis rutas invisibles,
+ * un `.prefix()` encadenado a una ruta suelta la atribuia mal, y las comillas
+ * dobles la hacian desaparecer.
+ *
+ * El framework sabe que rutas tiene. Preguntarselo cuesta unos segundos y
+ * elimina de golpe toda esa clase de fallo.
+ */
+let listadoCache = null
+/**
+ * Salida cruda de `node ace list:routes --json`, cacheada: la piden dos
+ * comprobaciones y arrancar la aplicacion cuesta segundos.
+ */
+function listadoDeRutas() {
+  if (listadoCache) return listadoCache
+
+  if (!existsSync(join(RAIZ, 'backend/node_modules'))) {
+    throw new Error('falta backend/node_modules: ejecuta `npm ci` dentro de backend/')
+  }
+
+  try {
+    listadoCache = execFileSync('node', ['ace', 'list:routes', '--json'], {
+      cwd: join(RAIZ, 'backend'),
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+      timeout: 60_000,
+      env: { ...process.env, NODE_ENV: 'test' },
+    })
+  } catch (error) {
+    // `ace` escribe sus errores en stdout, no en stderr, y `error.message` se
+    // queda en «Command failed». Sin esto el diagnostico se descartaba entero.
+    const detalle = [error.stdout, error.stderr].filter(Boolean).join('\n').trim()
+    throw new Error(`no se pudieron leer las rutas: ${detalle || error.message}`)
+  }
+
+  return listadoCache
+}
+
+function rutasDelCodigo() {
+  const salida = listadoDeRutas()
+
+  const rutas = new Set()
+  const recorrer = (nodo) => {
+    if (Array.isArray(nodo)) return nodo.forEach(recorrer)
+    if (!nodo || typeof nodo !== 'object') return
+
+    if (nodo.pattern) {
+      const metodos = nodo.methods ?? (nodo.method ? [nodo.method] : [])
+      // Antes se excluia `/` por patron, y eso hacia invisible **cualquier**
+      // ruta montada en la raiz: la sexta revision añadio un `router.post('/')`
+      // sin documentar y el verificador siguio en verde. Se excluye solo el
+      // saludo de cortesia, y por metodo.
+      if (!(nodo.pattern === '/' && metodos.length === 1 && metodos[0] === 'GET')) {
+        if (!metodos.length) {
+          throw new Error(`la ruta ${nodo.pattern} no declara ningun metodo`)
+        }
+        // No se filtra HEAD ni OPTIONS: este framework no los anade solo, asi
+        // que descartarlos solo hacia invisible una ruta declarada con ellos.
+        for (const metodo of metodos) rutas.add(`${metodo} ${nodo.pattern}`)
+      }
+    }
+    Object.values(nodo).forEach(recorrer)
+  }
+  recorrer(JSON.parse(salida))
+
+  return rutas
+}
+
+/**
+ * Rutas que el framework protege con `middleware.auth()`, preguntadas igual que
+ * las demas: no se deduce de `start/routes.ts` ni del nombre del controlador.
+ *
+ * Existe por el hallazgo de la octava revision adversarial: el contrato
+ * versionado declaraba `security: []` en `/account/profile` y
+ * `/account/logout`, que en OpenAPI **no** es «no se ha dicho nada» sino «esta
+ * ruta es publica». Las dos las protege el middleware desde siempre.
+ */
+function rutasProtegidasDelCodigo() {
+  const protegidas = new Set()
+  const recorrer = (nodo) => {
+    if (Array.isArray(nodo)) return nodo.forEach(recorrer)
+    if (!nodo || typeof nodo !== 'object') return
+
+    if (nodo.pattern && Array.isArray(nodo.middleware)) {
+      const exigeSesion = nodo.middleware.some((m) => m && m.name === 'auth')
+      if (exigeSesion) {
+        for (const metodo of nodo.methods ?? []) protegidas.add(`${metodo} ${nodo.pattern}`)
+      }
+    }
+    Object.values(nodo).forEach(recorrer)
+  }
+  recorrer(JSON.parse(listadoDeRutas()))
+
+  if (!protegidas.size) {
+    throw new Error('ninguna ruta declara `middleware.auth()`: el listado no se ha leido bien')
+  }
+  return protegidas
+}
+
+/** Clave `METODO /ruta` del contrato, con `{id}` normalizado a `:id`. */
+const claveDeOperacion = (metodo, ruta) =>
+  `${metodo.toUpperCase()} ${ruta.replace(/\{([^}]+)\}/g, ':$1')}`
+
+comprobar('El contrato versionado no declara publica ninguna ruta protegida', () => {
+  const contrato = JSON.parse(leer('docs/api/openapi.json'))
+  const protegidas = rutasProtegidasDelCodigo()
+  const mentiras = []
+
+  for (const [ruta, operaciones] of Object.entries(contrato.paths ?? {})) {
+    for (const [metodo, operacion] of Object.entries(operaciones)) {
+      const clave = claveDeOperacion(metodo, ruta)
+      if (!protegidas.has(clave)) continue
+
+      // `security: []` es una negacion explicita y gana sobre la global; que
+      // falte el campo hereda la del documento. Los dos casos se miran.
+      const seguridad = operacion.security ?? contrato.security ?? []
+      if (!seguridad.length) mentiras.push(clave)
+    }
+  }
+
+  if (mentiras.length) {
+    throw new Error(`el contrato las declara publicas: ${mentiras.join(', ')}`)
+  }
+
+  const documentadas = Object.entries(contrato.paths ?? {}).flatMap(([r, ops]) =>
+    Object.keys(ops).map((m) => claveDeOperacion(m, r))
+  )
+  const ausentes = [...protegidas].filter((r) => !documentadas.includes(r))
+  if (ausentes.length) {
+    throw new Error(`protegidas y fuera del contrato: ${ausentes.join(', ')}`)
+  }
+
+  return `${protegidas.size} rutas protegidas, todas con esquema bearer`
+})
+
+comprobar('El contrato versionado no repite ningun parametro', () => {
+  const contrato = JSON.parse(leer('docs/api/openapi.json'))
+  const repetidos = []
+  let revisadas = 0
+
+  for (const [ruta, operaciones] of Object.entries(contrato.paths ?? {})) {
+    for (const [metodo, operacion] of Object.entries(operaciones)) {
+      const parametros = operacion.parameters ?? []
+      if (!parametros.length) continue
+      revisadas++
+
+      // OpenAPI exige que la pareja `name` + `in` sea unica dentro de una
+      // operacion. Un duplicado hace el documento invalido, y las herramientas
+      // que lo consumen se comportan de formas distintas ante el.
+      const vistos = new Set()
+      for (const { name, in: donde } of parametros) {
+        const clave = `${donde}:${name}`
+        if (vistos.has(clave)) repetidos.push(`${claveDeOperacion(metodo, ruta)} -> ${clave}`)
+        vistos.add(clave)
+      }
+    }
+  }
+
+  if (repetidos.length) {
+    throw new Error(`parametros repetidos: ${[...new Set(repetidos)].join(', ')}`)
+  }
+
+  return `${revisadas} operaciones con parametros, ninguno repetido`
+})
+
+comprobar('AGENTS.md es el canónico, CLAUDE.md lo importa, y los dos caben en 200 líneas', () => {
+  // H-08. Era un symlink a `CLAUDE.md`, modo `120000` en el indice. Un symlink
+  // solo se materializa donde el sistema lo permite: en Windows, con
+  // `core.symlinks=false`, git escribe un fichero de texto de nueve bytes cuyo
+  // contenido es la cadena `CLAUDE.md`. Quien lo abriera ahi no encontraba las
+  // instrucciones ni un aviso, sino un nombre de fichero suelto.
+  //
+  // Se comprueba el **modo en el indice**, no el fichero del disco: en la
+  // maquina donde el symlink no se materializa, leerlo no distingue un puntero
+  // escrito de un symlink roto. Los dos son texto corto que dice `CLAUDE.md`.
+  const entrada = execFileSync('git', ['ls-files', '-s', 'AGENTS.md'], {
+    cwd: RAIZ,
+    encoding: 'utf8',
+  }).trim()
+
+  if (!entrada) throw new Error('AGENTS.md no esta en el indice')
+
+  const modo = entrada.split(/\s+/)[0]
+  if (modo === '120000') {
+    throw new Error(
+      'AGENTS.md ha vuelto a ser un symlink: en Windows se lee como texto suelto (H-08)'
+    )
+  }
+
+  // Desde el 2026-09-13 la relación es la inversa: AGENTS.md es el canónico,
+  // en el formato abierto que leen todas las herramientas, y CLAUDE.md lo
+  // importa y añade solo lo propio de Claude Code. Y los dos caben en 200
+  // líneas cada uno: la guía de Claude Code dice que un fichero de
+  // instrucciones largo hace que el modelo ignore la mitad, y el nuestro
+  // tenía 221 cuando se partió.
+  if (!leer('CLAUDE.md').includes('@AGENTS.md')) {
+    throw new Error('CLAUDE.md ya no importa AGENTS.md con @AGENTS.md')
+  }
+  const TOPE = 200
+  for (const fichero of ['AGENTS.md', 'CLAUDE.md']) {
+    const lineas = leer(fichero).split(/\r?\n/).length
+    if (lineas > TOPE) {
+      throw new Error(`${fichero} tiene ${lineas} líneas y el tope es ${TOPE}: lo que no cabe va a una skill`)
+    }
+  }
+
+  return `modo ${modo}, CLAUDE.md importa AGENTS.md, los dos bajo 200 líneas`
+})
+
+comprobar('La regla de vencimiento comprueba sus tres condiciones', () => {
+  const modelo = leerCodigo('backend/app/models/task.ts')
+  const metodo = modelo.match(/isOverdueOn\(referenceDay: string\): boolean \{([\s\S]*?)\n {2}\}/)
+  if (!metodo) throw new Error('no se encuentra isOverdueOn en el modelo')
+
+  const cuerpo = metodo[1]
+  // Cada condición tiene que estar en una guarda que devuelva o en el retorno,
+  // no meramente presente: una constante muerta con la comparación dentro
+  // satisfacía la versión anterior de esta comprobación.
+  const condiciones = [
+    ['tiene fecha', /if\s*\([^)]*dueDate === null[^)]*\)\s*\{?\s*return\s+false/],
+    ['no esta hecha', /if\s*\([^)]*status === 'done'[^)]*\)\s*\{?\s*return\s+false/],
+    ['la fecha ha pasado', /return[^\n]*dueDate\s*<\s*referenceDay/],
+  ]
+
+  const ausentes = condiciones.filter(([, patron]) => !patron.test(cuerpo)).map(([n]) => n)
+  if (ausentes.length) throw new Error(`condicion(es) que faltan: ${ausentes.join(', ')}`)
+
+  // El `<` estricto: vencer hoy todavia no es estar vencida. Un `<=` no rompe
+  // nada ruidosamente y no lo ve ni el lint ni el tipo.
+  if (/dueDate\s*<=\s*referenceDay/.test(cuerpo)) {
+    throw new Error('la comparacion es <=, y debe ser estricta')
+  }
+  return 'tres condiciones y comparacion estricta'
+})
+
+comprobar('La tabla de rutas de AGENTS.md corresponde con el código', () => {
+  // AGENTS.md promete literalmente que este script comprueba esa tabla, y no la
+  // comprobaba. Es el fichero que lee primero quien llega al repositorio.
+  const documentadas = new Set(
+    [...leer('AGENTS.md').matchAll(/^\|\s*(GET|POST|PATCH|PUT|DELETE)\s*\|\s*`([^`]+)`/gm)].map(
+      (m) => `${m[1]} ${m[2]}`
+    )
+  )
+  if (!documentadas.size) throw new Error('no se encuentra la tabla de rutas en AGENTS.md')
+
+  const esperadas = new Set(rutasDelCodigo())
+
+  const faltan = [...esperadas].filter((r) => !documentadas.has(r))
+  const sobran = [...documentadas].filter((r) => !esperadas.has(r))
+  if (faltan.length) throw new Error(`sin documentar en AGENTS.md: ${faltan.join(', ')}`)
+  if (sobran.length) throw new Error(`en AGENTS.md pero inexistentes: ${sobran.join(', ')}`)
+
+  return `${esperadas.size} rutas`
+})
+
+comprobar('Toda operación que resuelve un id declara su 404', () => {
+  // En esta rama el contrato **se genera** desde los decoradores de los
+  // controladores y se sirve en `/api`, así que contrastar el documento contra
+  // el código sería vacío: sale del código. Lo que un generador no puede
+  // comprobar es que el decorador **esté**, y olvidarlo deja la operación sin
+  // su `404` en el contrato sin que nada avise.
+  //
+  // Así que se mira el decorador, no el documento.
+  const controladores = readdirSync(join(RAIZ, 'backend/app/controllers')).filter((f) =>
+    f.endsWith('.ts')
+  )
+
+  const sinDeclarar = []
+  let revisadas = 0
+
+  for (const fichero of controladores) {
+    // `leerCodigo` y no `leer`: con los comentarios dentro, dejar la cadena
+    // `status: 404` en un comentario del mismo bloque satisface la comprobación
+    // con el decorador real borrado. Reproducido el 2026-09-09, en verde.
+    const codigo = leerCodigo(`backend/app/controllers/${fichero}`)
+    if (!codigo.includes('@ApiResponse')) continue
+
+    // Se parte por `@ApiOperation`, que es donde empieza cada operación
+    // documentada, para que los decoradores y el cuerpo de la acción caigan en
+    // el mismo trozo. Partir por `async` los separaba y dejaba el `status: 404`
+    // en un trozo distinto del `findOrFail` que lo hace necesario.
+    for (const accion of codigo.split(/\n {2}@ApiOperation/).slice(1)) {
+      // Resolver **un identificador de la ruta**, que es lo que puede no
+      // existir. Buscar `findOrFail` a secas daba un falso positivo en `store`,
+      // que relee la fila que acaba de crear: ahí un 404 es imposible.
+      if (!/(?:findOrFail|releerConResponsable)\(params\./.test(accion)) continue
+      revisadas += 1
+      if (!/status: 404/.test(accion)) sinDeclarar.push(fichero)
+    }
+  }
+
+  if (!revisadas) throw new Error('ninguna operación decorada resuelve un identificador')
+  if (sinDeclarar.length) {
+    throw new Error(`sin 404 declarado: ${[...new Set(sinDeclarar)].join(', ')}`)
+  }
+
+  return `${revisadas} operaciones con 404 declarado`
+})
+comprobar('Toda operación decorada declara el error que no estaba previsto', () => {
+  // ADR-0005 decidió que cualquier 5xx responde una forma cerrada, y eso es
+  // contrato. Ninguna operación de esta rama lo declaraba, igual que pasaba con
+  // el contrato escrito a mano del Módulo 4: el hueco no depende de si el
+  // documento se escribe o se genera.
+  const controladores = readdirSync(join(RAIZ, 'backend/app/controllers')).filter((f) =>
+    f.endsWith('.ts')
+  )
+
+  // **Operación a operación, no cuentas por fichero.** La versión anterior
+  // comparaba `declarados < acciones` sobre el fichero entero, y la séptima
+  // revisión la pasó por encima de dos formas: moviendo el `500` de `index` a
+  // `show` como duplicado -la cuenta seguía cuadrando y `GET /tasks` perdía su
+  // `500` en el contrato servido-, y borrando todos los `@ApiResponse` de un
+  // controlador, porque el `continue` de abajo saltaba el fichero entero.
+  //
+  // Lo segundo no es hipotético: signup, login, logout y profile están hoy sin
+  // decorar y salen con `"responses": {}` en `/api.json`, mientras la
+  // comprobación informaba «5 operaciones» como si cubriera la API.
+  const sinDeclarar = []
+  const sinDecorar = []
+  let revisadas = 0
+
+  for (const fichero of controladores) {
+    // `leerCodigo` y no `leer`: con los comentarios dentro, dejar la cadena
+    // `status: 404` en un comentario del mismo bloque satisface la comprobación
+    // con el decorador real borrado. Reproducido el 2026-09-09, en verde.
+    const codigo = leerCodigo(`backend/app/controllers/${fichero}`)
+    const acciones = (codigo.match(/\n {2}async /g) ?? []).length
+    if (!acciones) continue
+
+    if (!codigo.includes('@ApiOperation')) {
+      sinDecorar.push(`${fichero} (${acciones})`)
+      continue
+    }
+
+    for (const operacion of codigo.split(/\n {2}@ApiOperation/).slice(1)) {
+      revisadas += 1
+      if (!/status: 500/.test(operacion)) sinDeclarar.push(fichero)
+    }
+  }
+
+  if (!revisadas) throw new Error('ningún controlador está decorado')
+  if (sinDeclarar.length) {
+    throw new Error(`sin 500 declarado: ${[...new Set(sinDeclarar)].join(', ')}`)
+  }
+  // Un controlador sin decorar sale del contrato **entero** sin que nada avise,
+  // y eso es peor que una respuesta sin declarar: `/api.json` lo devuelve con
+  // `"responses": {}` o directamente sin la ruta.
+  //
+  // Cuatro operaciones de `auth` estuvieron así hasta el 2026-09-09, y era H-23.
+  // Se cerraron añadiendo a `app/openapi/schemas.ts` los esquemas que faltaban
+  // -`Account`, `AccessTokenGrant`, `SignupBody`, `LoginBody`, `LogoutResponse`-
+  // y decorando los tres controladores.
+  //
+  // **La lista se queda vacía a propósito, no se borra la comprobación.** Vacía
+  // sigue siendo un guardarraíl: cualquier controlador nuevo sin decorar cae en
+  // `inesperados` y falla. Borrarla dejaría el hueco sin vigilar justo después
+  // de haberlo cerrado, que es como vuelven los defectos.
+  const HUECO_CONOCIDO = []
+  const inesperados = sinDecorar.filter((f) => !HUECO_CONOCIDO.includes(f))
+  const yaDecorados = HUECO_CONOCIDO.filter((f) => !sinDecorar.includes(f))
+
+  if (inesperados.length) {
+    throw new Error(`fuera del contrato, sin declarar: ${inesperados.join(', ')}`)
+  }
+  if (yaDecorados.length) {
+    throw new Error(
+      `ya no están fuera del contrato, quítalos de HUECO_CONOCIDO: ${yaDecorados.join(', ')}`
+    )
+  }
+
+  // Esto es aviso temprano, no la garantía. La garantía es la prueba, que
+  // provoca un 500 real y mira el cuerpo entero.
+  const prueba = leer('backend/tests/functional/errores.spec.ts')
+  for (const rastro of ['insert into', '$scrypt$', 'assertStatus(500)']) {
+    if (!prueba.includes(rastro)) {
+      throw new Error(`errores.spec.ts ya no comprueba «${rastro}»`)
+    }
+  }
+
+  return `${revisadas} operaciones con 500, ${HUECO_CONOCIDO.length} controladores fuera del contrato`
+})
+comprobar('Ningún change se archiva con casillas mudas', () => {
+  // H-18. Un change se archivó con la casilla «verificar que ninguna respuesta
+  // incluye el email del responsable» sin marcar, y ocurrió exactamente eso:
+  // es H-17. Otro la marcó `[x]` sobre código que nunca lo hizo: es H-16.
+  //
+  // Nada automático puede saber si una verificación a mano se hizo de verdad.
+  // Lo que sí se puede exigir es que una casilla sin marcar **no sea muda**:
+  // si el change se archiva con trabajo sin hacer, el propio fichero tiene que
+  // decir cuál y qué costó. Una casilla vacía en un archivo es indistinguible
+  // de una que nadie tuvo que hacer, y esa ambigüedad es el defecto.
+  const raiz = 'openspec/changes/archive'
+  if (!existsSync(join(RAIZ, raiz))) return 'no hay changes archivados'
+
+  const archivados = readdirSync(join(RAIZ, raiz), { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+
+  const mudos = []
+  let conPendientes = 0
+
+  for (const change of archivados) {
+    const ruta = `${raiz}/${change}/tasks.md`
+    if (!existsSync(join(RAIZ, ruta))) continue
+
+    const tareas = leer(ruta)
+    if (!/^- \[ \]/m.test(tareas)) continue
+
+    conPendientes += 1
+    const seccion = tareas.match(/^#{2,3} .*Lo que no se ejecutó.*$([\s\S]*)/m)
+    if (!seccion) {
+      mudos.push(change)
+      continue
+    }
+    // Con filas de verdad. La séptima revisión pasó esta comprobación dejando
+    // la sección presente y vacía, que es la misma mentira que no tenerla: su
+    // hermana la del reporte ya se había endurecido contra esa forma.
+    const filas = seccion[1]
+      .split('\n')
+      .filter((linea) => /^\|/.test(linea.trim()))
+      .filter((linea) => !/^\|[\s|:-]+\|$/.test(linea.trim()))
+      .slice(1)
+    if (!filas.length) mudos.push(`${change} (sección vacía)`)
+  }
+
+  if (mudos.length) {
+    throw new Error(
+      `archivados con casillas sin marcar y sin declararlas: ${mudos.join(', ')} (H-18)`
+    )
+  }
+
+  return `${archivados.length} archivados, ${conPendientes} declaran lo que no ejecutaron`
+})
+
+comprobar('La petición se valida antes de resolver el identificador', () => {
+  // ADR-0006. Antes dependía de la ruta: `show` validaba primero y las dos
+  // escrituras resolvían primero, así que la misma clase de petición daba
+  // `422` o `404` según a cuál llegaras. Ninguna de las dos órdenes estaba
+  // mal; tener las dos, sí.
+  //
+  // Se mira el orden dentro de cada acción, no que las dos llamadas existan:
+  // exigir solo que coexistan es lo que dejaba pasar el defecto.
+  const controladores = readdirSync(join(RAIZ, 'backend/app/controllers')).filter((f) =>
+    f.endsWith('.ts')
+  )
+
+  const invertidos = []
+  let revisadas = 0
+
+  for (const fichero of controladores) {
+    const codigo = leerCodigo(`backend/app/controllers/${fichero}`)
+
+    // Cada acción por separado: un controlador con dos acciones podía tener
+    // una bien y otra mal, y mirar el fichero entero las mezclaba.
+    for (const accion of codigo.split(/\n {2}async /).slice(1)) {
+      // Resolver un identificador **de la ruta**, por cualquiera de las dos
+      // formas que lanzan. Buscar solo `findOrFail` dejaba pasar exactamente la
+      // regresión que ya ocurrió una vez: escribir `show` con
+      // `releerConResponsable(params.id)` antes de validar devuelve `404` donde
+      // el contrato dice `422`, tumba `orden_de_validacion.spec.ts`, y esta
+      // comprobación seguía en verde. Lo encontró la séptima revisión.
+      const resolver = accion.search(/(?:findOrFail|releerConResponsable)\(params\./)
+      if (resolver === -1) continue
+
+      revisadas += 1
+      const validar = accion.indexOf('validateUsing')
+      if (validar === -1 || validar > resolver) {
+        invertidos.push(`${fichero}:${accion.split('(')[0]}`)
+      }
+    }
+  }
+
+  if (!revisadas) throw new Error('ningún controlador resuelve un identificador')
+  if (invertidos.length) {
+    throw new Error(`resuelven antes de validar: ${invertidos.join(', ')} (ADR-0006)`)
+  }
+
+  return `${revisadas} acciones resuelven un id, todas validan antes`
+})
+
+comprobar('El rechazo por recurso inexistente sale con la forma del proyecto', () => {
+  // El contrato documenta `{ errors: [...] }` en los tres 404, y quien lo hace
+  // cierto es el handler. Sin esto, quitarlo devolvería el volcado de
+  // depuración y el contrato volvería a mentir sin que nada avisara.
+  const handler = leerCodigo('backend/app/exceptions/handler.ts')
+  // Con el operador dentro del patrón. Invertirlo a `!==` rompe los tres 404 y
+  // convierte todo lo demás en un 404 falso, y la version anterior de esta
+  // comprobacion lo dejaba pasar: solo exigia que las dos cadenas coexistieran.
+  if (!/error\.code === 'E_ROW_NOT_FOUND'/.test(handler)) {
+    throw new Error('el handler no compara `error.code === E_ROW_NOT_FOUND` (ADR-0004)')
+  }
+  if (/error\.code !== 'E_ROW_NOT_FOUND'/.test(handler)) {
+    throw new Error('la comparacion esta invertida: normalizaria todo menos el 404')
+  }
+  if (!/status\(404\)[\s\S]{0,120}errors:/.test(handler)) {
+    throw new Error('el handler no responde 404 con la forma `{ errors: [...] }`')
+  }
+  return '404 normalizado'
+})
+
+comprobar('El volcado de depuración va apagado salvo que se encienda', () => {
+  // ADR-0005. Fue H-19, abierto tres módulos. Encenderlo devuelve traza, rutas
+  // absolutas y el SQL ejecutado a cualquiera que alcance el puerto, sin sesión.
+  //
+  // La versión anterior era una lista negra -ni `true`, ni `inProduction`- y
+  // con eso `env.get(…) || !app.inTest` la pasaba entera dejando el volcado
+  // encendido en desarrollo. Ahora el valor tiene que ser **exactamente** la
+  // expresión que decide el ADR: cualquier cosa añadida es un entorno colándose
+  // por detrás, que es la forma que tenía este defecto de volver.
+  const handler = leerCodigo('backend/app/exceptions/handler.ts')
+  const debug = handler.match(/protected debug = (.+)/)
+  if (!debug) throw new Error('el handler no declara `debug`')
+
+  const valor = debug[1].trim().replace(/;$/, '')
+  if (valor !== "env.get('DEBUG_HTTP_ERRORS', false)") {
+    throw new Error(
+      `\`debug\` vale \`${valor}\`, y debe ser exactamente env.get('DEBUG_HTTP_ERRORS', false)`
+    )
+  }
+
+  // `isDebuggingEnabled(ctx)` es el gancho que el framework documenta para
+  // decidir esto por petición. Sobreescribirlo devuelve el volcado sin tocar
+  // `debug`, así que la comprobación de `debug` no lo vería.
+  //
+  // Se busca el nombre en CUALQUIER forma de declaración, no solo como método.
+  // La versión anterior exigía el paréntesis pegado -`isDebuggingEnabled(`- y
+  // la sexta revisión la pasó por encima con
+  // `protected isDebuggingEnabled = (_ctx) => true`, que es una propiedad y
+  // lleva ` = ` en medio: verificador en verde con el volcado de Youch
+  // devuelto en todo error. Ahora se quitan las llamadas y se mira si el
+  // nombre sigue apareciendo, sea cual sea la sintaxis.
+  const sinLlamadas = handler.replace(/this\.isDebuggingEnabled\s*\(/g, '')
+  if (/isDebuggingEnabled/.test(sinLlamadas)) {
+    throw new Error('el handler declara isDebuggingEnabled: el volcado deja de depender de `debug`')
+  }
+
+  // El interruptor tiene que existir en el esquema, **con su tipo**, y venir
+  // apagado en la plantilla, que es el fichero que copia todo el que llega.
+  //
+  // El tipo no es un detalle. Con `Env.schema.string` la variable llega como
+  // la cadena `'false'`, que en JavaScript es **truthy**: el volcado quedaría
+  // encendido en todos los entornos, producción incluida, con el
+  // `.env.example` diciendo `false` y el verificador en verde. La versión
+  // anterior solo miraba que la cadena `DEBUG_HTTP_ERRORS` apareciera.
+  const esquema = leerCodigo('backend/start/env.ts')
+  if (!/DEBUG_HTTP_ERRORS:\s*Env\.schema\.boolean/.test(esquema)) {
+    throw new Error(
+      'start/env.ts no declara DEBUG_HTTP_ERRORS como boolean: una cadena `false` sería truthy'
+    )
+  }
+  const plantilla = leer('backend/.env.example').match(/^DEBUG_HTTP_ERRORS=(.*)$/m)
+  if (!plantilla || plantilla[1].trim() !== 'false') {
+    throw new Error('.env.example no trae DEBUG_HTTP_ERRORS=false')
+  }
+  // Y la suite no puede heredar el `.env` de quien la ejecuta: el propio ADR
+  // invita a encender el volcado, y quien lo haga se encontraría las pruebas de
+  // H-19 en rojo por su configuración local.
+  const entornoDePruebas = leer('backend/.env.test').match(/^DEBUG_HTTP_ERRORS=(.*)$/m)
+  if (!entornoDePruebas || entornoDePruebas[1].trim() !== 'false') {
+    throw new Error('.env.test no fija DEBUG_HTTP_ERRORS=false: la suite dependería del .env local')
+  }
+
+  return 'apagado, con DEBUG_HTTP_ERRORS para encenderlo'
+})
+
+comprobar('Un error inesperado no devuelve su mensaje', () => {
+  // La otra mitad de H-19, y la que sobrevivió a apagar el volcado: la rama sin
+  // depuración del framework responde `{ message: error.message }`, y el
+  // `message` de un SqliteError es la sentencia SQL entera, con los valores
+  // insertados dentro. Se reprodujo devolviendo el `insert into users …`
+  // completo, con el hash de la contraseña, en el alta y sin sesión.
+  const handler = leerCodigo('backend/app/exceptions/handler.ts')
+  if (!/status >= 500/.test(handler)) {
+    throw new Error('el handler no intercepta los 5xx: devolvería el mensaje crudo de la excepción')
+  }
+  if (!/status >= 500[\s\S]{0,200}errors:/.test(handler)) {
+    throw new Error('el 5xx no responde con la forma cerrada `{ errors: [...] }`')
+  }
+  // Con el operador dentro del patrón, igual que en la del 404. Invertir la
+  // negación -`&& this.isDebuggingEnabled(ctx)`- deja la intercepción activa
+  // solo con el volcado encendido, que es exactamente al revés, y la versión
+  // anterior lo dejaba pasar porque solo exigía que las cadenas coexistieran.
+  if (!/status >= 500 && !this\.isDebuggingEnabled\(/.test(handler)) {
+    throw new Error('la condición del 5xx no es `status >= 500 && !this.isDebuggingEnabled(ctx)`')
+  }
+  // Esto es aviso temprano, no la garantía. La garantía es la prueba, que
+  // provoca un 500 real y mira el cuerpo entero.
+  const prueba = leer('backend/tests/functional/errores.spec.ts')
+  for (const rastro of ['insert into', '$scrypt$', 'assertStatus(500)']) {
+    if (!prueba.includes(rastro)) {
+      throw new Error(`errores.spec.ts ya no comprueba «${rastro}»`)
+    }
+  }
+  return '5xx cerrado, y con prueba que lo provoca'
+})
+
+comprobar('El reporte del módulo declara lo que se arrastra', () => {
+  // La regla de proceso solo sirve si algo la hace cumplir.
+  //
+  // La versión anterior buscaba la cadena en cualquier parte del fichero, así
+  // que sustituir la tabla entera por «esta vez no hace falta la tabla de Lo
+  // que se arrastra» la dejaba en verde. Ahora se exige el encabezado, y bajo
+  // él una tabla con filas de verdad: una sección vacía es la misma mentira
+  // que no tenerla.
+  const reportes = readdirSync(join(RAIZ, 'docs')).filter((f) => /^reporte-.*\.md$/.test(f))
+  if (!reportes.length) throw new Error('no hay ningún reporte de módulo en docs/')
+
+  for (const fichero of reportes) {
+    const texto = leer(`docs/${fichero}`)
+    const seccion = texto.match(/^#{2,4} .*Lo que se arrastra.*$([\s\S]*?)(?=^#{2,4} |\Z)/m)
+    if (!seccion) {
+      throw new Error(`sin encabezado «Lo que se arrastra»: ${fichero}`)
+    }
+
+    const filas = seccion[1]
+      .split('\n')
+      .filter((linea) => /^\|/.test(linea.trim()))
+      // La cabecera y su separador de guiones no son datos.
+      .filter((linea) => !/^\|[\s|:-]+\|$/.test(linea.trim()))
+      .slice(1)
+
+    if (!filas.length) {
+      throw new Error(`la sección «Lo que se arrastra» de ${fichero} no tiene ninguna fila`)
+    }
+    // Cinco columnas: qué, desde dónde, en qué rama, en qué estado y qué falta.
+    // Menos que eso ya no es el registro que la regla pide.
+    const cortas = filas.filter((linea) => linea.trim().split('|').length - 2 < 5)
+    if (cortas.length) {
+      throw new Error(`filas incompletas en «Lo que se arrastra» de ${fichero}: ${cortas.length}`)
+    }
+  }
+  return `${reportes.length} reportes`
+})
+
+comprobar('La versión navegable dice lo mismo que el reporte', () => {
+  // `docs/artefactos/*.html` es lo que se publica y lo que la gente abre, y
+  // hasta ahora no lo miraba nada: el filtro de la comprobación de arrastre es
+  // `^reporte-.*\.md$` sobre `docs/`, así que el HTML podía decir cualquier
+  // cosa. La sexta revisión lo encontró afirmando 35 pruebas y 12
+  // comprobaciones, y sin la tabla «Lo que se arrastra» que la regla exige.
+  const artefactos = readdirSync(join(RAIZ, 'docs/artefactos')).filter((f) => f.endsWith('.html'))
+  if (!artefactos.length) throw new Error('no hay ningún artefacto en docs/artefactos/')
+
+  for (const fichero of artefactos) {
+    const html = leer(`docs/artefactos/${fichero}`)
+
+    // Se exige el **encabezado y su tabla**, no que la cadena aparezca.
+    // La séptima revisión pasó esta comprobación de dos formas: dejando el
+    // `<h2>` con un párrafo que decía que no hacía falta la tabla, y dejando
+    // la frase solo dentro de un comentario HTML. Su hermana la del `.md` ya
+    // se había endurecido contra exactamente esto, y esta se quedó atrás al
+    // debilitarle la parte del conteo.
+    const sinComentarios = html.replace(/<!--[\s\S]*?-->/g, '')
+    const seccion = sinComentarios.match(
+      /<h2>[^<]*Lo que se arrastra[^<]*<\/h2>([\s\S]*?)(?=<h2>|<\/section>)/
+    )
+    if (!seccion) {
+      throw new Error(`${fichero} no trae el encabezado «Lo que se arrastra»`)
+    }
+    const filas = (seccion[1].match(/<tr><td/g) ?? []).length
+    if (!filas) {
+      throw new Error(`${fichero} trae la sección «Lo que se arrastra» sin ninguna fila`)
+    }
+    // **Aquí se retiró la comprobación del número de comprobaciones**, y
+    // conviene decir por qué en vez de borrarla en silencio.
+    //
+    // Exigía que el artefacto declarase el mismo número que tiene el
+    // verificador. Funcionaba mientras el reporte y el verificador vivían en la
+    // misma rama. Al portar el Módulo 4 a `s5/start` deja de funcionar: el
+    // reporte describe `s4/start`, donde había diecisiete, y aquí hay quince
+    // porque dos contrastaban un contrato escrito a mano que esta rama genera.
+    //
+    // Forzar la coincidencia falsificaría un documento histórico. Y una
+    // comprobación que falla por algo que no es un defecto acaba desactivada,
+    // que es la lección de este módulo entero. Lo que se conserva es la parte
+    // que sí es una regla: que el artefacto traiga su tabla de arrastre.
+    //
+    // El artefacto dice ahora de qué rama son sus cifras. Eso lo lee una
+    // persona, y no hay comprobación que lo sustituya.
+  }
+  return `${artefactos.length} artefactos`
+})
+
+comprobar('El filtro de la lista solo admite estados del dominio', () => {
+  const validador = leerCodigo('backend/app/validators/task.ts')
+  const lista = validador.match(/listTasksValidator = vine\.create\(\{([\s\S]*?)\}\)/)
+  if (!lista) throw new Error('no se encuentra listTasksValidator')
+
+  if (!/vine\.enum\(TASK_STATUSES\)/.test(lista[1])) {
+    throw new Error(
+      'status no esta acotado al enum: un estado inventado saldria como lista vacia con 200'
+    )
+  }
+  return 'vine.enum(TASK_STATUSES)'
+})
+
+comprobar('El responsable no expone la cuenta', () => {
+  const transformer = leerCodigo('backend/app/transformers/task_assignee_transformer.ts')
+  const campos = transformer.match(/this\.pick\(this\.resource, \[([^\]]+)\]\)/)
+  if (!campos) throw new Error('no se encuentra la lista de campos del responsable')
+
+  if (/'email'|'password'/.test(campos[1])) {
+    throw new Error('el transformer del responsable incluye datos de la cuenta')
+  }
+
+  // Y que la lista lo CONSTRUYA con él, no que lo mencione. Antes bastaba con
+  // que la palabra apareciera en un comentario para dar luz verde.
+  const lista = leerCodigo('backend/app/transformers/task_transformer.ts')
+  if (!/assignee:\s*TaskAssigneeTransformer\.transform\(/.test(lista)) {
+    throw new Error('la lista no construye el responsable con TaskAssigneeTransformer')
+  }
+  if (/UserTransformer/.test(lista)) {
+    throw new Error('la lista vuelve a usar UserTransformer, que expone la cuenta')
+  }
+
+  // El requisito dice «ni en la lista ni en la tarea suelta», así que las dos
+  // salidas se comprueban igual. Mirar solo la lista dejaba la otra abierta.
+  const detalle = leerCodigo('backend/app/transformers/task_detail_transformer.ts')
+  if (!/assignee:\s*TaskAssigneeTransformer\.transform\(/.test(detalle)) {
+    throw new Error('la tarea suelta no construye el responsable con TaskAssigneeTransformer')
+  }
+  if (/UserTransformer/.test(detalle)) {
+    throw new Error('la tarea suelta vuelve a usar UserTransformer, que expone la cuenta')
+  }
+
+  return campos[1].replace(/['\s]/g, '')
+})
+
+comprobar('Las pruebas no pueden escribir sobre la base de desarrollo', () => {
+  const config = leerCodigo('backend/config/database.ts')
+
+  // El fichero tiene que salir de una expresión que dependa del entorno, y ese
+  // valor tiene que ser el que recibe `tmpPath`. Comprobar solo que la cadena
+  // `app.inTest` aparece en el fichero lo satisfacía un comentario, y comprobar
+  // solo que existe `db-test.sqlite3` lo satisfacía una constante muerta.
+  const eleccion = config.match(/const\s+(\w+)\s*=\s*app\.inTest\s*\?\s*'([^']+)'\s*:\s*'([^']+)'/)
+  if (!eleccion) {
+    throw new Error('config/database.ts no elige el fichero según el entorno (ADR-0003)')
+  }
+  const [, variable, enTest, fuera] = eleccion
+  if (enTest === fuera) {
+    throw new Error('el fichero de test y el de desarrollo son el mismo')
+  }
+  // Intercambiar las dos ramas del ternario es la mutación de un token más
+  // natural, y cumplía las otras condiciones dejando la suite escribiendo
+  // sobre la base de desarrollo.
+  //
+  // El nombre esperado no se escribe aquí: se lee de la prueba que lo asserta,
+  // para que los dos no puedan discrepar. `/test/` como subcadena admitía
+  // nombres como `latest.sqlite3`.
+  const prueba = leerCodigo('backend/tests/functional/aislamiento.spec.ts')
+  const asertado = prueba.match(/app\.tmpPath\('([^']+)'\)\)\s*$/m)
+  if (!asertado) {
+    throw new Error('aislamiento.spec.ts no asserta ningún fichero de base de datos')
+  }
+  if (enTest !== asertado[1]) {
+    throw new Error(`en test se usa '${enTest}' y la prueba asserta '${asertado[1]}'`)
+  }
+  if (!new RegExp(`filename:\\s*app\\.tmpPath\\(${variable}\\)`).test(config)) {
+    throw new Error(`la conexión no usa \`${variable}\`, así que la elección no llega a aplicarse`)
+  }
+
+  const entrypoint = leerCodigo('backend/bin/test.ts')
+  if (!/process\.env\.NODE_ENV = 'test'/.test(entrypoint)) {
+    throw new Error('bin/test.ts no fuerza NODE_ENV=test')
+  }
+
+  // La garantía de verdad es `tests/functional/aislamiento.spec.ts`, que
+  // pregunta a la conexión viva por su fichero. Esto es el aviso temprano.
+  return `${enTest} en test, ${fuera} fuera`
+})
+
+comprobar('Cada supuesto de seguridad cita lo que lo vigila', () => {
+  // docs/seguridad.md promete que ningún supuesto va sin su prueba, hallazgo,
+  // ADR o comprobación. Un supuesto sin cita es una esperanza escrita como
+  // garantía, que es el modo de fallo que este verificador existe para cazar.
+  const texto = leer('docs/seguridad.md')
+  const seccion = texto.split(/^## Supuestos.*$/m)[1]?.split(/^## /m)[0]
+  if (!seccion) throw new Error('no se encuentra la sección «Supuestos» en docs/seguridad.md')
+
+  const filas = seccion
+    .split(/\r?\n/)
+    .filter((l) => l.startsWith('| ') && !l.startsWith('| Supuesto') && !/^\|\s*-/.test(l))
+  if (filas.length < 5) throw new Error(`solo ${filas.length} supuestos: la tabla no se ha leído bien`)
+
+  const cita = /H-\d+|ADR-\d+|\.spec\.ts|verificador|scripts\/|\.yml|\.env|config\/|models\/|Runbooks|Dependabot|REVIEW\.md/
+  const huerfanos = filas
+    .map((l) => l.split('|').map((c) => c.trim()))
+    .filter(([, , vigila]) => !cita.test(vigila ?? ''))
+    .map(([, supuesto]) => supuesto)
+  if (huerfanos.length) throw new Error(`sin lo que lo vigila: ${huerfanos.join('; ')}`)
+
+  return `${filas.length} supuestos, todos con cita`
+})
+
+comprobar('Los documentos que el README enlaza existen', () => {
+  // Se derivan de los enlaces del README y no de una lista escrita a mano:
+  // una lista a mano no falla cuando el README enlaza algo que no esta.
+  const readme = leer('README.md')
+  // Se aceptan los enlaces con ancla y los que empiezan por `./`. Descartarlos
+  // -que es lo que hacía antes- dejaba pasar enlaces rotos de esas dos formas.
+  const enlaces = [...readme.matchAll(/\]\((?!https?:|#|mailto:)([^)]+)\)/g)]
+    .map((m) => m[1].split('#')[0].trim())
+    .filter(Boolean)
+    .map((ruta) => ruta.replace(/^\.\//, ''))
+
+  const ausentes = [...new Set(enlaces)].filter((ruta) => !existsSync(join(RAIZ, ruta)))
+  if (ausentes.length) throw new Error(`enlaces rotos: ${ausentes.join(', ')}`)
+
+  // En esta rama el contrato **se genera** desde los decoradores y se sirve en
+  // `/api`, así que el imprescindible no es un `openapi.yaml` escrito a mano
+  // sino su fuente. Y la arquitectura la documenta `architecture.md`, que es el
+  // fichero del curso: traer el nuestro habría dejado dos documentos de
+  // arquitectura, que es peor que tener uno ajeno.
+  const imprescindibles = [
+    'docs/architecture.md',
+    'docs/trazabilidad.md',
+    'backend/app/openapi/schemas.ts',
+    'openspec/specs/auth/spec.md',
+    'openspec/specs/tasks/spec.md',
+  ]
+  const faltan = imprescindibles.filter((ruta) => !existsSync(join(RAIZ, ruta)))
+  if (faltan.length) throw new Error(`faltan: ${faltan.join(', ')}`)
+
+  return `${new Set(enlaces).size} enlaces del README`
+})
+
+comprobar('Toda tubería de un workflow declara pipefail', () => {
+  // R-06: se verifica por código de salida, nunca por la última línea. Una
+  // tubería devuelve el código de su último comando, así que `npm test | tee`
+  // sale 0 aunque la suite falle. En Actions, un `run:` sin `shell:` explícito
+  // corre con `bash -e`, **sin** `pipefail`: la tubería tapa el rojo en
+  // silencio. Ya pasó tres veces fuera de CI -un `tail -1` que se comió el
+  // error del lint, el `$?` de un `tail` en ADR-0007, `gh run list` leyendo
+  // veinte filas-, y esta es la parte de la regla que sí se puede computar.
+  //
+  // Se leen los workflows como YAML, no con expresiones regulares sobre el
+  // fichero, y se quitan comentarios y cadenas entre comillas antes de buscar
+  // la tubería: el `|` de un filtro de `jq` no es una tubería del shell.
+  const YAML = createRequire(join(RAIZ, 'backend', 'package.json'))('yaml')
+  const directorio = join(RAIZ, '.github', 'workflows')
+  const conTuberia = /(^|[^|])\|(?!\|)/
+  const sinCadenas = (linea) =>
+    linea
+      .replace(/'[^']*'/g, "''")
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/(^|\s)#.*$/, '$1')
+
+  let revisados = 0
+  const sinPipefail = []
+  for (const fichero of readdirSync(directorio).filter((f) => /\.ya?ml$/.test(f))) {
+    const workflow = YAML.parse(leer(`.github/workflows/${fichero}`))
+    for (const [idJob, job] of Object.entries(workflow.jobs ?? {})) {
+      for (const [i, paso] of (job.steps ?? []).entries()) {
+        if (typeof paso.run !== 'string') continue
+        const shell = paso.shell ?? job.defaults?.run?.shell ?? workflow.defaults?.run?.shell
+        // Con `shell: bash` explícito Actions ya añade `-o pipefail`.
+        if (shell === 'bash') continue
+        const lineas = paso.run.split('\n').map(sinCadenas)
+        if (!lineas.some((l) => conTuberia.test(l))) continue
+        revisados++
+        if (!/\bset\s+-[a-z]*o\s+pipefail\b|\bset\s+-o\s+pipefail\b/.test(paso.run)) {
+          sinPipefail.push(`${fichero} · ${idJob} · ${paso.name ?? `paso ${i + 1}`}`)
+        }
+      }
+    }
+  }
+
+  if (!revisados)
+    throw new Error('no se encontró ningún paso con tubería: la lectura dejó de ver algo')
+  if (sinPipefail.length) throw new Error(`sin pipefail: ${sinPipefail.join('; ')}`)
+  return `${revisados} pasos con tubería, todos con pipefail`
+})
+
+for (const { nombre, ok, detalle } of comprobaciones) {
+  console.log(`${ok ? 'OK  ' : 'FALLA'}  ${nombre}${detalle ? ` · ${detalle}` : ''}`)
+}
+
+// En CI, la tabla va también al resumen del job, con lo que falló arriba: un
+// «FALLA» que solo está en el log obliga a abrirlo para saber qué pasó.
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const celda = (texto) =>
+    String(texto ?? '')
+      .replace(/\|/g, '\\|')
+      .replace(/\r?\n/g, ' ')
+  const filas = [...comprobaciones].sort((a, b) => Number(a.ok) - Number(b.ok))
+  const titulo = problemas.length ? `${problemas.length} en rojo` : 'todo en verde'
+  appendFileSync(
+    process.env.GITHUB_STEP_SUMMARY,
+    [
+      `### Documentación contra código: ${titulo}`,
+      '',
+      '| | Comprobación | Detalle |',
+      '|---|---|---|',
+      ...filas.map(
+        (c) => `| ${c.ok ? 'OK' : '**FALLA**'} | ${celda(c.nombre)} | ${celda(c.detalle)} |`
+      ),
+      '',
+    ].join('\n')
+  )
+}
+
+if (problemas.length) {
+  console.error(`\n${problemas.length} discrepancia(s) entre la documentación y el código.`)
+  process.exit(1)
+}
+
+console.log('\nLa documentación corresponde con el código.')

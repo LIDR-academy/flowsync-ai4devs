@@ -1,0 +1,247 @@
+name: Verificación
+
+# La documentación viva solo se sostiene si algo la comprueba en cada cambio.
+# Sin esto, `docs/` vuelve a ser una foto del día que se escribió.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+      - run: cp .env.example .env && node ace generate:key
+      - run: npm run typecheck
+      - run: npm run lint
+      # Hasta el 2026-09-13 el formato solo lo aplicaba un hook de Claude sobre
+      # el frontend, y nada lo comprobaba: ese día llegaron sin formatear un
+      # fichero de pruebas y dos README. Está en el catálogo de mutaciones.
+      - run: npm run format:check
+      # Falla con una vulnerabilidad alta o crítica en cualquier dependencia,
+      # también de desarrollo: CI las ejecuta todas. Se vio fallar ese mismo
+      # día, con dos altas transitivas antes de `npm audit fix`. No tiene
+      # mutación: reproducirla exige instalar a propósito una versión
+      # vulnerable. Consulta el registro de npm, así que un rojo aquí puede ser
+      # de red; se relanza antes de investigar.
+      - name: Sin vulnerabilidades altas en las dependencias
+        run: npm audit --audit-level=high
+      # La suite escribe sobre su propio fichero de base de datos (ADR-0001),
+      # así que no hace falta preparar nada más.
+      #
+      # La salida se guarda para contrastar el número de pruebas con AGENTS.md,
+      # que es el único sitio que lo cita. `pipefail` es obligatorio: sin él, el
+      # `tee` taparía el código de salida de la suite (R-06).
+      - name: Pruebas, y su número contra AGENTS.md
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee ../salida-pruebas.txt
+          node ../scripts/recuento-pruebas.mjs backend ../salida-pruebas.txt
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Sin vulnerabilidades altas en las dependencias
+        run: npm audit --audit-level=high
+      # El typecheck del frontend vive dentro del build.
+      - run: npm run build
+      # Vitest sobre `lib/api.ts`, que es el unico punto de contacto con el
+      # backend y donde vive la logica del frontend. El runner venia de
+      # `s3/start` y no cruzo de rama; se recupero el 2026-09-02.
+      - name: Pruebas, y su número contra AGENTS.md
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee ../salida-pruebas.txt
+          node ../scripts/recuento-pruebas.mjs frontend ../salida-pruebas.txt
+
+  mutaciones:
+    name: Las comprobaciones muerden (R-14)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Instalar el backend
+        run: npm ci && cp .env.example .env && node ace generate:key
+        working-directory: backend
+
+      - name: Instalar el frontend
+        run: npm ci
+        working-directory: frontend
+
+      # Varias entradas del catálogo se comprueban con las pruebas de navegador.
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      # Reintroduce defectos que ya existieron y exige que la comprobación que
+      # dice cubrir cada uno se ponga en rojo por ese motivo, no por otro. Falla
+      # también si una mutación ya no se puede aplicar porque el código cambió:
+      # una mutación que no se aplica es un verde falso.
+      - name: Catálogo de mutaciones
+        run: node scripts/mutaciones.mjs
+
+  navegador:
+    name: Lo que se ve en pantalla (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Instalar el backend
+        run: npm ci && cp .env.example .env && node ace generate:key
+        working-directory: backend
+
+      - name: Instalar el frontend
+        run: npm ci
+        working-directory: frontend
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      # Levanta el backend con NODE_ENV=test y el frontend en otro puerto, y
+      # deshace las tablas al terminar (playwright.config.ts).
+      - name: Pruebas de navegador
+        run: npm run test:e2e
+        working-directory: frontend
+
+      # La primera ejecución local dejó vacío `database/schema.ts`: el reset de
+      # la base lo regeneraba desde una base sin tablas. Ya no lo hace, y este
+      # paso es lo que lo diría si volviera a pasar.
+      - name: Las pruebas de navegador no tocan el esquema versionado
+        run: git diff --exit-code -- backend/database/schema.ts
+
+      - name: Guardar las trazas si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trazas-playwright
+          path: frontend/test-results/
+          retention-days: 7
+
+  documentacion:
+    name: La documentación corresponde con el código
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # R-08 lee los commits del push y los compara con las demás ramas.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # El verificador pregunta las rutas a `node ace list:routes --json` en vez
+      # de parsear el fuente, así que necesita el backend instalado.
+      - name: Instalar el backend
+        run: npm ci
+        working-directory: backend
+
+      - name: Preparar entorno del backend
+        run: cp .env.example .env && node ace generate:key
+        working-directory: backend
+
+      # El contrato se genera desde los decoradores, así que no puede quedarse
+      # atrás por olvido; lo que sí puede es que nadie regenere el fichero
+      # versionado y quien integre lea uno viejo. Este paso compara los dos y
+      # sale distinto de cero si difieren. No arregla nada: el arreglo es
+      # `npm run openapi:generate` en local, y el humano en el bucle.
+      - name: El contrato versionado sigue al día
+        run: npm run openapi:check
+        working-directory: backend
+
+      - name: Contrastar documentación contra código
+        run: node scripts/verificar-docs.mjs
+
+      # El hook de R-01 corre en la máquina de quien commitea, y CI no puede
+      # saber si allí está activado. Lo que sí comprueba es que decide bien, y
+      # en Linux, que es donde Git ignora un hook sin bit de ejecución.
+      - name: El hook de rama rechaza main y sN/* (R-01)
+        run: node scripts/probar-hook-rama.mjs
+
+      - name: El hook de mensaje exige commits convencionales
+        run: node scripts/probar-hook-mensaje.mjs
+
+      - name: La comprobación de R-08 decide bien
+        run: node scripts/probar-fix-con-prueba.mjs
+
+      # R-08: todo commit `fix:` toca una prueba o dice por qué no, con una
+      # línea `Sin-prueba: <motivo>`. Solo mira los commits de este push: el
+      # historial anterior no se reescribe, y está contado en la auditoría.
+      # Si `before` no existe -rama nueva, o historial reescrito-, mira lo que
+      # no está en ninguna otra rama.
+      #
+      # No corre en `pull_request`: el rango del PR arrastra la unidad entera,
+      # con commits anteriores a la regla, y los nuestros vienen de un fork
+      # donde ese evento no se ejecuta (H-24).
+      - name: Todo fix deja una prueba o dice por qué no (R-08)
+        if: github.event_name == 'push'
+        env:
+          ANTES: ${{ github.event.before }}
+          DESPUES: ${{ github.sha }}
+          RAMA: ${{ github.ref_name }}
+        run: |
+          set -o pipefail
+          if git cat-file -e "$ANTES^{commit}" 2>/dev/null; then
+            node scripts/fix-con-prueba.mjs "$ANTES..$DESPUES"
+          else
+            # Las refs primero y aparte: si `git` falla, el paso cae aquí. Dentro
+            # de la tubería, el `|| true` del filtro lo taparía y se revisaría
+            # el historial entero.
+            refs=$(git for-each-ref --format='%(refname)' refs/remotes/origin)
+            otras=$(printf '%s\n' "$refs" | grep -vxF "refs/remotes/origin/$RAMA" || true)
+            node scripts/fix-con-prueba.mjs "$DESPUES" --not $otras
+          fi
+
+      - name: Validar las specs vivas
+        run: |
+          # Version fijada a proposito, para que no se mueva sola bajo los
+          # pies de la build.
+          npm install -g @fission-ai/openspec@1.10.0
+          openspec validate --specs
+        env:
+          OPENSPEC_TELEMETRY: '0'

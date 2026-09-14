@@ -8,7 +8,7 @@
 
 > Como miembro del equipo, quiero que ninguna tarea pueda existir sin título, para que la lista siga siendo legible y nadie se encuentre con una fila que no dice de qué trabajo habla.
 
-> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos.
+> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos. Los marcados **[VALIDADO]** se contrastaron el 2026-09-13 contra la spec viva, el código y las pruebas.
 
 ---
 
@@ -30,13 +30,14 @@ Y no aparece en la lista ninguna fila sin texto.
 
 ### El título largo
 
-**CA-3 — Un título que se pasa de largo se avisa, no se recorta en silencio** · **[PROPUESTO]**
+**CA-3 — Un título que se pasa de largo se avisa, no se recorta en silencio** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisito «Aviso ante un título demasiado largo»: 200 caracteres se aceptan y 201 se rechazan sin recortar, con prueba en `creacion.spec.ts`.*
 DADO que escribo un título más largo de lo que el sistema admite
 CUANDO intento crear la tarea
 ENTONCES se me avisa de que se pasa de largo
 Y en ningún caso se guarda una versión recortada sin habérmelo dicho.
 
-*Motivo de la propuesta: el requisito de origen habla de admitir «con holgura» una frase descriptiva y de avisar ante uno «desmedido», sin fijar dónde está la frontera, y el propio PRD lo señala como no verificable tal y como está escrito (PA-9). Este criterio fija solo la conducta observable, avisar en lugar de recortar. **El umbral sigue sin decidir y aquí no se inventa ninguno.***
+*Motivo de la propuesta: el requisito de origen habla de admitir «con holgura» una frase descriptiva y de avisar ante uno «desmedido», sin fijar dónde está la frontera, y el propio PRD lo señala como no verificable tal y como está escrito (PA-9). Este criterio fija solo la conducta observable, avisar en lugar de recortar. **El umbral sigue sin decidir y aquí no se inventa ninguno.** Nota del 2026-09-13: ya está decidido, en 200 caracteres, por la spec viva y por PA-9.*
 
 ---
 

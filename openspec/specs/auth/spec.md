@@ -3,7 +3,9 @@
 ## Purpose
 
 Permite que una persona cree su cuenta en FlowSync, entre con su email y contraseña, mantenga la sesión abierta entre visitas y la cierre cuando quiera. Es la puerta de entrada al producto: sin sesión válida no se accede a ningún dato de cuenta.
+
 ## Requirements
+
 ### Requirement: Registro de una cuenta nueva
 
 El sistema SHALL permitir crear una cuenta enviando `POST /api/v1/auth/signup` con `fullName`, `email`, `password` y `passwordConfirmation`, y SHALL devolver en la misma respuesta los datos de la cuenta creada junto con un token de acceso ya utilizable, de modo que registrarse deje a la persona con la sesión iniciada.
@@ -86,7 +88,7 @@ El sistema SHALL revocar el token presentado al recibir `POST /api/v1/account/lo
 #### Scenario: Cierre de sesión correcto
 
 - **WHEN** se envía `POST /api/v1/account/logout` con un token válido
-- **THEN** la respuesta es `200` con `{"message": "Logged out successfully"}`
+- **THEN** la respuesta es `200` con `{"data": {"message": "Logged out successfully"}}`, y no hay ninguna clave `message` fuera de `data`
 
 #### Scenario: El token revocado ya no vale
 
@@ -119,12 +121,17 @@ El sistema SHALL exigir un token de acceso válido en todas las rutas bajo `/api
 
 ### Requirement: Forma de las respuestas de la API
 
-El sistema SHALL responder siempre en JSON, envolver los datos de cuenta en una clave `data`, y no exponer nunca la contraseña ni su hash en ninguna respuesta.
+El sistema SHALL responder siempre en JSON, envolver en una clave `data` **toda respuesta de éxito** de esta capability -no solo las que llevan datos de cuenta-, y no exponer nunca la contraseña ni su hash en ninguna respuesta.
 
 #### Scenario: JSON aunque el cliente pida HTML
 
 - **WHEN** se envía cualquier petición de esta capability con `Accept: text/html`
 - **THEN** la respuesta llega en JSON, también en los casos de error
+
+#### Scenario: Toda respuesta de éxito va envuelta
+
+- **WHEN** el registro, el inicio de sesión, la consulta del perfil o el cierre de sesión responden con éxito
+- **THEN** el cuerpo es un objeto cuya única clave de primer nivel es `data`
 
 #### Scenario: La contraseña nunca sale
 
@@ -304,4 +311,3 @@ Ahora que la pantalla de entrada deja de ser el perfil, la interfaz SHALL ofrece
 
 - **WHEN** está en el perfil y no cierra sesión
 - **THEN** dispone de una forma de volver a la lista de tareas
-

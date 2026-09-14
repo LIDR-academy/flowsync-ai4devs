@@ -58,7 +58,7 @@ test.group('Auth | sesión', (group) => {
       .header('Authorization', `Bearer ${token}`)
 
     logout.assertStatus(200)
-    assert.equal(logout.body().message, 'Logged out successfully')
+    assert.deepEqual(logout.body(), { data: { message: 'Logged out successfully' } })
 
     const despues = await client
       .get('/api/v1/account/profile')
@@ -82,6 +82,36 @@ test.group('Auth | sesión', (group) => {
       .header('Authorization', `Bearer ${segunda}`)
 
     response.assertStatus(200)
+  })
+
+  /**
+   * «Toda respuesta de éxito va envuelta», del requisito de forma. El cierre de
+   * sesión fue la excepción desde el andamiaje del curso hasta el 2026-09-12
+   * (H-03), y convivió con el requisito porque este decía «los datos de
+   * cuenta». Se recorren las cuatro para que la próxima excepción no dependa de
+   * que alguien se acuerde de mirar la ruta nueva.
+   */
+  test('toda respuesta de éxito de auth va envuelta en data y solo en data', async ({
+    client,
+    assert,
+  }) => {
+    const alta = await client.post('/api/v1/auth/signup').json({
+      fullName: 'Ada Lovelace',
+      email: 'ada@example.com',
+      password: 'secreto123',
+      passwordConfirmation: 'secreto123',
+    })
+    const acceso = await client
+      .post('/api/v1/auth/login')
+      .json({ email: 'ada@example.com', password: 'secreto123' })
+    const token = acceso.body().data.token
+    const perfil = await client.get('/api/v1/account/profile').bearerToken(token)
+    const cierre = await client.post('/api/v1/account/logout').bearerToken(token)
+
+    for (const [ruta, respuesta] of Object.entries({ alta, acceso, perfil, cierre })) {
+      respuesta.assertStatus(200)
+      assert.deepEqual(Object.keys(respuesta.body() as object), ['data'], ruta)
+    }
   })
 
   test('el registro y el login siguen siendo públicos', async ({ client }) => {

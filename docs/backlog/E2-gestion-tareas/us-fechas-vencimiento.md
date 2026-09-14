@@ -8,7 +8,7 @@
 
 > Como miembro del equipo, quiero poner o quitar una fecha de vencimiento al abrir una tarea y ver si se ha pasado de plazo, para comprometerme con una fecha solo cuando de verdad existe y no descubrir tarde que se me ha pasado.
 
-> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos.
+> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos. Los marcados **[VALIDADO]** se contrastaron el 2026-09-13 contra la spec viva, el código y las pruebas.
 
 ---
 
@@ -34,7 +34,8 @@ CUANDO la abro y se la quito
 ENTONCES la tarea vuelve a no tener fecha
 Y deja de considerarse vencida, si lo estaba.
 
-**CA-4 — Ver que una tarea está vencida** · **[PROPUESTO]**
+**CA-4 — Ver que una tarea está vencida** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisito «La señal de tarea vencida» de la spec viva: señal propia, con texto además de color.*
 DADO que existe una tarea con fecha anterior a hoy y que no está hecha
 CUANDO la abro
 ENTONCES se me indica explícitamente que está vencida, sin que yo tenga que comparar la fecha con el día de hoy.
@@ -88,7 +89,8 @@ ENTONCES no recibo ningún aviso, recordatorio ni señal de que le falte algo.
 
 ### Errores y límites
 
-**CA-13 — Poner una fecha que ya pasó está permitido** · **[PROPUESTO]**
+**CA-13 — Poner una fecha que ya pasó está permitido** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «Una fecha ya pasada se acepta»; lo fija `vencimiento.spec.ts`, que hasta ese día no mandaba ninguna fecha pasada por la API.*
 DADO que abro una tarea
 CUANDO le pongo una fecha anterior a hoy
 ENTONCES el sistema la acepta sin impedírmelo
@@ -96,25 +98,29 @@ Y la tarea pasa a mostrarse vencida de inmediato.
 
 *Motivo de la propuesta: el PRD no dice si se permite. Se propone permitirlo, porque bloquearlo añadiría una regla de las que este producto rechaza y hay un caso legítimo evidente: anotar algo que ya debería estar hecho.*
 
-**CA-14 — Una fecha imposible no se traga en silencio** · **[PROPUESTO]**
+**CA-14 — Una fecha imposible no se traga en silencio** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «Una fecha que no existe se rechaza»: `422` y la tarea conserva su fecha, con prueba en `vencimiento.spec.ts`.*
 DADO que abro una tarea
 CUANDO intento indicar una fecha que no existe o está incompleta
 ENTONCES la tarea conserva la fecha que tuviera antes
 Y se me explica el problema junto al propio campo, en lenguaje corriente.
 
-**CA-15 — Quitar la fecha no pide confirmación** · **[PROPUESTO]**
+**CA-15 — Quitar la fecha no pide confirmación** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «Quitar la fecha en un gesto» del requisito de la pantalla de la tarea.*
 DADO una tarea con fecha
 CUANDO se la quito
 ENTONCES el cambio se aplica directamente, sin diálogo de confirmación.
 
 *Motivo de la propuesta: hace falta fijar la frontera. Borrar una tarea sí confirma porque es irreversible; quitar una fecha se deshace en un gesto, y confirmarlo sería fricción gratuita.*
 
-**CA-16 — El cambio se guarda solo** · **[PROPUESTO]**
+**CA-16 — El cambio se guarda solo** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «El cambio ya está guardado» del requisito de la pantalla de la tarea.*
 DADO que he puesto o quitado la fecha de una tarea
 CUANDO cierro la tarea
 ENTONCES el cambio ya está guardado, sin ningún paso extra de guardado.
 
-**CA-17 — Cualquiera puede poner o quitar la fecha de cualquier tarea** · **[PROPUESTO]**
+**CA-17 — Cualquiera puede poner o quitar la fecha de cualquier tarea** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario «Fijar la fecha de una tarea ajena», con prueba en `lista_compartida.spec.ts`.*
 DADO una tarea cuyo responsable es otra persona
 CUANDO la abro y le cambio la fecha
 ENTONCES el cambio se aplica sin advertencia ni permiso especial, igual que el resto de ediciones.
@@ -135,7 +141,8 @@ CUANDO ambas la abren a la vez
 ENTONCES la primera la ve vencida y la segunda no
 Y las dos lecturas son correctas: el día de referencia es el de quien mira.
 
-**CA-20 — Una tarea vence sola, sin que nadie la toque** · **[PROPUESTO]**
+**CA-20 — Una tarea vence sola, sin que nadie la toque** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: requisito «El día de referencia lo pone quien mira»: el vencimiento se resuelve al consultar, con prueba en `vencimiento.spec.ts`.*
 DADO una tarea con fecha de hoy y no hecha
 CUANDO pasa la medianoche en el huso de quien mira, y esa persona vuelve a abrirla
 ENTONCES aparece como vencida, sin que nadie haya modificado nada.

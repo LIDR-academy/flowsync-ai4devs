@@ -12,7 +12,7 @@
 >
 > Los criterios de abajo se **derivan** de esos dos requisitos: dicen lo que hace falta para que RF-13 y RF-15 sean posibles, y **nada más**. Lo que esta pantalla deba mostrar por su cuenta no se inventa aquí: es lo que PA-6 tiene que decidir.
 
-> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto se deriva de los requisitos citados arriba.
+> **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto se deriva de los requisitos citados arriba. Los marcados **[VALIDADO]** se contrastaron el 2026-09-13 contra la spec viva, el código y las pruebas.
 
 ---
 
@@ -70,7 +70,8 @@ DADO que no he iniciado sesión
 CUANDO intento llegar a la vista de una tarea
 ENTONCES no veo su contenido.
 
-**CA-10 — Una tarea que ya no existe no se inventa** · **[PROPUESTO]**
+**CA-10 — Una tarea que ya no existe no se inventa** · **[VALIDADO 2026-09-13]**
+*Validado el 2026-09-13 contra lo construido: escenario de la pantalla de la tarea para una tarea que no se encuentra, sobre el `404` que prueba `inexistente.spec.ts`.*
 DADO que intento abrir una tarea que se ha borrado
 CUANDO se resuelve la petición
 ENTONCES se me dice que ya no existe

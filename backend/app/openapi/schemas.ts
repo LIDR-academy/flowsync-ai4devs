@@ -213,3 +213,118 @@ export class ErrorResponse {
   @ApiProperty({ type: () => [ErrorItem] })
   errors!: ErrorItem[]
 }
+
+/**
+ * La cuenta tal y como la devuelven el alta, el acceso y el perfil
+ * (`UserTransformer`).
+ *
+ * A diferencia de `TaskAssignee`, esta **sí** lleva el email: es la cuenta de
+ * quien pregunta, no la de un tercero. Esa asimetría es el contrato, y la
+ * comprobación del verificador sobre `TaskAssigneeTransformer` existe para que
+ * nadie la borre por descuido.
+ */
+export class Account {
+  @ApiProperty({ type: 'number', example: 1 })
+  id!: number
+
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+    example: 'Ada Lovelace',
+    description: 'Nulo cuando la cuenta se registró sin nombre.',
+  })
+  fullName!: string | null
+
+  @ApiProperty({ type: 'string', format: 'email', example: 'ada@flowsync.test' })
+  email!: string
+
+  @ApiProperty({ type: 'string', example: 'AL' })
+  initials!: string
+
+  @ApiProperty({ type: 'string', format: 'date-time' })
+  createdAt!: string
+
+  @ApiProperty({ type: 'string', format: 'date-time' })
+  updatedAt!: string
+}
+
+export class AccountResponse {
+  @ApiProperty({ type: () => Account })
+  data!: Account
+}
+
+/**
+ * Lo que devuelve el acceso: la cuenta y el token.
+ *
+ * El token viaja **una sola vez**, en esta respuesta. Es opaco y no se puede
+ * volver a leer: si se pierde, se pide otro.
+ */
+export class AccessTokenGrant {
+  @ApiProperty({ type: () => Account })
+  user!: Account
+
+  @ApiProperty({
+    type: 'string',
+    example: 'oat_MTA.abc123',
+    description: 'Access token opaco. Va en `Authorization: Bearer <token>`.',
+  })
+  token!: string
+}
+
+export class AccessTokenResponse {
+  @ApiProperty({ type: () => AccessTokenGrant })
+  data!: AccessTokenGrant
+}
+
+export class LogoutMessage {
+  @ApiProperty({ type: 'string', example: 'Logged out successfully' })
+  message!: string
+}
+
+/**
+ * Hasta el 2026-09-12 esto era `{ message }` sin envoltorio, la única respuesta
+ * de éxito del proyecto así (H-03). Ahora va en `{ data }` como las demás.
+ */
+export class LogoutResponse {
+  @ApiProperty({ type: () => LogoutMessage })
+  data!: LogoutMessage
+}
+
+/** Cuerpo del alta. Los cuatro campos son obligatorios; `fullName` acepta nulo. */
+export class SignupBody {
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+    example: 'Ada Lovelace',
+    description: 'Obligatorio en el payload, aceptando `null`. Omitirlo devuelve 422 (H-04).',
+  })
+  fullName!: string | null
+
+  @ApiProperty({ type: 'string', format: 'email', maxLength: 254 })
+  email!: string
+
+  @ApiProperty({ type: 'string', format: 'password', minLength: 8, maxLength: 32 })
+  password!: string
+
+  // Pasa por las mismas reglas que `password` en el validador, además de
+  // `sameAs`. Hasta el 2026-09-13 el contrato solo declaraba `minLength` en
+  // `password` y nada en este campo: una contraseña de 33 caracteres recibía
+  // 422 sin que el contrato lo avisara.
+  @ApiProperty({
+    type: 'string',
+    format: 'password',
+    minLength: 8,
+    maxLength: 32,
+    description: 'Debe coincidir con `password`.',
+  })
+  passwordConfirmation!: string
+}
+
+/** Cuerpo del acceso. */
+export class LoginBody {
+  @ApiProperty({ type: 'string', format: 'email' })
+  email!: string
+
+  @ApiProperty({ type: 'string', format: 'password' })
+  password!: string
+}

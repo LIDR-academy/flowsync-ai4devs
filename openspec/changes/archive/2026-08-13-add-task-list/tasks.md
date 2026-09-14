@@ -45,3 +45,18 @@
 - [ ] 6.1 Recorrer a mano el camino completo: registrarse, crear una tarea, verla en la lista, cambiarle el estado, volver a `pending` desde `done`, cerrar sesión y comprobar que sin sesión no se ve nada
 - [ ] 6.2 Comprobar con una segunda cuenta que ve las mismas tareas y puede cambiar el estado de las ajenas
 - [ ] 6.3 Verificar que ninguna respuesta de tareas incluye el email del responsable
+
+## Lo que no se ejecutó
+
+> Añadido el 2026-09-02 al cerrar **H-18**. El change se archivó con estas casillas sin marcar y nadie lo notó, porque una casilla vacía en un fichero archivado no se distingue de una casilla que nadie tuvo que hacer.
+>
+> No se pueden ejecutar ahora: eran comprobaciones a mano sobre el estado del código de entonces. Lo que sí se puede es decir cuáles fueron y qué costaron.
+
+| Casilla | Qué pasó |
+|---|---|
+| 5.4 · los dos guards a mano, con sesión y sin ella | Sin ejecutar. Cubierto después por `errores.spec.ts`, que recorre las siete rutas protegidas |
+| 6.1 · el camino completo a mano | Sin ejecutar entonces. Recorrido en navegador el 2026-09-02 |
+| 6.2 · dos cuentas ven las mismas tareas | Sin ejecutar. Cubierto después por `lista_compartida.spec.ts` |
+| 6.3 · ninguna respuesta incluye el email del responsable | **Sin ejecutar, y es el caso que enseña.** El `design.md` de este mismo change había predicho el fallo con nombre y apellidos: «la regresión más probable, que el responsable acabe filtrando el email al cliente, no la va a detectar nada automático». Ocurrió exactamente eso, y se registró como **H-17** |
+
+**La lección**: la casilla 6.3 no falló por difícil. Falló porque quien archivó decidió que estaba hecha, y nada podía contradecirle.

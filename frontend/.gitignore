@@ -15,6 +15,10 @@ dist-ssr
 # Variables de entorno locales (`.env.example` sí se versiona)
 .env
 
+# Artefactos de las pruebas de navegador (Playwright)
+test-results/
+playwright-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

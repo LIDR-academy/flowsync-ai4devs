@@ -92,6 +92,19 @@ test.group('Tasks | responsable', (group) => {
       assert.deepEqual(Object.keys(assignee).sort(), ['fullName', 'id', 'initials'])
       assert.notInclude(JSON.stringify(assignee), 'ada@example.com')
     }
+
+    // Y sobre el **cuerpo entero**, no solo sobre el objeto del responsable.
+    // Mirar solo `assignee` deja pasar que el email cuelgue de la tarea, o de
+    // la respuesta, por fuera de ese objeto: el juego de claves de arriba
+    // seguiría siendo exacto y el dato estaría filtrado igual.
+    const lista = await client.get('/api/v1/tasks').header('Authorization', `Bearer ${token}`)
+    const detalle = await client
+      .get(`/api/v1/tasks/${id}?today=2026-09-02`)
+      .header('Authorization', `Bearer ${token}`)
+
+    for (const respuesta of [lista, detalle]) {
+      assert.notInclude(JSON.stringify(respuesta.body()), 'ada@example.com')
+    }
   })
 
   test('un responsable sin nombre llega sin nombre pero con iniciales', async ({

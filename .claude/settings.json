@@ -8,10 +8,35 @@
             "type": "command",
             "statusMessage": "Formateando frontend con Prettier...",
             "timeout": 30,
-            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | { read -r f; case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/frontend/*) cd \"$CLAUDE_PROJECT_DIR/frontend\" && ./node_modules/.bin/prettier --write --ignore-unknown \"$f\";; esac; } 2>/dev/null || true"
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);const f=(j.tool_response&&j.tool_response.filePath)||(j.tool_input&&j.tool_input.file_path)||'';if(f)console.log(f)}catch(e){}})\" | { read -r f; case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/frontend/*) cd \"$CLAUDE_PROJECT_DIR/frontend\" && ./node_modules/.bin/prettier --write --ignore-unknown \"$f\" || echo \"hook de formato: prettier no pudo con $f\" >&2;; esac; }"
           }
         ]
       }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run format:check:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:e2e:*)",
+      "Bash(npm run openapi:check:*)",
+      "Bash(npm audit:*)",
+      "Bash(node ace test:*)",
+      "Bash(node ace list:routes:*)",
+      "Bash(node scripts/*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh secret list:*)"
     ]
   }
 }

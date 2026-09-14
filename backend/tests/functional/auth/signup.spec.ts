@@ -1,4 +1,5 @@
 import User from '#models/user'
+import { errores } from '#tests/helpers/api'
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 
@@ -7,10 +8,12 @@ import testUtils from '@adonisjs/core/services/test_utils'
  * «Validación de los datos de registro» y «Un email, una sola cuenta» de
  * `openspec/specs/auth/spec.md`.
  *
- * El aislamiento es una transacción global y no un truncate a propósito: la
- * suite functional pega contra el mismo fichero SQLite que el servidor de
- * desarrollo (`config/database.ts` no tiene override por entorno), y vaciarlo
- * se llevaría por delante los datos con los que se está trabajando.
+ * El aislamiento es una transacción global y no un truncate: aísla un caso de
+ * otro dentro de la misma ejecución, que es para lo que sirve bien.
+ *
+ * Ya no es la única línea de defensa. Desde ADR-0003, `config/database.ts`
+ * elige el fichero según el entorno, así que la suite escribe sobre
+ * `tmp/db-test.sqlite3` y no puede tocar la base de desarrollo.
  */
 test.group('Auth | registro', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -101,6 +104,32 @@ test.group('Auth | registro', (group) => {
 
     response.assertStatus(422)
     response.assertBodyContains({ errors: [{ field: 'email' }] })
+  })
+
+  /**
+   * «La lista de errores desglosada por campo» del requisito. Las tres de
+   * arriba mandan un solo campo malo cada una, así que seguirían en verde si la
+   * respuesta trajera solo el primer error. Esta manda tres a la vez y exige
+   * los tres, uno por campo: es lo que deja al formulario marcar cada campo en
+   * un solo envío en vez de descubrirlos de uno en uno.
+   */
+  test('varios campos inválidos a la vez devuelven un error por cada uno', async ({
+    client,
+    assert,
+  }) => {
+    const response = await client.post('/api/v1/auth/signup').json({
+      fullName: 'Ada Lovelace',
+      email: 'ada-arroba-example',
+      password: 'corta',
+      passwordConfirmation: 'secreto456',
+    })
+
+    response.assertStatus(422)
+    assert.sameMembers(
+      errores(response).map(({ field, rule }) => `${field} · ${rule}`),
+      ['email · email', 'password · minLength', 'passwordConfirmation · sameAs']
+    )
+    assert.isNull(await User.findBy('fullName', 'Ada Lovelace'))
   })
 
   test('un email ya registrado no crea una segunda cuenta', async ({ client, assert }) => {
