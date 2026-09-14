@@ -13,6 +13,8 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSubmitting) return
+
     setError(null)
     setIsSubmitting(true)
 
@@ -26,7 +28,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
   }
 
   return (
-    <form className="login-form" onSubmit={handleSubmit} noValidate>
+    <form className="login-form" onSubmit={handleSubmit}>
       <h1>Iniciar sesión</h1>
 
       <label htmlFor="email">Correo electrónico</label>
