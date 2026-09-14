@@ -1,0 +1,17 @@
+# Normaliza los finales de linea: LF en el repositorio, siempre.
+# Coherente con `end_of_line = lf` de backend/.editorconfig.
+# Sin esto, en Windows core.autocrlf reescribe los ficheros a CRLF y cada
+# PR arrastra decenas de ficheros "modificados" sin un solo cambio real.
+* text=auto eol=lf
+
+# Ficheros binarios: nunca tocar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
