@@ -28,7 +28,7 @@
  *      node scripts/mutaciones.mjs --listar
  */
 import { spawnSync } from 'node:child_process'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -80,6 +80,14 @@ const FIX = {
   args: ['scripts/probar-fix-con-prueba.mjs'],
   fallo: /^FALLA\b/,
 }
+// `--end-of-line auto`, igual que el script `format:check`: en Windows el árbol
+// de trabajo tiene CRLF y sin eso todo fichero sale como mal formateado.
+const formato = (lado) => ({
+  nombre: `${lado}: format:check`,
+  cwd: lado,
+  args: ['node_modules/prettier/bin/prettier.cjs', '--check', '--end-of-line', 'auto', '.'],
+  fallo: /^\[warn\]\s/,
+})
 const PLAYWRIGHT = {
   nombre: 'frontend: playwright',
   cwd: 'frontend',
@@ -389,6 +397,27 @@ const CATALOGO = [
     cambios: [['/^fix(\\([^)]*\\))?!?:/', '/^fix(\\([^)]*\\))?:/']],
     muerden: [[FIX, 'fix(tasks)!: sin prueba y rompiendo']],
   },
+  {
+    // Pasó: `api.test.ts` y dos README llegaron sin formatear el 2026-09-13, el
+    // día que se añadió `format:check` a CI. Nada lo comprobaba.
+    id: 'formato-backend',
+    que: 'un fichero del backend deja de seguir el formato del proyecto',
+    fichero: 'backend/app/models/task.ts',
+    cambios: [
+      [
+        'export type TaskStatus = (typeof TASK_STATUSES)[number]',
+        'export type TaskStatus = (typeof TASK_STATUSES)[number];',
+      ],
+    ],
+    muerden: [[formato('backend'), 'app/models/task.ts']],
+  },
+  {
+    id: 'formato-frontend',
+    que: 'un fichero del frontend deja de seguir el formato del proyecto',
+    fichero: 'frontend/src/lib/lista.ts',
+    cambios: [["import type { Task } from '@/lib/types'", 'import type { Task } from "@/lib/types";']],
+    muerden: [[formato('frontend'), 'src/lib/lista.ts']],
+  },
 ]
 
 const sinColor = (texto) => texto.replace(/\x1b\[[0-9;]*m/g, '')
@@ -409,7 +438,9 @@ function ejecutar({ cwd, args }) {
     cwd: join(RAIZ, cwd),
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
-    env: { ...process.env, FORCE_COLOR: '0' },
+    // Sin el resumen del job: el verificador escribe en él, y aquí se ejecuta
+    // una vez por mutación.
+    env: { ...process.env, FORCE_COLOR: '0', GITHUB_STEP_SUMMARY: '' },
   })
   return { status: r.status, salida: sinColor(`${r.stdout ?? ''}${r.stderr ?? ''}`) }
 }
@@ -507,11 +538,20 @@ for (const m of elegidas) {
   }
 }
 
+const total = elegidas.reduce((n, m) => n + m.muerden.length, 0)
+if (process.env.GITHUB_STEP_SUMMARY) {
+  appendFileSync(
+    process.env.GITHUB_STEP_SUMMARY,
+    fallos.length
+      ? `### Mutaciones: ${fallos.length} problemas\n\n${fallos.map((f) => `- ${f}`).join('\n')}\n`
+      : `### Mutaciones: ${elegidas.length} mutaciones, ${total} comprobaciones en rojo por su motivo\n`
+  )
+}
+
 if (fallos.length) {
   console.error(`\n${fallos.length} problemas:\n- ${fallos.join('\n- ')}`)
   process.exit(1)
 }
-const total = elegidas.reduce((n, m) => n + m.muerden.length, 0)
 console.log(
   `\n${elegidas.length} mutaciones, ${total} comprobaciones en rojo por su motivo, todo restaurado.`
 )

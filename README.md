@@ -73,7 +73,8 @@ No hay `package.json` en la raíz: **todo se ejecuta desde `backend/` o desde `f
 | Pruebas | `npm test` | `npm test` (Vitest) y `npm run test:e2e` (Playwright) |
 | Lint | `npm run lint` (eslint) | `npm run lint` (oxlint) |
 | Tipos | `npm run typecheck` | dentro de `npm run build` |
-| Formato | `npm run format` | `npm run format` |
+| Formato | `npm run format` y `npm run format:check` | `npm run format` y `npm run format:check` |
+| Dependencias vulnerables | `npm audit --audit-level=high` | `npm audit --audit-level=high` |
 | Contrato OpenAPI | `npm run openapi:generate` y `npm run openapi:check` | - |
 
 Desde la raíz, dos scripts de CI que también sirven en local:
@@ -92,7 +93,7 @@ La lista completa, con filtros de pruebas y generadores de `ace`, en [`CLAUDE.md
 3. **Un bug se reproduce antes de arreglarlo, y deja una prueba.** CI rechaza un commit `fix:` que no toque una prueba, salvo que el mensaje lleve `Sin-prueba: <motivo>`.
 4. **Si tocas rutas, controladores, validadores o transformers**, en el mismo commit: `npm run openapi:generate`, el diff de `backend/.adonisjs/` y el README de la capability.
 5. **Al índice por nombre** (`git add <fichero>`), commits convencionales (`feat:`, `fix:`, `docs:`, `chore:`...) y **nunca `--no-verify`**.
-6. **Antes de abrir el PR**, lo mismo que corre en CI: lint, tipos, pruebas de las dos capas y `openapi:check`. Si añades una prueba, actualiza su número en `CLAUDE.md`: CI lo contrasta.
+6. **Antes de abrir el PR**, lo mismo que corre en CI: lint, formato, tipos, pruebas de las dos capas, `npm audit` y `openapi:check`. Si añades una prueba, actualiza su número en `CLAUDE.md`: CI lo contrasta.
 7. **Un solo PR al terminar la unidad**, con la descripción completa. El revisor adversarial corre solo en cada push de una rama con PR abierto; su informe queda en el resumen del job.
 
 Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbooks.md). Las reglas completas, con el modo de fallo de cada una: [`CLAUDE.md`](CLAUDE.md).

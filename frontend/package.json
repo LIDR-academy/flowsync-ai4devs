@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "format": "prettier --write .",
+    "format:check": "prettier --check --end-of-line auto .",
     "preview": "vite preview",
     "test": "vitest run",
     "prepare": "git -C .. config core.hooksPath .githooks",

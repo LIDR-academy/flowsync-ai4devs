@@ -23,6 +23,7 @@ npm run dev                                     # node ace serve --hmr
 npm test                                        # node ace test
 npm run lint                                    # eslint
 npm run format                                  # prettier --write
+npm run format:check                            # lo que corre CI: sale 1 si algo no está formateado
 npm run typecheck                               # tsc --noEmit
 ```
 
@@ -54,6 +55,7 @@ npm run dev
 npm run build     # tsc -b && vite build (aquí se hace el typecheck)
 npm run lint      # oxlint (NO eslint)
 npm run format    # prettier --write .
+npm run format:check  # lo que corre CI
 npm run test:e2e  # Playwright; la primera vez: npx playwright install chromium
 ```
 

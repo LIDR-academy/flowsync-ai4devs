@@ -11,7 +11,7 @@
  *
  * Uso: node scripts/recuento-pruebas.mjs backend|frontend <salida del runner>
  */
-import { readFileSync } from 'node:fs'
+import { appendFileSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -26,8 +26,17 @@ const sinColor = (texto) => texto.replace(/\x1b\[[0-9;]*m/g, '')
 const salida = sinColor(readFileSync(fichero, 'utf8'))
 const claude = readFileSync(join(RAIZ, 'CLAUDE.md'), 'utf8')
 
+/**
+ * En CI, el resultado va también al resumen del job: un número que solo está
+ * en el log no lo lee nadie que mire el PR.
+ */
+function resumir(linea) {
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${linea}\n`)
+}
+
 function fallar(mensaje) {
   console.error(`recuento de pruebas (${lado}): ${mensaje}`)
+  resumir(`**Pruebas de ${lado}: en rojo.** ${mensaje}`)
   process.exit(1)
 }
 
@@ -63,3 +72,4 @@ if (citadas !== ejecutadas) {
 console.log(
   `recuento de pruebas (${lado}): CLAUDE.md dice ${citadas}, el runner ejecutó ${ejecutadas}`
 )
+resumir(`**Pruebas de ${lado}: ${ejecutadas} ejecutadas**, y CLAUDE.md dice las mismas.`)

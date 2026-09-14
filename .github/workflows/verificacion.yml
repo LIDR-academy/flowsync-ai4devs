@@ -27,6 +27,18 @@ jobs:
       - run: cp .env.example .env && node ace generate:key
       - run: npm run typecheck
       - run: npm run lint
+      # Hasta el 2026-09-13 el formato solo lo aplicaba un hook de Claude sobre
+      # el frontend, y nada lo comprobaba: ese día llegaron sin formatear un
+      # fichero de pruebas y dos README. Está en el catálogo de mutaciones.
+      - run: npm run format:check
+      # Falla con una vulnerabilidad alta o crítica en cualquier dependencia,
+      # también de desarrollo: CI las ejecuta todas. Se vio fallar ese mismo
+      # día, con dos altas transitivas antes de `npm audit fix`. No tiene
+      # mutación: reproducirla exige instalar a propósito una versión
+      # vulnerable. Consulta el registro de npm, así que un rojo aquí puede ser
+      # de red; se relanza antes de investigar.
+      - name: Sin vulnerabilidades altas en las dependencias
+        run: npm audit --audit-level=high
       # La suite escribe sobre su propio fichero de base de datos (ADR-0001),
       # así que no hace falta preparar nada más.
       #
@@ -55,6 +67,9 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      - run: npm run format:check
+      - name: Sin vulnerabilidades altas en las dependencias
+        run: npm audit --audit-level=high
       # El typecheck del frontend vive dentro del build.
       - run: npm run build
       # Vitest sobre `lib/api.ts`, que es el unico punto de contacto con el

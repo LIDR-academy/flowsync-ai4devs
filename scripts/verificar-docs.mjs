@@ -11,7 +11,7 @@
  * si encuentra una discrepancia, para que rompa la build en vez de avisar en un
  * log que nadie mira.
  */
-import { readFileSync, existsSync, readdirSync } from 'node:fs'
+import { appendFileSync, readFileSync, existsSync, readdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -894,6 +894,30 @@ comprobar('Toda tubería de un workflow declara pipefail', () => {
 
 for (const { nombre, ok, detalle } of comprobaciones) {
   console.log(`${ok ? 'OK  ' : 'FALLA'}  ${nombre}${detalle ? ` · ${detalle}` : ''}`)
+}
+
+// En CI, la tabla va también al resumen del job, con lo que falló arriba: un
+// «FALLA» que solo está en el log obliga a abrirlo para saber qué pasó.
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const celda = (texto) =>
+    String(texto ?? '')
+      .replace(/\|/g, '\\|')
+      .replace(/\r?\n/g, ' ')
+  const filas = [...comprobaciones].sort((a, b) => Number(a.ok) - Number(b.ok))
+  const titulo = problemas.length ? `${problemas.length} en rojo` : 'todo en verde'
+  appendFileSync(
+    process.env.GITHUB_STEP_SUMMARY,
+    [
+      `### Documentación contra código: ${titulo}`,
+      '',
+      '| | Comprobación | Detalle |',
+      '|---|---|---|',
+      ...filas.map(
+        (c) => `| ${c.ok ? 'OK' : '**FALLA**'} | ${celda(c.nombre)} | ${celda(c.detalle)} |`
+      ),
+      '',
+    ].join('\n')
+  )
 }
 
 if (problemas.length) {

@@ -83,6 +83,8 @@ gh run view <id> -R rene2bcore/flowsync-ai4devs --log-failed
 | Una prueba en rojo | Lo que dice | Reproducir en local con `node ace test --files=<fichero>` o `npx vitest run <fichero>`. Un bug no se cierra sin reproducirlo |
 | `recuento de pruebas (backend): ...` | Se añadió o quitó una prueba y `CLAUDE.md` no se actualizó | Actualizar total **y desglose** en `CLAUDE.md`. Es el único sitio con el número |
 | Lint o typecheck | Lo que dice | `npm run lint` y `npm run typecheck` (backend) o `npm run build` (frontend) en local |
+| `npm run format:check`: `[warn] <fichero>` | Un fichero no sigue el formato de Prettier | `npm run format` en ese paquete y commitear el resultado. En Windows, `format:check` ya ignora los CRLF del árbol de trabajo |
+| «Sin vulnerabilidades altas en las dependencias» | `npm audit` encontró una vulnerabilidad alta o crítica | Primero relanzar: consulta el registro de npm y puede fallar por red. Si se repite, `npm audit` en local para ver cuál, y `npm audit fix` **sin** `--force`; después, lint, tipos y pruebas. Si solo se arregla con un salto de versión mayor, se decide y se registra, no se fuerza |
 
 ### Las comprobaciones muerden (R-14)
 
