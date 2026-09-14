@@ -18,11 +18,11 @@
 | Navegador | Playwright, y el panel de vista previa de Claude Code | Verificar en pantalla lo que ninguna otra capa ve |
 | Contexto de código | `codebase-memory` (MCP) | Buscar símbolos y trazar llamadas antes de leer ficheros enteros |
 
-**Lo que no se usó, y por qué**: la acción oficial `anthropics/claude-code-action` (exige que el PR viva donde está instalada la GitHub App, y el nuestro vive en el repositorio del curso: H-24); Cursor u otros agentes (una sola herramienta, para que `CLAUDE.md` tenga un solo lector); varios modelos en paralelo para auditar (la Sesión 6 lo recomienda para listas largas; aquí las listas nunca pasaron de doce).
+**Lo que no se usó, y por qué**: la acción oficial `anthropics/claude-code-action` (exige que el PR viva donde está instalada la GitHub App, y el nuestro vive en el repositorio del curso: H-24); Cursor u otros agentes (una sola herramienta, para que las instrucciones tengan un solo lector, y desde el 2026-09-13 `AGENTS.md` es el canónico por si eso cambia); varios modelos en paralelo para auditar (la Sesión 6 lo recomienda para listas largas; aquí las listas nunca pasaron de doce).
 
 ## Reglas que gobiernan cada sesión
 
-Viven en [`CLAUDE.md`](CLAUDE.md) y se resumen aquí porque son lo que el modelo lee antes de actuar:
+Viven en [`AGENTS.md`](AGENTS.md), que `CLAUDE.md` importa, y se resumen aquí porque son lo que el modelo lee antes de actuar:
 
 - Rama por unidad de trabajo, nunca en `main` ni `sN/*` (hook `pre-commit`).
 - Commit convencional por petición (hook `commit-msg`), al índice por nombre, nunca `--no-verify`.
@@ -41,7 +41,7 @@ Viven en [`CLAUDE.md`](CLAUDE.md) y se resumen aquí porque son lo que el modelo
 | `/priority-ticket` | `.claude/skills/priority-ticket/` | Trae el ticket de Jira de más prioridad, entra en plan mode, mueve el estado al aprobar y al abrir el PR |
 | `/opsx:propose`, `apply`, `verify`, `archive`, `explore`, `update`, `sync` | `.claude/commands/opsx/` y `.claude/skills/openspec-*` | El ciclo OpenSpec. El gate humano está entre `propose` y `apply` |
 | Hook `PostToolUse` | `.claude/settings.json` | Prettier sobre cada fichero de `frontend/` que el agente edite. Desde hoy, `format:check` en CI lo hace comprobable |
-| Subagente `adversarial-reviewer` | `.claude/agents/adversarial-reviewer.md` | Refutar el cambio contra `openspec/specs/`, el contrato y `CLAUDE.md`. Read-only. Lo que cuenta como grave lo decide `REVIEW.md` |
+| Subagente `adversarial-reviewer` | `.claude/agents/adversarial-reviewer.md` | Refutar el cambio contra `openspec/specs/`, el contrato y `AGENTS.md`. Read-only. Lo que cuenta como grave lo decide `REVIEW.md` |
 | Revisor en CI | `.github/workflows/revision-adversarial.yml` | El mismo encargo, en cada push con PR abierto. Informe en el resumen del job |
 
 ## Sesión a sesión

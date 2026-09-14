@@ -384,7 +384,7 @@ const CATALOGO = [
     ],
     muerden: [
       [CONTRATO, 'paths./api/v1/account/perfil'],
-      [VERIFICADOR, 'La tabla de rutas de CLAUDE.md corresponde con el código'],
+      [VERIFICADOR, 'La tabla de rutas de AGENTS.md corresponde con el código'],
     ],
   },
   {
@@ -417,6 +417,20 @@ const CATALOGO = [
     fichero: '.githooks/pre-commit',
     cambios: [['  main | s[0-9]*/*)', '  s[0-9]*/*)']],
     muerden: [[HOOK, 'main · aceptado']],
+  },
+  {
+    id: 'agents-import',
+    que: 'CLAUDE.md deja de importar AGENTS.md',
+    fichero: 'CLAUDE.md',
+    cambios: [['@AGENTS.md', 'AGENTS.md']],
+    muerden: [[VERIFICADOR, 'ya no importa AGENTS.md']],
+  },
+  {
+    id: 'agents-tope',
+    que: 'AGENTS.md crece por encima de las 200 líneas',
+    fichero: 'AGENTS.md',
+    cambios: [['# AGENTS.md\n', '# AGENTS.md\n' + '\n'.repeat(200)]],
+    muerden: [[VERIFICADOR, 'el tope es 200']],
   },
   {
     id: 'R-08',

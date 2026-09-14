@@ -1,9 +1,9 @@
 /**
- * El número de pruebas que dice CLAUDE.md, contra el que da el runner.
+ * El número de pruebas que dice AGENTS.md, contra el que da el runner.
  *
  * El recuento estuvo copiado en seis documentos y cada prueba nueva obligaba a
  * tocarlos todos a mano; ninguna comprobación lo miraba. Ahora vive solo en
- * CLAUDE.md, y esto lo contrasta con la salida real de Japa o de Vitest.
+ * AGENTS.md, y esto lo contrasta con la salida real de Japa o de Vitest.
  *
  * No se cuenta leyendo los ficheros: un `test(` con el título en la línea
  * siguiente, o uno generado en un bucle, no casa con ninguna expresión
@@ -24,7 +24,7 @@ if (!['backend', 'frontend'].includes(lado) || !fichero) {
 
 const sinColor = (texto) => texto.replace(/\x1b\[[0-9;]*m/g, '')
 const salida = sinColor(readFileSync(fichero, 'utf8'))
-const claude = readFileSync(join(RAIZ, 'CLAUDE.md'), 'utf8')
+const claude = readFileSync(join(RAIZ, 'AGENTS.md'), 'utf8')
 
 /**
  * En CI, el resultado va también al resumen del job: un número que solo está
@@ -52,7 +52,7 @@ function cuadra(n, texto, que) {
   const sumandos = partes(texto)
   const suma = sumandos.reduce((a, b) => a + b, 0)
   if (suma !== n) {
-    fallar(`CLAUDE.md dice ${n} ${que} pero su desglose suma ${suma} (${sumandos.join(' + ')})`)
+    fallar(`AGENTS.md dice ${n} ${que} pero su desglose suma ${suma} (${sumandos.join(' + ')})`)
   }
 }
 
@@ -61,25 +61,25 @@ if (lado === 'backend') {
   // Dos niveles: el total se parte en suites, y cada suite en su desglose.
   // Los tres cuadran, o una prueba añadida sin tocar el desglose pasaría.
   const total = claude.match(/Hoy hay \*\*(\d+) pruebas\*\*: ([^.]*)\./)
-  if (!total) fallar('CLAUDE.md ya no dice «Hoy hay **N pruebas**: <suites>.»')
+  if (!total) fallar('AGENTS.md ya no dice «Hoy hay **N pruebas**: <suites>.»')
   citadas = Number(total[1])
   cuadra(citadas, total[2], 'pruebas')
 
   for (const suite of ['functional', 'unit']) {
     const frase = claude.match(new RegExp(String.raw`Las (\d+) ${suite}[^:]*: ([^.]*)\.`))
-    if (!frase) fallar(`CLAUDE.md ya no dice «Las N ${suite}: <desglose>.»`)
+    if (!frase) fallar(`AGENTS.md ya no dice «Las N ${suite}: <desglose>.»`)
     cuadra(Number(frase[1]), frase[2], suite)
   }
 } else {
   const frase = claude.match(/\*\*Vitest\*\* \(`npm test`\): (\d+) pruebas/)
-  if (!frase) fallar('CLAUDE.md ya no dice «**Vitest** (`npm test`): N pruebas»')
+  if (!frase) fallar('AGENTS.md ya no dice «**Vitest** (`npm test`): N pruebas»')
   citadas = Number(frase[1])
 }
 
 if (citadas !== ejecutadas) {
-  fallar(`CLAUDE.md dice ${citadas} y el runner ejecutó ${ejecutadas}. Actualiza CLAUDE.md.`)
+  fallar(`AGENTS.md dice ${citadas} y el runner ejecutó ${ejecutadas}. Actualiza AGENTS.md.`)
 }
 console.log(
-  `recuento de pruebas (${lado}): CLAUDE.md dice ${citadas}, el runner ejecutó ${ejecutadas}`
+  `recuento de pruebas (${lado}): AGENTS.md dice ${citadas}, el runner ejecutó ${ejecutadas}`
 )
-resumir(`**Pruebas de ${lado}: ${ejecutadas} ejecutadas**, y CLAUDE.md dice las mismas.`)
+resumir(`**Pruebas de ${lado}: ${ejecutadas} ejecutadas**, y AGENTS.md dice las mismas.`)

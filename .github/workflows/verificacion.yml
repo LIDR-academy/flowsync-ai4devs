@@ -42,10 +42,10 @@ jobs:
       # La suite escribe sobre su propio fichero de base de datos (ADR-0001),
       # así que no hace falta preparar nada más.
       #
-      # La salida se guarda para contrastar el número de pruebas con CLAUDE.md,
+      # La salida se guarda para contrastar el número de pruebas con AGENTS.md,
       # que es el único sitio que lo cita. `pipefail` es obligatorio: sin él, el
       # `tee` taparía el código de salida de la suite (R-06).
-      - name: Pruebas, y su número contra CLAUDE.md
+      - name: Pruebas, y su número contra AGENTS.md
         run: |
           set -o pipefail
           npm test 2>&1 | tee ../salida-pruebas.txt
@@ -75,7 +75,7 @@ jobs:
       # Vitest sobre `lib/api.ts`, que es el unico punto de contacto con el
       # backend y donde vive la logica del frontend. El runner venia de
       # `s3/start` y no cruzo de rama; se recupero el 2026-09-02.
-      - name: Pruebas, y su número contra CLAUDE.md
+      - name: Pruebas, y su número contra AGENTS.md
         run: |
           set -o pipefail
           npm test 2>&1 | tee ../salida-pruebas.txt

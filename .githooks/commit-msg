@@ -17,7 +17,7 @@ case "$asunto" in
 esac
 
 if ! printf '%s\n' "$asunto" | grep -Eq '^(feat|fix|docs|chore|refactor|test|ci|build|perf|style|revert)(\([^)]+\))?!?: [^ ]'; then
-  echo "commit-msg: el asunto no sigue 'tipo(ámbito): qué' (CLAUDE.md)." >&2
+  echo "commit-msg: el asunto no sigue 'tipo(ámbito): qué' (AGENTS.md)." >&2
   echo "  tipos: feat fix docs chore refactor test ci build perf style revert" >&2
   echo "  recibido: $asunto" >&2
   exit 1

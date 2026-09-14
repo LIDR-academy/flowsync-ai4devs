@@ -95,7 +95,7 @@ node scripts/verificar-docs.mjs   # la documentación corresponde con el código
 node scripts/mutaciones.mjs       # cada comprobación se pone en rojo con el defecto que dice cubrir
 ```
 
-La lista completa, con filtros de pruebas y generadores de `ace`, en [`CLAUDE.md`](CLAUDE.md).
+La lista completa, con filtros de pruebas y generadores de `ace`, en [`AGENTS.md`](AGENTS.md).
 
 ## Flujo de contribución
 
@@ -104,10 +104,10 @@ La lista completa, con filtros de pruebas y generadores de `ace`, en [`CLAUDE.md
 3. **Un bug se reproduce antes de arreglarlo, y deja una prueba.** CI rechaza un commit `fix:` que no toque una prueba, salvo que el mensaje lleve `Sin-prueba: <motivo>`.
 4. **Si tocas rutas, controladores, validadores o transformers**, en el mismo commit: `npm run openapi:generate`, el diff de `backend/.adonisjs/` y el README de la capability.
 5. **Al índice por nombre** (`git add <fichero>`), commits convencionales (`tipo(ámbito): qué`; el hook `commit-msg` rechaza lo demás) y **nunca `--no-verify`**.
-6. **Antes de abrir el PR**, lo mismo que corre en CI: lint, formato, tipos, pruebas de las dos capas, `npm audit` y `openapi:check`. Si añades una prueba, actualiza su número en `CLAUDE.md`: CI lo contrasta.
+6. **Antes de abrir el PR**, lo mismo que corre en CI: lint, formato, tipos, pruebas de las dos capas, `npm audit` y `openapi:check`. Si añades una prueba, actualiza su número en `AGENTS.md`: CI lo contrasta.
 7. **Un solo PR al terminar la unidad**, con la plantilla de `.github/PULL_REQUEST_TEMPLATE.md` rellena, incluida la sección "Lo que este PR NO arregla". El revisor adversarial corre solo en cada push de una rama con PR abierto; su informe queda en el resumen del job.
 
-Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbooks.md). Las reglas completas, con el modo de fallo de cada una: [`CLAUDE.md`](CLAUDE.md).
+Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbooks.md). Las reglas completas, con el modo de fallo de cada una: [`AGENTS.md`](AGENTS.md).
 
 ## Documentación
 
@@ -121,5 +121,5 @@ Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbook
 | Operación, CI e incidentes | [`docs/runbooks.md`](docs/runbooks.md) |
 | Hallazgos y su estado | [`docs/hallazgos.md`](docs/hallazgos.md) |
 | Revisor automático | [`REVIEW.md`](REVIEW.md), [`docs/ci-revisor.md`](docs/ci-revisor.md) |
-| Instrucciones para agentes | [`CLAUDE.md`](CLAUDE.md) (y [`AGENTS.md`](AGENTS.md), que apunta a él) |
+| Instrucciones para agentes | [`AGENTS.md`](AGENTS.md), el canónico; [`CLAUDE.md`](CLAUDE.md) lo importa y añade lo propio de Claude Code |
 | Cómo se usó la IA, sesión a sesión | [`prompts.md`](prompts.md) |

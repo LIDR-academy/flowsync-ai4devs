@@ -130,7 +130,7 @@ node ace test --tests="el responsable llega con su nombre y sus iniciales"
 Los tests de esta capability están en
 [`backend/tests/functional/tasks/`](../../../backend/tests/functional/tasks/), uno por área:
 creación, lista compartida, responsable, filtro, vencimiento, tarea inexistente, orden de validación
-y escritura contra lectura. Cuántos son lo dice `CLAUDE.md`, que es el único sitio que da el número;
+y escritura contra lectura. Cuántos son lo dice `AGENTS.md`, que es el único sitio que da el número;
 qué escenario cubre cada uno y cuáles siguen sin prueba, [`docs/trazabilidad.md`](../../trazabilidad.md).
 Los requisitos de interfaz tienen muy poca cobertura, así que el verde de la suite **no** es señal de
 que la pantalla cumpla su spec.

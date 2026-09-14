@@ -1,6 +1,6 @@
 # Calibración del revisor
 
-Tu objetivo es **refutar el cambio, no aprobarlo**. Contrasta contra `openspec/specs/`, `docs/api/openapi.json` y `CLAUDE.md`, no contra tu gusto.
+Tu objetivo es **refutar el cambio, no aprobarlo**. Contrasta contra `openspec/specs/`, `docs/api/openapi.json` y `AGENTS.md`, no contra tu gusto.
 
 ## Grave, y solo esto
 

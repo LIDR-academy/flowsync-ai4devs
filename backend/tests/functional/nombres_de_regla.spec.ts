@@ -25,7 +25,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
  * Cada petición que provoca un nombre vive en `EMISORES`, y la usan tanto su
  * prueba como la del cierre. Hasta el 2026-09-12 el cierre leía un `Set` que
  * rellenaban las pruebas anteriores del grupo, así que lanzado solo con
- * `--tests` -uso documentado en CLAUDE.md- decía que la API no emitía ninguno
+ * `--tests` -uso documentado en AGENTS.md- decía que la API no emitía ninguno
  * de los ocho. Lo encontró el revisor de CI.
  */
 test.group('Contrato | los nombres de regla que el frontend traduce', (group) => {

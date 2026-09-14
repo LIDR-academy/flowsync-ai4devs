@@ -93,6 +93,6 @@ npm run openapi:check
 - La suite escribe en `tmp/db-test.sqlite3`, **nunca** en la de desarrollo: `bin/test.ts` fuerza `NODE_ENV=test` y `config/database.ts` elige el fichero por entorno ([ADR-0003](../docs/adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md)).
 - Cada fichero de prueba aísla sus casos con `testUtils.db().withGlobalTransaction()` en `group.each.setup`. Mantenlo en uno nuevo.
 - No se lanza a la vez que `npm run test:e2e` del frontend: los dos usan la base de pruebas y el puerto 3334.
-- Cuántas pruebas hay, y su desglose, lo dice [`CLAUDE.md`](../CLAUDE.md) y solo ahí; CI lo contrasta con lo que ejecuta Japa. Qué escenario cubre cada una, en [`docs/trazabilidad.md`](../docs/trazabilidad.md).
+- Cuántas pruebas hay, y su desglose, lo dice [`AGENTS.md`](../AGENTS.md) y solo ahí; CI lo contrasta con lo que ejecuta Japa. Qué escenario cubre cada una, en [`docs/trazabilidad.md`](../docs/trazabilidad.md).
 
 Para leer un error o mandar un payload inválido desde una prueba, están los helpers de `tests/helpers/api.ts`: el registro tipado de Tuyau solo tipa la respuesta de éxito.

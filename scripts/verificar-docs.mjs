@@ -218,7 +218,7 @@ comprobar('El contrato versionado no repite ningun parametro', () => {
   return `${revisadas} operaciones con parametros, ninguno repetido`
 })
 
-comprobar('AGENTS.md se puede leer en cualquier sistema', () => {
+comprobar('AGENTS.md es el canónico, CLAUDE.md lo importa, y los dos caben en 200 líneas', () => {
   // H-08. Era un symlink a `CLAUDE.md`, modo `120000` en el indice. Un symlink
   // solo se materializa donde el sistema lo permite: en Windows, con
   // `core.symlinks=false`, git escribe un fichero de texto de nueve bytes cuyo
@@ -242,12 +242,24 @@ comprobar('AGENTS.md se puede leer en cualquier sistema', () => {
     )
   }
 
-  const contenido = leer('AGENTS.md')
-  if (!contenido.includes('CLAUDE.md')) {
-    throw new Error('AGENTS.md ya no apunta a CLAUDE.md')
+  // Desde el 2026-09-13 la relación es la inversa: AGENTS.md es el canónico,
+  // en el formato abierto que leen todas las herramientas, y CLAUDE.md lo
+  // importa y añade solo lo propio de Claude Code. Y los dos caben en 200
+  // líneas cada uno: la guía de Claude Code dice que un fichero de
+  // instrucciones largo hace que el modelo ignore la mitad, y el nuestro
+  // tenía 221 cuando se partió.
+  if (!leer('CLAUDE.md').includes('@AGENTS.md')) {
+    throw new Error('CLAUDE.md ya no importa AGENTS.md con @AGENTS.md')
+  }
+  const TOPE = 200
+  for (const fichero of ['AGENTS.md', 'CLAUDE.md']) {
+    const lineas = leer(fichero).split(/\r?\n/).length
+    if (lineas > TOPE) {
+      throw new Error(`${fichero} tiene ${lineas} líneas y el tope es ${TOPE}: lo que no cabe va a una skill`)
+    }
   }
 
-  return `modo ${modo}, apunta a CLAUDE.md`
+  return `modo ${modo}, CLAUDE.md importa AGENTS.md, los dos bajo 200 líneas`
 })
 
 comprobar('La regla de vencimiento comprueba sus tres condiciones', () => {
@@ -276,22 +288,22 @@ comprobar('La regla de vencimiento comprueba sus tres condiciones', () => {
   return 'tres condiciones y comparacion estricta'
 })
 
-comprobar('La tabla de rutas de CLAUDE.md corresponde con el código', () => {
-  // CLAUDE.md promete literalmente que este script comprueba esa tabla, y no la
+comprobar('La tabla de rutas de AGENTS.md corresponde con el código', () => {
+  // AGENTS.md promete literalmente que este script comprueba esa tabla, y no la
   // comprobaba. Es el fichero que lee primero quien llega al repositorio.
   const documentadas = new Set(
-    [...leer('CLAUDE.md').matchAll(/^\|\s*(GET|POST|PATCH|PUT|DELETE)\s*\|\s*`([^`]+)`/gm)].map(
+    [...leer('AGENTS.md').matchAll(/^\|\s*(GET|POST|PATCH|PUT|DELETE)\s*\|\s*`([^`]+)`/gm)].map(
       (m) => `${m[1]} ${m[2]}`
     )
   )
-  if (!documentadas.size) throw new Error('no se encuentra la tabla de rutas en CLAUDE.md')
+  if (!documentadas.size) throw new Error('no se encuentra la tabla de rutas en AGENTS.md')
 
   const esperadas = new Set(rutasDelCodigo())
 
   const faltan = [...esperadas].filter((r) => !documentadas.has(r))
   const sobran = [...documentadas].filter((r) => !esperadas.has(r))
-  if (faltan.length) throw new Error(`sin documentar en CLAUDE.md: ${faltan.join(', ')}`)
-  if (sobran.length) throw new Error(`en CLAUDE.md pero inexistentes: ${sobran.join(', ')}`)
+  if (faltan.length) throw new Error(`sin documentar en AGENTS.md: ${faltan.join(', ')}`)
+  if (sobran.length) throw new Error(`en AGENTS.md pero inexistentes: ${sobran.join(', ')}`)
 
   return `${esperadas.size} rutas`
 })

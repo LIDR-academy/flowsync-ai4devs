@@ -1,6 +1,6 @@
 # Estrategia de pruebas
 
-> Qué capa cubre qué, cuándo merece una prueba su coste, y qué **no** se mide. Una página. El número de pruebas no está aquí a propósito: lo da `CLAUDE.md` y lo contrasta CI.
+> Qué capa cubre qué, cuándo merece una prueba su coste, y qué **no** se mide. Una página. El número de pruebas no está aquí a propósito: lo da `AGENTS.md` y lo contrasta CI.
 >
 > Escrita el 2026-09-13. Qué escenario cubre cada prueba, en [`trazabilidad.md`](trazabilidad.md).
 
@@ -35,4 +35,4 @@
 - La suite **nunca** escribe en la base de desarrollo: `bin/test.ts` fuerza `NODE_ENV=test` y `config/database.ts` elige el fichero ([ADR-0003](adr/0003-aislamiento-de-la-base-de-datos-en-pruebas.md)).
 - Cada fichero funcional aísla sus casos con `withGlobalTransaction()`.
 - Japa y Playwright no corren a la vez: comparten puerto 3334 y base, a propósito.
-- El número de pruebas vive en `CLAUDE.md` y en ningún otro sitio; `scripts/recuento-pruebas.mjs` lo contrasta con lo que ejecuta cada runner.
+- El número de pruebas vive en `AGENTS.md` y en ningún otro sitio; `scripts/recuento-pruebas.mjs` lo contrasta con lo que ejecuta cada runner.

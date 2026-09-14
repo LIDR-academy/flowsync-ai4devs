@@ -52,6 +52,6 @@ npm run test:e2e            # Playwright
 
 - **Vitest** cubre `lib/api.ts` -la traducción de errores, el desenvuelto de `{ data }`, el aviso de sesión caducada- y `lib/lista.ts`. Ninguna prueba de Vitest monta componentes.
 - **Playwright** levanta su propio backend con `NODE_ENV=test` en el puerto 3334 y su propio frontend en el 5174, prepara el estado por la API, comprueba en pantalla y al terminar deshace las tablas de la base de pruebas. La primera vez hace falta el navegador: `npx playwright install chromium`. **No se lanza a la vez que `npm test` del backend**: chocan en el puerto y en la base.
-- Playwright cubre a propósito pocos casos: los que ninguna otra prueba veía. Cuáles, y qué requisitos de pantalla siguen sin prueba, en [`docs/trazabilidad.md`](../docs/trazabilidad.md). Cuántas pruebas de Vitest hay lo dice [`CLAUDE.md`](../CLAUDE.md), y CI lo contrasta.
+- Playwright cubre a propósito pocos casos: los que ninguna otra prueba veía. Cuáles, y qué requisitos de pantalla siguen sin prueba, en [`docs/trazabilidad.md`](../docs/trazabilidad.md). Cuántas pruebas de Vitest hay lo dice [`AGENTS.md`](../AGENTS.md), y CI lo contrasta.
 
 Si una prueba de navegador falla en CI, las trazas quedan como artefacto `trazas-playwright` de la ejecución durante siete días.

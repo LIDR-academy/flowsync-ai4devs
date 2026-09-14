@@ -112,7 +112,7 @@ test.group('Errores | ninguna respuesta revela internals', (group) => {
    * que promete más de lo que el cuerpo hace es la forma de prueba que peor
    * envejece, porque quien la lee da por cubierto lo que no está.
    *
-   * La lista se contrasta contra la tabla de rutas de `CLAUDE.md`: si mañana se
+   * La lista se contrasta contra la tabla de rutas de `AGENTS.md`: si mañana se
    * añade una ruta protegida y no se añade aquí, el hueco vuelve.
    */
   const RUTAS_PROTEGIDAS = [
