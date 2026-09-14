@@ -262,6 +262,24 @@ const CATALOGO = [
     ],
   },
   {
+    // Nadie lo plantó: es la vertical del PRD, y ninguna comprobación la
+    // recorría entera hasta el 2026-09-13. La funcional ve que otra cuenta no
+    // recibe la tarea; el flujo de navegador, que otra persona no la ve.
+    id: 'flujo-principal',
+    que: 'la lista deja de ser compartida y cada cuenta ve solo la suya',
+    fichero: 'backend/app/controllers/tasks_controller.ts',
+    cambios: [
+      [
+        "    const query = Task.query().preload('assignee')\n",
+        "    const query = Task.query().preload('assignee').where('assigneeId', 0)\n",
+      ],
+    ],
+    muerden: [
+      [pruebas('lista_compartida'), 'cada una ve la tarea de la otra'],
+      [PLAYWRIGHT, 'registrarse, apuntar una tarea, ponerla en curso y que otra persona la vea'],
+    ],
+  },
+  {
     id: 'PA-3-colocar',
     que: 'la tarea recién creada vuelve a pintarse delante de todo',
     fichero: 'frontend/src/lib/lista.ts',

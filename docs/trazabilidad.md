@@ -138,7 +138,7 @@ Los tres escenarios «Tarea inexistente», que viven repartidos entre tres de es
 
 **Los 15 requisitos de pantalla**: la pantalla de la lista, el espacio sin tareas, crear desde la lista, cambiar el estado desde la propia fila, la pantalla de una tarea, poner y quitar la fecha desde ahí, la señal de tarea vencida, no tener fecha no se penaliza, el control para acotar la lista, el filtro en la dirección de la lista, una lista sin filas que no significa siempre lo mismo, lo que sale de la vista no se pierde, una sola vista sin señales de presencia, el aviso al intentar crear sin un título válido, y el aviso ante una fecha que no vale.
 
-Es un hueco declarado, no una omisión. **Desde el 2026-09-13 hay runner de navegador**, Playwright en `frontend/e2e/`, y cubre a propósito muy poco: los casos que ninguna otra prueba veía.
+Es un hueco declarado, no una omisión. **Desde el 2026-09-13 hay runner de navegador**, Playwright en `frontend/e2e/`, y cubre a propósito muy poco: los casos que ninguna otra prueba veía, y **el flujo principal entero** (`flujo.e2e.ts`: registro, crear, poner en curso, y que otra cuenta lo vea), que es lo que se demuestra.
 
 > **Dos de estos requisitos tienen prueba desde ese día, en parte.** «Crear una tarea desde la lista»: dónde entra la recién creada lo fija `lista.test.ts` en Vitest y `lista.e2e.ts` en pantalla. «Cambiar el estado desde la propia fila»: que la fila no salte hasta la siguiente carga lo fija `lista.e2e.ts`. El resto de esos dos requisitos, y los otros trece, siguen sin prueba.
 

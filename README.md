@@ -10,6 +10,17 @@ El repositorio es también el registro de **cómo** se construyó: specs vivas c
 - Cómo se llegó hasta aquí, módulo a módulo, con lo que cada sesión encontró: [`docs/recorrido-por-modulo.md`](docs/recorrido-por-modulo.md).
 - Cómo rehacerlo desde cero, paso a paso y con los comandos: [`docs/guia-de-replicacion.md`](docs/guia-de-replicacion.md).
 
+## El flujo que se demuestra
+
+La vertical del PRD, de punta a punta: **entro, veo en qué anda el equipo, cambio el estado de lo mío en un gesto, y otra persona lo ve sin preguntarme.**
+
+1. Una persona se registra en `/register` y entra directa a la lista.
+2. Apunta una tarea escribiendo solo el título. Nace a su nombre y en Pendiente.
+3. La pone en curso desde la propia fila, sin abrirla ni confirmar.
+4. Otra persona del equipo, en otro navegador, la ve en curso y a nombre de quien la apuntó.
+
+Lo recorre entero `frontend/e2e/flujo.e2e.ts` en cada push, desde la pantalla de registro y sin atajar por la API; si esa prueba falla, el producto no se puede demostrar. Está en el catálogo de mutaciones: con la lista convertida en privada por cuenta, sale en rojo en el paso 4. Con datos de ejemplo, en [`docs/prd/casos-de-uso.md`](docs/prd/casos-de-uso.md), CU-1 a CU-5.
+
 ## Arquitectura mínima
 
 ```

@@ -61,7 +61,7 @@ npm run test:e2e  # Playwright; la primera vez: npx playwright install chromium
 
 El frontend corre **Vitest** (`npm test`): 33 pruebas, 28 sobre `src/lib/api.test.ts`, que es el único punto de contacto con el backend, y 5 sobre `src/lib/lista.test.ts`, dónde entra en pantalla una tarea recién creada. El número lo contrasta CI igual que el del backend.
 
-Las **pruebas de navegador** son Playwright, en `frontend/e2e/*.e2e.ts`, desde el 2026-09-13. Levantan el backend con `NODE_ENV=test` -escribe en la base de pruebas, nunca en la de desarrollo- en el puerto 3334 y el frontend en el 5174, y al terminar deshacen las tablas. Por eso **no se lanzan a la vez que `npm test` del backend**: chocan en el puerto y fallan, que es lo que se busca. Preparan el estado por la API y comprueban en pantalla. Cubren pocos casos a propósito -los que ninguna otra prueba veía-, así que la mayoría de los requisitos de pantalla siguen sin prueba; cuáles, en `docs/trazabilidad.md`.
+Las **pruebas de navegador** son Playwright, en `frontend/e2e/*.e2e.ts`, desde el 2026-09-13. Levantan el backend con `NODE_ENV=test` -escribe en la base de pruebas, nunca en la de desarrollo- en el puerto 3334 y el frontend en el 5174, y al terminar deshacen las tablas. Por eso **no se lanzan a la vez que `npm test` del backend**: chocan en el puerto y fallan, que es lo que se busca. Preparan el estado por la API y comprueban en pantalla, salvo `flujo.e2e.ts`, que recorre el flujo principal entero desde la pantalla de registro. Cubren pocos casos a propósito -los que ninguna otra prueba veía-, así que la mayoría de los requisitos de pantalla siguen sin prueba; cuáles, en `docs/trazabilidad.md`.
 
 ## Arquitectura del backend
 
