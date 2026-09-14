@@ -112,6 +112,7 @@ const CATALOGO = [
     cambios: [["    if (this.status === 'done') return false\n", '']],
     muerden: [
       [pruebas('vencimiento'), 'las tres condiciones tienen que darse a la vez'],
+      [pruebas('regla_de_vencida'), 'una tarea hecha nunca está vencida'],
       [VERIFICADOR, 'La regla de vencimiento comprueba sus tres condiciones'],
     ],
   },
@@ -120,7 +121,10 @@ const CATALOGO = [
     que: 'vencer hoy pasa a contar como vencida',
     fichero: 'backend/app/models/task.ts',
     cambios: [['return this.dueDate < referenceDay', 'return this.dueDate <= referenceDay']],
-    muerden: [[pruebas('vencimiento'), 'vencer hoy todavía no es estar vencida']],
+    muerden: [
+      [pruebas('vencimiento'), 'vencer hoy todavía no es estar vencida'],
+      [pruebas('regla_de_vencida'), 'vencer hoy todavía no es estar vencida'],
+    ],
   },
   {
     id: 'H-16',

@@ -46,19 +46,29 @@ const resumen = salida.match(/Tests\s+[^\n(]*\((\d+)\)/)
 if (!resumen) fallar('la salida del runner no trae la línea de resumen «Tests ... (N)»')
 const ejecutadas = Number(resumen[1])
 
+// Los números de un desglose, sin los identificadores de hallazgo (H-05).
+const partes = (texto) => (texto.replace(/H-\d+/g, '').match(/\b\d+\b/g) ?? []).map(Number)
+function cuadra(n, texto, que) {
+  const sumandos = partes(texto)
+  const suma = sumandos.reduce((a, b) => a + b, 0)
+  if (suma !== n) {
+    fallar(`CLAUDE.md dice ${n} ${que} pero su desglose suma ${suma} (${sumandos.join(' + ')})`)
+  }
+}
+
 let citadas
 if (lado === 'backend') {
-  const frase = claude.match(/Hoy hay \*\*(\d+) pruebas functional\*\*: ([^\n]*?)\. \*\*/)
-  if (!frase) fallar('CLAUDE.md ya no dice «Hoy hay **N pruebas functional**: <desglose>.»')
-  citadas = Number(frase[1])
+  // Dos niveles: el total se parte en suites, y cada suite en su desglose.
+  // Los tres cuadran, o una prueba añadida sin tocar el desglose pasaría.
+  const total = claude.match(/Hoy hay \*\*(\d+) pruebas\*\*: ([^.]*)\./)
+  if (!total) fallar('CLAUDE.md ya no dice «Hoy hay **N pruebas**: <suites>.»')
+  citadas = Number(total[1])
+  cuadra(citadas, total[2], 'pruebas')
 
-  const desglose = frase[2]
-    .replace(/H-\d+/g, '')
-    .match(/\b\d+\b/g)
-    .map(Number)
-  const suma = desglose.reduce((a, b) => a + b, 0)
-  if (suma !== citadas) {
-    fallar(`CLAUDE.md dice ${citadas} pero su desglose suma ${suma} (${desglose.join(' + ')})`)
+  for (const suite of ['functional', 'unit']) {
+    const frase = claude.match(new RegExp(String.raw`Las (\d+) ${suite}[^:]*: ([^.]*)\.`))
+    if (!frase) fallar(`CLAUDE.md ya no dice «Las N ${suite}: <desglose>.»`)
+    cuadra(Number(frase[1]), frase[2], suite)
   }
 } else {
   const frase = claude.match(/\*\*Vitest\*\* \(`npm test`\): (\d+) pruebas/)

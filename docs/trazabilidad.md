@@ -10,8 +10,8 @@
 
 | Capability | Requisitos | Escenarios | Historias | Criterios | Pruebas | Cobertura de criterios |
 |---|---:|---:|---:|---:|---:|---:|
-| `auth` | 19 | 46 | — | — | 28 | parcial, ver §2 |
-| `tasks` | 33 | 131 | 12 | 118 | 44 | 18 de 18 requisitos de sistema, ver §3 |
+| `auth` | 19 | 46 | — | — | 26 functional + 3 unit | parcial, ver §2 |
+| `tasks` | 33 | 131 | 12 | 118 | 44 functional + 4 unit | 18 de 18 requisitos de sistema, ver §3 |
 | transversal | — | — | — | — | 15 | 6 de forma de los errores, 2 de aislamiento de la base, 6 de nombres de regla (H-05) y 1 del documento OpenAPI servido (H-35) |
 
 **Al empezar este trabajo la fila de `tasks` decía 0.** Las 20 pruebas que existían eran todas de `auth`, el andamiaje que venía con el repo. Los tres módulos anteriores se dedicaron a especificar la gestión de tareas, y de los 124 escenarios escritos no se verificaba ninguno.
@@ -65,7 +65,7 @@ El efecto sobre esta matriz es concreto: inflan el recuento de historias de 9 a 
 
 ---
 
-## 2 · `auth` · 19 requisitos, 46 escenarios, 28 pruebas
+## 2 · `auth` · 19 requisitos, 46 escenarios, 26 pruebas por la API y 3 unitarias
 
 Fue la única capability con verificación automática hasta el 2026-08-26, cuando llegaron las pruebas de `tasks`.
 
@@ -85,7 +85,7 @@ Fue la única capability con verificación automática hasta el 2026-08-26, cuan
 | Forma de las respuestas de la API | `session.spec.ts` · toda respuesta de éxito de auth va envuelta en data y solo en data | `providers/api_provider.ts` |
 | Sesiones simultáneas independientes | `session.spec.ts` · cerrar una sesión no cierra las demás | `access_tokens_controller.ts` |
 | Rutas públicas | `session.spec.ts` · el registro y el login siguen siendo públicos | `start/routes.ts` |
-| Iniciales derivadas del nombre | `initials.spec.ts` | `models/user.ts` |
+| Iniciales derivadas del nombre | `tests/unit/iniciales.spec.ts` · las tres reglas, sin base; `initials.spec.ts` · que lleguen por la API | `models/user.ts` |
 
 ### Lo que en `auth` sigue sin prueba
 
@@ -121,7 +121,7 @@ La spec se parte sola por sujeto: **18 requisitos empiezan por «El sistema SHAL
 | Las tareas exigen sesión | `errores.spec.ts` · las **siete** rutas protegidas sin credencial, más `creacion.spec.ts` | `.use(middleware.auth())` en `start/routes.ts` |
 | Fecha de vencimiento opcional | `vencimiento.spec.ts` y `creacion.spec.ts` · nace sin fecha, y sin fecha no vence | migración `add_due_date_to_tasks_table.ts` |
 | Fijar, cambiar y retirar la fecha de vencimiento | `vencimiento.spec.ts` · aplazar, retirar, una fecha ya pasada que se acepta y vence en la misma respuesta, y una fecha imposible que se rechaza conservando la anterior; `lista_compartida.spec.ts` · sobre una tarea ajena | `task_due_dates_controller.ts`, `setTaskDueDateValidator` |
-| Cuándo una tarea está vencida | `vencimiento.spec.ts` · las tres condiciones y el borde estricto | `Task.isOverdueOn` en `models/task.ts` |
+| Cuándo una tarea está vencida | `tests/unit/regla_de_vencida.spec.ts` · las tres condiciones y el borde, en milisegundos; `vencimiento.spec.ts` · lo mismo por la API | `Task.isOverdueOn` en `models/task.ts` |
 | El día de referencia lo pone quien mira | `vencimiento.spec.ts` · obligatorio, y validado contra el calendario | `taskReferenceDayValidator` |
 | Consulta de una tarea suelta | `vencimiento.spec.ts`, `assignee.spec.ts`, `inexistente.spec.ts` | `TasksController.show`, `task_detail_transformer.ts` |
 | La lista no lleva el vencimiento | `vencimiento.spec.ts` · ni `dueDate` ni `isOverdue` en la lista | `task_transformer.ts`, separado de `task_detail_transformer.ts` |

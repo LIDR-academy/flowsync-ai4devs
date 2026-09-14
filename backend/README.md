@@ -27,6 +27,7 @@ Lo que **no** hace: servir el frontend, enviar correo, ni hablar con ningún sis
 | `database/migrations/`      | La única forma de cambiar el modelo de datos                                                             |
 | `database/schema.ts`        | **Autogenerado** desde las migraciones. No se edita                                                      |
 | `.adonisjs/`                | Código generado, **versionado** para que un clon limpio compile                                          |
+| `tests/unit/`               | Reglas puras de los modelos, sin base ni HTTP: vencida e iniciales                                       |
 | `tests/functional/`         | Pruebas Japa contra la API real, por capability                                                          |
 
 ## Cómo se usa
@@ -81,7 +82,8 @@ Se commitea en el mismo cambio, junto con el diff de `.adonisjs/` y el README de
 ## Cómo se prueba
 
 ```bash
-npm test                               # node ace test: toda la suite functional
+npm test                               # node ace test: unit y functional
+node ace test unit                     # solo las unitarias, en milisegundos
 node ace test --files=vencimiento      # un fichero
 node ace test --tests="el título es lo único que hace falta"   # un caso por título
 npm run lint && npm run typecheck

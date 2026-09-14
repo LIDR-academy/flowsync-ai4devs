@@ -104,7 +104,7 @@ Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbook
 |---|---|
 | Producto: PRD, casos de uso y backlog | [`docs/prd/flowsync-mvp.md`](docs/prd/flowsync-mvp.md), [`docs/prd/casos-de-uso.md`](docs/prd/casos-de-uso.md), [`docs/backlog/README.md`](docs/backlog/README.md) |
 | Specs vivas y changes archivados | [`openspec/specs/`](openspec/specs/), [`openspec/changes/archive/`](openspec/changes/archive/) |
-| Trazabilidad ticket, criterio, prueba y código | [`docs/trazabilidad.md`](docs/trazabilidad.md) |
+| Trazabilidad ticket, criterio, prueba y código; estrategia de pruebas | [`docs/trazabilidad.md`](docs/trazabilidad.md), [`docs/estrategia-de-pruebas.md`](docs/estrategia-de-pruebas.md) |
 | Arquitectura y decisiones | [`docs/architecture.md`](docs/architecture.md), [`docs/adr/`](docs/adr/) |
 | Contrato de la API | [`docs/api/openapi.json`](docs/api/openapi.json), servido también en `/api` |
 | Operación, CI e incidentes | [`docs/runbooks.md`](docs/runbooks.md) |
