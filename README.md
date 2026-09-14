@@ -122,3 +122,4 @@ Qué comprueba CI y cómo se lee cuando falla: [`docs/runbooks.md`](docs/runbook
 | Hallazgos y su estado | [`docs/hallazgos.md`](docs/hallazgos.md) |
 | Revisor automático | [`REVIEW.md`](REVIEW.md), [`docs/ci-revisor.md`](docs/ci-revisor.md) |
 | Instrucciones para agentes | [`CLAUDE.md`](CLAUDE.md) (y [`AGENTS.md`](AGENTS.md), que apunta a él) |
+| Cómo se usó la IA, sesión a sesión | [`prompts.md`](prompts.md) |
