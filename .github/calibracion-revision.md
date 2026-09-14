@@ -46,6 +46,7 @@ Sin hallazgos graves y sin nada menor que llegue al umbral, el informe correcto 
 
 **[Categoría]** · fichero:línea
 Qué falla, y el caso concreto que lo provoca: entrada o estado -> resultado.
+Daño · Radio (N sitios, listados) · Revert limpio · Precedencia. En blanco lo que no se confirme leyendo.
 
 ### Menores (máximo 3)
 (o «Ninguno», y si se descartaron algunos, cuántos)
@@ -59,7 +60,7 @@ Sin preámbulo, sin resumen final, sin felicitaciones por el cambio.
 
 **Un caso que lo provoque.** No «esto podría fallar si el usuario manda algo raro», sino qué hay que mandar y qué devuelve. Un hallazgo sin caso concreto es una sospecha, y las sospechas van en menores o no van.
 
-**Contraste contra la spec, no contra el gusto.** El adversario no decide qué es un bug: lo decide `openspec/specs/`, `docs/api/openapi.yaml` y `CLAUDE.md`. Un comportamiento que ningún documento exige y ninguno prohíbe es un hueco de la spec, y eso se dice como tal.
+**Contraste contra la spec, no contra el gusto.** El adversario no decide qué es un bug: lo decide `openspec/specs/`, `docs/api/openapi.json` y `CLAUDE.md`. Un comportamiento que ningún documento exige y ninguno prohíbe es un hueco de la spec, y eso se dice como tal.
 
 ## Presupuesto
 
@@ -90,6 +91,21 @@ El job distingue los dos casos a propósito:
 - **Con credencial y fallando** → **rojo**, con el error en el resumen.
 
 La asimetría es deliberada. Un rojo por algo que nunca se configuró enseña a ignorar el rojo. Un verde silencioso cuando la revisión que sí configuraste dejó de ejecutarse es peor: es un guardarraíl que desapareció sin avisar, y alguien sigue contando con él.
+
+## Criterio de priorización
+
+> Desde el 2026-09-13, de la Sesión 6 del curso. Aplica a lo que devuelve el revisor y a cualquier auditoría sobre código existente.
+
+El revisor no ordena por «criticidad»: ese es el criterio que inventa quien no tiene otro, y seis corridas del mismo prompt sobre el mismo código dieron seis órdenes distintos, todos defendibles. Lo que se le pide son las **cuatro casillas** de `REVIEW.md` -daño, radio contado, reversibilidad, precedencia- y el orden lo pone este fichero, no el modelo:
+
+1. **Precedencia primero, en orden topológico.** Si el arreglo de A abarata el de B, A va antes. No es un juicio de gravedad.
+2. **Dentro de cada nivel, daño ÷ radio.** Daño entre número de sitios a tocar, no daño a secas: un daño grande en un sitio va antes que el mismo daño repartido en diez.
+3. **El negocio desempata.** Lo que el modelo no tiene: en un banco, una fuga de datos va antes que una caída; en un blog, quizá al revés. Aquí, con cuentas y tareas de equipo, **una fuga de datos ajenos va antes que una caída**: H-17 y H-25 fueron primero por eso.
+4. **Contención antes que arreglo cuando el arreglo no cabe.** Dos filas: la contención es lo que se despliega hoy y revierte limpio; el arreglo es el deber ser, a menudo caro. Se decide cuál va, no lo decide el modelo. H-19 se cerró en dos pasos así.
+
+Lo que no entra en la tabla: propuestas sin medir (cachear, paginar, «esto podría ser N+1»). Van a un apartado aparte o no van.
+
+**Se delega la ejecución del diagnóstico, nunca el criterio ni la decisión.** Aprobar el orden que devuelve el modelo porque «es buen modelo» es delegar la decisión, no el diagnóstico.
 
 ## Cómo se mide si esto sirve
 
@@ -164,5 +180,17 @@ Es **la** métrica de este fichero, y ya no es cero.
 |---|---|---|
 | Defecto plantado, `pull_request` | H-15 con su `fichero:línea`, más el docblock que mentía | El plantado se revirtió; el docblock era del propio defecto |
 | **Primera real, `push`** | **[H-29](../docs/hallazgos.md)**: dos comprobaciones del verificador que un comentario satisfacía | **Sí.** Las dos leen ahora con `leerCodigo()` |
+
+### Los dos números
+
+El presupuesto de verificación, por corrida: cuántos hallazgos devolvió y cuántos se comprobaron a mano abriendo el código. El segundo es el ancho de banda real; el primero crece gratis.
+
+| Corrida | Devueltos | Comprobados a mano | Reales |
+|---|---:|---:|---:|
+| Módulo 2, auditoría inicial (H-01 a H-10) | 10 | 10 | 10 |
+| Módulo 4, siete revisiones adversariales manuales | 9 graves | 9 | 9 |
+| `feat/sesion-5-guardarrailes`, revisor en CI, 2026-09-08 al 13 | 2 graves, ~8 menores | 2 graves, 8 menores | 2 graves (H-35, H-38), 6 menores |
+
+Lo que dice la tabla: hasta hoy se ha comprobado **todo** lo devuelto, porque las listas eran cortas. El día que una corrida devuelva treinta, esta tabla es donde se escribe cuántos se miraron y cuántos no, y los no mirados no se dan por falsos ni por ciertos.
 
 **Dos de dos**, y la segunda es la que cuenta: nadie le plantó nada, y encontró en el verificador el mismo defecto que la cabecera de ese fichero advierte treinta líneas más arriba.

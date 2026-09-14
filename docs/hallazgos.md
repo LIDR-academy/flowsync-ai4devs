@@ -13,6 +13,23 @@
 >
 > **Cada entrada dice qué rama describe.** No es formalismo: el 2026-09-02 se comprobaron una a una las que figuraban cerradas y **tres estaban vivas en `s4/start`** -H-11, H-13 y H-14- porque su arreglo nunca cruzó desde `s3/start`. Un «Resuelto» sin rama no dice nada.
 
+## Cómo se escribe una entrada
+
+> Desde el 2026-09-13. Sale de la Sesión 6 del curso: **la severidad no es un dato del sistema**, es un criterio que quien escribe -persona o modelo- inventa, y seis corridas del mismo prompt sobre el mismo código devolvieron el mismo defecto en las posiciones 9, 10, 3, 5 y 6. Las entradas anteriores a esa fecha llevan «Severidad: alta / media / baja» y se conservan así, porque son el registro; las nuevas, y las que siguen vivas, llevan lo de abajo.
+
+Cada entrada dice **qué rama describe** y **cómo se verificó**, y desde ahora cuatro casillas que se responden con un hecho, **en blanco si no se puede confirmar leyendo el código o ejecutando algo**. No se rellenan por aproximación: el hueco es información.
+
+| Casilla | Qué se responde |
+|---|---|
+| **Daño** | Qué se rompe y quién lo nota. Un hecho, no un adjetivo |
+| **Radio** | Cuántos sitios hay que tocar a la vez, **contados y listados** con `fichero:línea`. Nunca «varios» |
+| **Reversibilidad** | Si el arreglo lo deshace un `revert` limpio, o deja rastro en datos ya guardados |
+| **Precedencia** | Si su arreglo abarata o encarece el de otro hallazgo, **cuál** |
+
+Y dos más que el curso no pide y aquí sí: **Reproducción**, un comando que lo provoque y que cualquiera pueda ejecutar, y **Qué lo vigila**, la comprobación que se pondría en rojo si volviera. Un hallazgo sin reproducción es una sospecha; uno sin vigilante vuelve solo, y aquí volvieron nueve.
+
+El orden en que se atacan no lo da la lista: lo da el criterio de `.github/calibracion-revision.md`, «Criterio de priorización».
+
 ## Índice por módulo
 
 Qué encontró cada módulo. La atribución sale del commit que introdujo cada entrada, no de la memoria.
@@ -354,6 +371,15 @@ Quien abriera `AGENTS.md` en esa máquina no encontraba las instrucciones ni un 
 
 `node ace migration:run` regenera `backend/database/schema.ts` con una línea larga que Prettier quiere partir. El lint del backend falla con un error `prettier/prettier`.
 
+| | |
+|---|---|
+| **Daño** | `npm run lint` y `format:check` en rojo, y el árbol sucio, tras cualquier migración. Lo nota quien migra, en local o en CI |
+| **Radio** | 1 fichero: `backend/database/schema.ts`. Generado, no se edita |
+| **Reversibilidad** | Revert limpio: `git restore backend/database/schema.ts`. No toca datos |
+| **Precedencia** | Ninguna. No abarata ni encarece otro arreglo |
+| **Reproducción** | `cd backend && node ace migration:run && npm run format:check`; sale en rojo cuando el generador vuelve a dejarlo sin formato. El 2026-09-13 lo dejó **vacío** con `migration:reset` |
+| **Qué lo vigila** | El lint y `format:check` en CI, y el paso «Las pruebas de navegador no tocan el esquema versionado» |
+
 **Cómo se verificó**: ocurrió durante el Módulo 1 tras `migration:run`. Se resolvió restaurando la versión commiteada.
 
 **Qué hacer**: no editar el fichero, que está marcado como autogenerado y el `CLAUDE.md` prohíbe tocar a mano. Restaurar con `git checkout -- backend/database/schema.ts` cuando aparezca, o correr `npm run format` en el backend.
@@ -692,6 +718,15 @@ Dos cosas quedaron documentadas **como son y no como deberían ser**, que es lo 
 **Rama: todas. Severidad: alta.** **Aceptado por los mantenedores del curso** el 2026-09-13; abierto hasta ese día. Encontrado en la Demo 1 del Módulo 5.
 
 `verificacion.yml` dispara en `pull_request` y bloquea. Pero nuestros PR son **cross-repo**: salen de `rene2bcore` y apuntan a `LIDR-academy`, así que el workflow lo ejecuta el repositorio del curso, y allí GitHub exige que un mantenedor del repositorio base apruebe cada ejecución. Ninguna se ha aprobado.
+
+| | |
+|---|---|
+| **Daño** | El PR que se lee no lleva checks ni informe del revisor. Lo notan los mantenedores, que ven un PR sin rojo posible |
+| **Radio** | 0 ficheros nuestros. Depende de una aprobación en `LIDR-academy` que no está en nuestra mano |
+| **Reversibilidad** | No aplica: no hay cambio de código que revertir |
+| **Precedencia** | Encarece la publicación del informe del revisor en el PR (H-27, que cae al resumen del job) |
+| **Reproducción** | El comando de abajo; el 2026-09-13 daba 50 ejecuciones de esta rama en `action_required` y ninguna en otro estado |
+| **Qué lo vigila** | Nada automático: la cifra se toma a mano con fecha. Aceptado por los mantenedores, no cerrado |
 
 **Cómo se verificó**: `gh run list` contra los dos repositorios, el 2026-09-08 y otra vez el 2026-09-12.
 
@@ -1120,6 +1155,15 @@ Los nueve no son iguales, y conviene no meterlos en el mismo saco:
 ## H-37 · Rehidratar la sesión con un 401 depende de que otro efecto ya esté suscrito
 
 **Rama: `feat/sesion-5-guardarrailes`. Severidad: baja.** **Vigilado** desde el 2026-09-13; registrado el 2026-09-12. La fragilidad del código sigue, a propósito, y ahora una prueba de navegador la vería.
+
+| | |
+|---|---|
+| **Daño** | Si el suscriptor del 401 deja de estar montado cuando llega la respuesta, `status` se queda en `loading` para siempre: pantalla de carga sin error ni consola. Lo nota la persona, no un log |
+| **Radio** | 2 sitios, el mismo fichero: `frontend/src/auth/auth-provider.tsx:66` (el `return`) y `:102-107` (la suscripción) |
+| **Reversibilidad** | Cualquier arreglo revierte limpio: no toca datos ni `localStorage` |
+| **Precedencia** | Ninguna. Arreglarlo no abarata otro; H-13 fijó el dueño único del cierre y este hallazgo es su coste |
+| **Reproducción** | `node scripts/mutaciones.mjs H-37`: quita el cierre del suscriptor y la prueba de navegador se queda en `/tasks` sin llegar a `/login` |
+| **Qué lo vigila** | `frontend/e2e/sesion.e2e.ts`, «con un token revocado se llega al acceso explicando por qué», desde el 2026-09-13 |
 
 `frontend/src/auth/auth-provider.tsx:66`, en la rehidratación de la sesión al arrancar:
 

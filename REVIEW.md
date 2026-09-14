@@ -44,6 +44,8 @@ Y da **un caso concreto**: qué entrada o estado lo provoca y qué devuelve. Un 
 
 **[Categoría]** · fichero:línea
 Qué falla, y el caso: entrada o estado -> resultado. Escenario roto, si aplica.
+Daño: qué se rompe y quién lo nota · Radio: N sitios, listados · Revert limpio: sí/no · Precedencia: abarata o encarece a <otro>, o ninguna.
+Casilla en blanco si no puedes confirmarla leyendo el código. No la rellenes por aproximación.
 
 ### Menores (máximo 3)
 (o «Ninguno», y cuántas descartaste)
