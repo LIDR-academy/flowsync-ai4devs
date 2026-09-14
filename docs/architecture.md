@@ -1,5 +1,29 @@
 # Arquitectura de FlowSync
 
+Tres niveles del modelo C4, de fuera hacia dentro: el **contexto** dice con quién habla FlowSync, los **contenedores** qué piezas se ejecutan por separado, y los **componentes** qué hay dentro de la API y de la SPA. Los diagramas son Mermaid dentro de este fichero, así que se versionan y se revisan en el mismo diff que el código que describen.
+
+## Diagrama de contexto
+
+FlowSync en ejecución no depende de ningún sistema externo: ni correo, ni pasarelas, ni almacenamiento ajeno. Lo que sí tiene alrededor es su **ciclo de desarrollo**, y se dibuja aparte porque falla de otra forma: si GitHub o Anthropic no responden, FlowSync sigue funcionando y lo que se para es la verificación.
+
+```mermaid
+C4Context
+    title Diagrama de contexto de FlowSync
+
+    Person(miembro, "Miembro del equipo", "Apunta tareas y ve en que anda el equipo sin preguntar")
+    System(flowsync, "FlowSync", "Lista compartida de tareas con estado responsable y vencimiento")
+
+    Person(dev, "Quien desarrolla", "Escribe specs codigo y pruebas y abre el PR")
+    System_Ext(github, "GitHub", "Repositorio fork del curso y Actions con la verificacion en cada push")
+    System_Ext(anthropic, "Anthropic", "API de Claude que usa el revisor adversarial desde CI")
+    System_Ext(jira, "Jira", "Tablero LID de seguimiento. No es fuente de verdad")
+
+    Rel(miembro, flowsync, "Usa desde el navegador")
+    Rel(dev, github, "Empuja ramas y abre PR")
+    Rel(github, anthropic, "Pide la revision del diff", "claude -p con CLAUDE_CODE_OAUTH_TOKEN")
+    Rel(dev, jira, "Sigue el trabajo")
+```
+
 ## Diagrama de contenedores
 
 El diagrama muestra las piezas de FlowSync que se ejecutan por separado y cómo hablan entre
@@ -28,6 +52,73 @@ C4Container
     Rel(spa, storage, "Lee guarda y borra el token de sesion", "Web Storage API")
     Rel(spa, api, "Llama a /api/v1 con la cabecera Authorization Bearer", "JSON sobre HTTP con fetch desde src/lib/api.ts")
     Rel(api, db, "Lee y escribe", "SQL a traves de Lucid 22")
+```
+
+## Diagramas de componentes
+
+### Dentro de la API
+
+El camino de una petición, de la ruta a la base y de vuelta. Las flechas son dependencias leídas de los imports, no llamadas en tiempo de ejecución.
+
+```mermaid
+C4Component
+    title Componentes de la API de FlowSync
+
+    Container_Ext(spa, "SPA de FlowSync", "React 19")
+    ContainerDb_Ext(db, "Base de datos", "SQLite")
+
+    Container_Boundary(api, "API de FlowSync") {
+        Component(routes, "Rutas", "start/routes.ts", "Todo bajo /api/v1 y el documento OpenAPI en /api")
+        Component(kernel, "Middleware", "start/kernel.ts", "silent_auth en todas y auth en account y tasks. Fuerza JSON")
+        Component(controllers, "Controladores", "app/controllers", "Uno por recurso. Validan antes de resolver el id")
+        Component(validators, "Validadores", "VineJS 4 en app/validators", "Enum cerrado de estados y dia de referencia obligatorio")
+        Component(models, "Modelos", "Lucid 22 en app/models", "User y Task sobre database/schema.ts generado. isOverdueOn es la unica regla de vencida")
+        Component(transformers, "Transformers", "app/transformers", "Deciden que sale. Lista y tarea suelta son objetos distintos")
+        Component(serializer, "Serializer", "providers/api_provider.ts", "Envuelve toda respuesta de exito en data")
+        Component(handler, "Manejador de errores", "app/exceptions/handler.ts", "Forma unica de error y sin traza ni SQL")
+        Component(openapi, "Documento OpenAPI", "app/openapi", "Construido desde los decoradores una vez por proceso")
+    }
+
+    Rel(spa, routes, "JSON sobre HTTP con Bearer")
+    Rel(routes, kernel, "pasa por")
+    Rel(routes, controllers, "despacha a")
+    Rel(routes, openapi, "sirve")
+    Rel(controllers, validators, "valida con")
+    Rel(controllers, models, "lee y escribe con")
+    Rel(controllers, transformers, "da forma con")
+    Rel(controllers, serializer, "responde con")
+    Rel(controllers, handler, "delega los errores en")
+    Rel(models, db, "SQL")
+```
+
+### Dentro de la SPA
+
+```mermaid
+C4Component
+    title Componentes de la SPA de FlowSync
+
+    Person(miembro, "Miembro del equipo")
+    Container_Ext(api, "API de FlowSync", "AdonisJS 7")
+    ContainerDb_Ext(storage, "localStorage", "Web Storage API")
+
+    Container_Boundary(spa, "SPA de FlowSync") {
+        Component(approutes, "Rutas y guards", "src/routes", "ProtectedRoute y PublicOnlyRoute. Lo desconocido va a /tasks")
+        Component(pages, "Pantallas", "src/pages", "Login registro perfil lista y tarea suelta")
+        Component(components, "Componentes", "src/components", "Fila de tarea y filtro. ui es generado por shadcn")
+        Component(auth, "Sesion", "src/auth", "Guarda el token y lo revalida al arrancar. Un solo dueno del cierre por 401")
+        Component(apiclient, "Cliente de la API", "src/lib/api.ts", "Unico punto de contacto. Desenvuelve data y traduce errores al castellano")
+        Component(lista, "Colocacion en la lista", "src/lib/lista.ts", "Donde entra una tarea recien creada")
+    }
+
+    Rel(miembro, approutes, "navega")
+    Rel(approutes, auth, "consulta el estado de")
+    Rel(approutes, pages, "muestra")
+    Rel(pages, components, "compone con")
+    Rel(pages, apiclient, "llama a")
+    Rel(pages, lista, "coloca con")
+    Rel(auth, apiclient, "revalida y se suscribe al 401 de")
+    Rel(auth, storage, "lee y guarda el token en")
+    Rel(apiclient, api, "fetch a /api/v1")
 ```
 
 ## Qué hay dentro de cada contenedor
@@ -99,8 +190,9 @@ vencimiento. La sesión vive en [`frontend/src/auth/`](../frontend/src/auth/) y 
 
 ## Lo que no está dibujado, y por qué
 
-- **No hay sistemas externos.** No se ha encontrado en el código ninguna integración con
-  correo, pasarelas, colas ni almacenamiento externo, así que el diagrama no dibuja ninguna.
+- **No hay sistemas externos en ejecución.** No se ha encontrado en el código ninguna integración
+  con correo, pasarelas, colas ni almacenamiento externo. Los tres sistemas externos del diagrama
+  de contexto -GitHub, Anthropic y Jira- son del ciclo de desarrollo, no de FlowSync corriendo.
 - **El registro Tuyau de `.adonisjs/client/registry/` no es una dependencia de la SPA.** Está
   pensado para consumo tipado desde el frontend, pero hoy `frontend/src/` no lo referencia en
   ningún sitio: quien lo usa es `backend/tests/bootstrap.ts`, para tipar el `apiClient` de Japa.
