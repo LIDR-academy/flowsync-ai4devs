@@ -8,6 +8,15 @@ const TOKEN_KEY = 'flowsync.token'
 
 const readStoredToken = () => localStorage.getItem(TOKEN_KEY)
 
+/**
+ * Dueño de la sesión en el navegador.
+ *
+ * Guarda el token en `localStorage` bajo `flowsync.token` (deuda aceptada,
+ * H-06) y al arrancar lo revalida contra el perfil antes de dar la sesión por
+ * buena, con `status` en `loading` mientras tanto. Es el único suscriptor de
+ * {@link api.onUnauthorized}: cualquier `401` de cualquier pantalla cierra la
+ * sesión aquí y deja el motivo para el login.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(readStoredToken)
   const [user, setUser] = useState<User | null>(null)

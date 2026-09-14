@@ -152,6 +152,17 @@ Organización de `src/`:
 
 La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defecto `http://localhost:3333`.
 
+## Documentación de código
+
+TSDoc (`/** ... */`) va donde el lector no puede deducirlo del código, y en ningún otro sitio:
+
+- **Lo exportado que otros consumen**: cada función de `frontend/src/lib/api.ts`, con los `@throws` de `ApiError` que puede devolver; los hooks y el proveedor de `src/auth/`; y lo que exportan los modelos (`TASK_STATUSES`, `isOverdueOn`, `initials`).
+- **Una regla de negocio o una decisión que no se ve en la línea**: por qué la lista por defecto deja fuera lo hecho, por qué los tokens no caducan, por qué el día de referencia se construye en local y no con `toISOString()`. Si cita un hallazgo o un ADR, mejor.
+- **Los controladores no llevan TSDoc**: los documentan sus decoradores de `@foadonis/openapi` (`@ApiOperation`, `@ApiResponse`), que además acaban en el contrato. Duplicarlo en un comentario es un segundo sitio que se desincroniza.
+- **Nada en lo trivial ni en lo generado**: un transformer de cinco campos, `main.tsx`, `components/ui/`, `database/schema.ts`, `.adonisjs/`.
+
+Un comentario que afirma algo que el código no hace es un defecto grave para el revisor (`REVIEW.md`), así que al cambiar el comportamiento se cambia el comentario en el mismo commit.
+
 ## Reglas de proceso
 
 > Cada regla lleva su **modo de fallo**, porque es lo que decide dónde tiene que vivir.

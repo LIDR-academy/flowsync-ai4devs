@@ -153,6 +153,15 @@ type UnauthorizedHandler = (error: ApiError) => void
 
 const unauthorizedHandlers = new Set<UnauthorizedHandler>()
 
+/**
+ * Suscribe `handler` a todo `401` que devuelva cualquier llamada de este
+ * fichero, salvo las marcadas con `silenciarRechazo`.
+ *
+ * Hoy lo usa un solo suscriptor, el proveedor de sesión, que es el dueño único
+ * de «una credencial rechazada cierra la sesión» (H-13, H-37).
+ *
+ * @returns La función que cancela la suscripción, para el `return` de un efecto.
+ */
 export function onUnauthorized(handler: UnauthorizedHandler): () => void {
   unauthorizedHandlers.add(handler)
   return () => {
@@ -194,7 +203,12 @@ function localToday(): string {
 
 async function request<T>(
   path: string,
-  { method = 'GET', body, token, silenciarRechazo = false }: RequestOptions = {},
+  {
+    method = 'GET',
+    body,
+    token,
+    silenciarRechazo = false,
+  }: RequestOptions = {},
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -232,6 +246,12 @@ async function request<T>(
   return payload as T
 }
 
+/**
+ * Crea la cuenta y devuelve la sesión ya abierta: la cuenta y un token que sirve.
+ *
+ * @throws {ApiError} `422` con `fieldErrors` por campo, todos a la vez; `0` si
+ * no hay conexión.
+ */
 export function signup(payload: SignupPayload): Promise<AuthResult> {
   return request<{ data: AuthResult }>('/api/v1/auth/signup', {
     method: 'POST',
@@ -239,6 +259,12 @@ export function signup(payload: SignupPayload): Promise<AuthResult> {
   }).then((response) => response.data)
 }
 
+/**
+ * Abre una sesión nueva. Cada llamada emite un token distinto.
+ *
+ * @throws {ApiError} `400` si las credenciales no valen, sin decir si la cuenta
+ * existe; `422` si el email está mal formado; `0` si no hay conexión.
+ */
 export function login(payload: LoginPayload): Promise<AuthResult> {
   return request<{ data: AuthResult }>('/api/v1/auth/login', {
     method: 'POST',
@@ -246,12 +272,26 @@ export function login(payload: LoginPayload): Promise<AuthResult> {
   }).then((response) => response.data)
 }
 
+/**
+ * La cuenta del token. Es también la forma de comprobar que un token sigue
+ * valiendo: la usa la sesión al arrancar.
+ *
+ * @throws {ApiError} `401` si el token ya no vale, que además avisa a los
+ * suscriptores de {@link onUnauthorized}; `0` si no hay conexión.
+ */
 export function getProfile(token: string): Promise<User> {
   return request<{ data: User }>('/api/v1/account/profile', { token }).then(
     (response) => response.data,
   )
 }
 
+/**
+ * Revoca el token en el servidor. Solo ese: las demás sesiones de la cuenta
+ * siguen abiertas.
+ *
+ * Un `401` aquí no avisa a nadie (`silenciarRechazo`): quien sale ya sabe que
+ * ha salido. Quien la llama cierra la sesión local aunque esto falle.
+ */
 export function logout(token: string): Promise<void> {
   return request('/api/v1/account/logout', {
     method: 'POST',
@@ -279,6 +319,13 @@ export function listTasks(token: string, status?: string): Promise<Task[]> {
   )
 }
 
+/**
+ * Crea una tarea con solo el título. Responsable y estado los pone el servidor:
+ * nace a nombre de quien la crea y en `pending`.
+ *
+ * @throws {ApiError} `422` con `fieldErrors.title` si está vacío o pasa de 200
+ * caracteres.
+ */
 export function createTask(
   payload: CreateTaskPayload,
   token: string,
@@ -319,6 +366,13 @@ export function setTaskDueDate(
   }).then((response) => response.data)
 }
 
+/**
+ * Cambia el estado de cualquier tarea, propia o ajena, en cualquier dirección.
+ * No la reasigna.
+ *
+ * @throws {ApiError} `404` si la tarea no existe; `422` si el estado no es uno
+ * de los tres, que el tipo ya impide desde aquí.
+ */
 export function updateTaskStatus(
   id: number,
   status: TaskStatus,

@@ -24,6 +24,14 @@ export const DEFAULT_LIST_STATUSES = [
   'in_progress',
 ] as const satisfies readonly TaskStatus[]
 
+/**
+ * Una tarea del espacio compartido. Las columnas vienen de `TaskSchema`,
+ * generado desde las migraciones.
+ *
+ * No hay tareas privadas ni permisos por responsable: cualquiera con sesión lee
+ * y cambia cualquiera. Que una tarea tenga `assignee` es información, no una
+ * barrera.
+ */
 export default class Task extends TaskSchema {
   @belongsTo(() => User, { foreignKey: 'assigneeId' })
   declare assignee: BelongsTo<typeof User>
