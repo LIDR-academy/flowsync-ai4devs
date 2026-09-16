@@ -27,7 +27,7 @@ export const createTaskValidator = vine.create({
  * corre sobre `request.all()`, que mezcla ambos.
  */
 export const listTasksValidator = vine.create({
-  status: vine.string().optional(),
+  status: vine.enum(TASK_STATUSES).optional(),
 })
 
 /**
