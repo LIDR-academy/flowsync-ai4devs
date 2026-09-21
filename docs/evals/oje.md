@@ -1,6 +1,6 @@
 # Medición de una regla de proceso
 
-**Autoría:** OJE · **Fecha:** 20 de septiembre de 2026
+**Autoría:** Odalys Jordan Enriquez · **Fecha:** 20 de septiembre de 2026
 **Proyecto medido:** FlowSync (este repositorio) · **Rama de partida de cada intento:** `s8/start`
 
 ## Qué se mide y por qué
@@ -95,17 +95,10 @@ Esta regla en particular debería ser algo que se ejecute solo porque es, en ese
 que la documentación del backend se actualice de acuerdo con los cambios que se van implementando, y
 que todo viaje junto en el mismo commit como una sola unidad de trabajo completada.
 
-> *Nota:* la mitad de la regla ya vive así en el repositorio — `npm run openapi:check` sale con
-> código 1 si el documento OpenAPI versionado no coincide con el regenerado. La parte del README es
-> justamente la que hoy solo está escrita.
-
 ### 3. Una cosa que esta medición no está midiendo
 
 **Si la implementación está completa.** Las dos casillas comprueban que la ruta existe y que el
 README la menciona, y nada más. No se comprueba si se crearon los tests, ni si se actualizó la spec
-viva — en este caso `openspec/specs/tasks/spec.md`, que por el
-[ADR 0001](../adr/0001-openspec-como-fuente-de-verdad.md) es la fuente de verdad del proyecto y que
-**no tiene ningún requisito de borrado**.
+viva, en este caso `openspec/specs/tasks/spec.md`, que es la fuente de verdad del proyecto y **no tiene ningún requisito de borrado**.
 
-Dicho de otro modo: un intento puede marcar las dos casillas en verde y aun así dejar el endpoint sin
-una sola prueba y la spec contando una historia que ya no es cierta.
+En otras palabras: un intento puede marcar las dos casillas en verde y aun así dejar el endpoint sin una sola prueba y la spec contando una historia que ya no es del todo cierta.
