@@ -63,7 +63,7 @@ Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una
 Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks. 
 ```
 
-**Qué salió:** Funcionó como se esperaba. DELETE /api/v1/tasks/:id listo en la rama feat/borrar-tarea. Los ficheros de rutas y Readme fueron actualizados de acuerdo a los cambios realizados.
+**Qué salió:** Funcionó como se esperaba. DELETE /api/v1/tasks/:id listo en la rama feat/borrar-tarea. Los ficheros de rutas y Readme fueron actualizados de acuerdo a los cambios realizados. En este intento el agente sí dejó tests, con 4 escenarios, dentro del commit.
 
 
 ## Promt 5
