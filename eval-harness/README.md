@@ -11,8 +11,8 @@ Viaja en la rama **`s8/start-setup`** del repo del alumno, ya montada en `eval-h
 | `.claude-plugin/plugin.json` | Las tres líneas que convierten el harness en una unidad que la herramienta puede **cargar y descargar**. Sin esto no hay línea base automática |
 | `skills/commit/SKILL.md` | Copia de la skill del harness de FlowSync: es lo que mide la Demo 1 |
 | `evals/commit-skill/` | **Demo 1.** Hay un cambio en staging: ¿usa la skill? Fixture autocontenido |
-| `evals/regla-doc/` | **Demo 2.** Añade un endpoint: ¿actualiza el README de la capability, como manda el `CLAUDE.md`? |
-| `evals/regla-doc-sin-harness/` | La **línea base** del caso anterior: lo mismo, sin sembrar el `CLAUDE.md` |
+| `evals/regla-doc/` | 🛟 **La red de la Demo 2**: el mismo caso que se genera en vivo, ya escrito. Añade un endpoint: ¿actualiza el README de la capability, como manda el `CLAUDE.md`? |
+| `evals/tarea-alumno-sin-harness/` | La **línea base** de la Demo 2: el mismo encargo, sin sembrar el `CLAUDE.md`. Se llama así para que `--case 'tarea-alumno*'` lance en una sola tanda el caso generado en vivo **y** su línea base |
 | `evals/sonda-git/` | **Demo 3.** Comprueba qué hace `git` dentro del entorno aislado |
 | `fixture-repo.sh` | Monta el repo sobre el que corre cada ensayo de los casos de la Demo 2 |
 
@@ -22,19 +22,10 @@ Viaja en la rama **`s8/start-setup`** del repo del alumno, ya montada en `eval-h
 |---|---|
 | `commit-skill` | **Demo 1**: se lanza primero y, mientras corre, se abren sus archivos para explicar la anatomía |
 | `sonda-git` | **Demo 3** |
-| `regla-doc-sin-harness` | la **línea base** del encargo de la Demo 2: el mismo caso sin sembrar el `CLAUDE.md` |
-| `regla-doc` | 🛟 **no se lanza: es la red.** La Demo 2 **genera** su caso en vivo (`tarea-alumno`) con el PROMPT 1. Si la generación se atasca delante de la clase, este es el mismo caso ya escrito: cambia `--case tarea-alumno` por `--case regla-doc` y sigue |
+| `tarea-alumno-sin-harness` | la **línea base** de la Demo 2: **se lanza siempre**, junto al caso generado, con los dos modelos |
+| `regla-doc` | 🛟 **no se lanza: es la red.** Es el mismo caso que la Demo 2 **genera** en vivo (`tarea-alumno`) con el PROMPT 1, ya escrito. Si la generación se atasca delante de la clase, lanza `--case regla-doc` y después `--case tarea-alumno-sin-harness`, con las mismas banderas: pierdes solo que salgan en la misma tabla |
 
-⚠️ **`regla-doc` viene sin su `graders/readme-al-dia.md`**, porque en la versión anterior del guion se escribía en vivo. Si tiras de la red, créalo con esto:
-
-```markdown
----
-type: regex
-target: { source: file, path: docs/capabilities/tasks/README.md }
-pattern: "DELETE[^|]*/tasks"
-arm: both
----
-```
+✅ **Los tres casos de la regla llevan el mismo encargo, literal**, que es el que el PROMPT 1 le pide al caso generado. Hasta el 2026-09-21 la línea base y la red lo llevaban sin tildes y con comillas de código, y la red además **no tenía el grader del README**: lanzada tal cual salía al **100%**, un verde que no medía la regla.
 
 ## Dos avisos antes de lanzar nada
 
