@@ -4,6 +4,12 @@ Proyecto de práctica del curso: gestión de tareas en equipo. API en **AdonisJS
 
 Este es el sistema sobre el que trabajas en el Módulo 8. Léelo entero antes de empezar: además de cómo levantarlo, aquí está **el ejercicio y cómo se entrega**.
 
+> 🧪 **Estás en `s8/start-setup`, y esta rama es una excepción a propósito.** Es `s8/start` más una sola cosa: **la suite de evals del directo, ya montada en [`eval-harness/`](eval-harness/)**. Existe para que el mentor la use en clase sin copiar nada, y para que tú, después, tengas **exactamente su mismo entorno** y puedas repetir cada comando tal cual.
+>
+> - **El ejercicio se hace en `s8/start`, no aquí.** Esta rama trae justo la suite que el ejercicio te pide no usar: medir a mano primero es lo que hace que el directo te sirva.
+> - **Los comandos de la sesión se lanzan desde `eval-harness/`**, que es la raíz de la suite. Desde la raíz del proyecto también arrancan, pero si alguna vez tienes la suite copiada en dos sitios, los mide todos y cada caso sale repetido.
+> - **Los informes que genera cada eval caen en `evals/results/`**, dentro de la carpeta desde la que lo lanzas. Las dos rutas posibles están en `.gitignore`: no te ensucian el árbol.
+
 ## Qué necesitas, y cómo compruebas que lo tienes
 
 Una línea por requisito, con el comando que lo verifica y el síntoma de tenerlo mal.

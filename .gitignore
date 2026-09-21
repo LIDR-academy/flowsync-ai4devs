@@ -24,3 +24,7 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+
+# Informes de `claude plugin eval` (rama s8/start-setup)
+evals/results/
+eval-harness/evals/results/
