@@ -1,4 +1,4 @@
 schema_version: "1.1"
-name: tarea-alumno-sin-harness
+name: tarea-alumno-sin-claude-md
 context:
   scaffold_script: fixture.sh
