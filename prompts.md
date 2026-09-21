@@ -20,16 +20,72 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ---
 
+## Metodología de Limpieza entre Iteraciones
+
+Para garantizar que cada intento fuera totalmente independiente y sin sesgo de contexto ni de ramas previa de la IA, entre cada ejecución se aplicó la secuencia exacta de limpieza en la terminal:
+
+```bash
+git checkout -f s8/start
+git reset --hard upstream/s8/start
+git clean -fd
+```
+
 ## Prompt 1
 
 **Modelo:** Opus 1M xHigh
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** Control: OK (creó la ruta DELETE, método destroy y tests) | Resultado README: SÍ actualizado (añadió la fila del endpoint, excepción del envoltorio y recorrido curl).
+
+
+## Prompt 2
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks
+```
+
+**Qué salió:**  Control: OK (creó la ruta DELETE, controlador y tests) | Resultado README: SÍ actualizado (documentó el endpoint y anotó la observación de falta de requisito en la spec).
+
+
+## Prompt 3
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks
+```
+
+**Qué salió:** Control: OK (creó la ruta DELETE y 28 tests) | Resultado README: SÍ actualizado (deja explícitamente el README de la capability al día con las reglas del proyecto).
+
+
+## Prompt 4
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks
+```
+
+**Qué salió:** Control: OK (creó la ruta DELETE y tests funcionales) | Resultado README: SÍ actualizado (actualizó la capability y corrigió notas obsoletas del README sobre OpenAPI).
+
+
+## Prompt 5
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks
+```
+
+**Qué salió:**  Control: OK (creó el método destroy, ruta DELETE, OpenAPI y 5 tests) | Resultado README: SÍ actualizado (mantiene al día la tabla de endpoints, envoltorio, reglas y recorrido curl).
+
