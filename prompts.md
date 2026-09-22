@@ -17,25 +17,38 @@ Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra
 
 ---
 
-## Prompt 2 · el mismo encargo, en la condición de control
+## Prompt 2 · el mismo encargo, primer intento de control (no valió)
 
 **Modelo:** Sonnet 5 (`claude-sonnet-5`), con Haiku 4.5 (`claude-haiku-4-5`) en subtareas
-**Herramienta:** la misma, con una diferencia: antes de lanzarlo se sacó el `CLAUDE.md` del repositorio, así que la regla no estaba escrita en ninguna parte
+**Herramienta:** la misma, retirando del repositorio el `CLAUDE.md` antes de lanzarlo
 
 ```
 Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`.
 ```
 
-**Qué salió:** sesión `cb313720`. El README quedó al día igual que en los cinco anteriores. Sin el archivo no creó rama ni commit, y trabajó directamente sobre `s8/start`.
+**Qué salió:** sesión `cb313720`. El README quedó al día, y por un momento pareció que la regla no hacía falta. No valía: `AGENTS.md` es byte a byte idéntico a `CLAUDE.md` y lleva la misma regla, y en el historial de esa sesión se ve al agente ejecutar `cat AGENTS.md`. La medición no medía lo que creía medir.
 
 ---
 
-## Prompt 3 · la instrucción al agente que orquestó la medición
+## Prompt 3 · el mismo encargo, control limpio
+
+**Modelo:** Sonnet 5 (`claude-sonnet-5`), con Haiku 4.5 (`claude-haiku-4-5`) en subtareas
+**Herramienta:** la misma, retirando del repositorio `CLAUDE.md` **y** `AGENTS.md` antes de lanzarlo
+
+```
+Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`.
+```
+
+**Qué salió:** sesión `d5731708`, 35 turnos. Declaró la ruta y escribió el controlador, y no tocó el README de la capability ni `docs/api/openapi.json`. Tampoco creó rama ni commit.
+
+---
+
+## Prompt 4 · la instrucción al agente que orquestó la medición
 
 **Modelo:** Opus 5 (`claude-opus-5`)
 **Herramienta:** Claude Code Desktop en Windows, sesión abierta en otro repositorio y operando sobre WSL
 
-**Qué salió:** montó el proyecto (`make setup`, y 23 tests en verde antes de medir nada), preguntó la apuesta antes de lanzar el primer intento, ejecutó los cinco intentos con la comprobación previa de base limpia y el reset duro posterior, recogió la evidencia de cada uno y escribió `docs/evals/RLL.md`. La condición de control salió de una segunda instrucción: «lanza el control y luego abre el PR».
+**Qué salió:** montó el proyecto (`make setup`, y 23 tests en verde antes de medir nada), preguntó la apuesta antes de lanzar el primer intento, ejecutó los cinco intentos con la comprobación previa de base limpia y el reset duro posterior, recogió la evidencia de cada uno y escribió `docs/evals/RLL.md`. Los controles salieron de dos instrucciones posteriores: «lanza el control y luego abre el PR», y, al descubrirse lo de `AGENTS.md`, «sí, relanza el control limpio y actualiza el PR».
 
 ---
 

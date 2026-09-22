@@ -1,6 +1,6 @@
 # Eval · la regla del README de capability
 
-Medición de una regla de proceso del `CLAUDE.md` de este proyecto, hecha el 21 de septiembre de 2026.
+Medición de una regla de proceso del `CLAUDE.md` de este proyecto, hecha el 21 y el 22 de septiembre de 2026.
 
 Regla medida, literal:
 
@@ -45,30 +45,38 @@ Antes de cada intento se comprueba que la base es idéntica, y se aborta si no l
 
 **Resultado: 5 de 5.** En los cinco intentos la fila nueva aparece en la tabla de endpoints del README, con la forma que ya usaban las demás filas: `DELETE /tasks/:id` apuntando a `TasksController.destroy` y con `204 · sin cuerpo`. Los cinco tocaron además `docs/api/openapi.json`, y tres escribieron un test funcional que nadie pidió.
 
-### La condición de control: el mismo encargo sin la regla
+### La condición de control, y el primer intento de control que no medía nada
 
-Un 5 de 5 no dice cuánto de eso lo hace la regla, así que se repitió el encargo una vez más con el `CLAUDE.md` del proyecto **sacado del repositorio**, y todo lo demás igual.
+Un 5 de 5 no dice cuánto de eso lo hace la regla, así que se repitió el encargo con el archivo de instrucciones fuera del repositorio. El primer intento de control **no valía**, y merece quedar escrito porque es el error que el módulo avisa:
 
-| Intento | Sesión | Turnos | Duración | Ruta `DELETE` | README al día | Rama que creó | Commiteó |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| control | `cb313720` | 40 | 6m 28s | sí | sí | ninguna, se quedó en `s8/start` | no |
+| Intento de control | Qué se retiró | Ruta `DELETE` | README al día | Por qué |
+| --- | --- | --- | --- | --- |
+| `cb313720` | solo `CLAUDE.md` | sí | sí | **inválido**: `AGENTS.md` es byte a byte idéntico a `CLAUDE.md` y lleva la misma regla; en el historial de esa sesión se ve al agente ejecutar `cat AGENTS.md` |
+| `d5731708` | `CLAUDE.md` y `AGENTS.md` | sí | **no** | control limpio |
 
-Sin la regla escrita en ninguna parte, el README quedó al día igual, con la misma fila y el mismo formato. Lo que sí cambió al quitar el archivo fue otra cosa: los cinco intentos con `CLAUDE.md` crearon su rama `feat/…` y el control no, que es exactamente la otra regla del mismo archivo.
+El control limpio (35 turnos, 2m 06s) implementó el endpoint y el controlador, **no tocó ni el README de la capability ni `docs/api/openapi.json`**, y no creó rama ni commit. Es decir: la regla sí está comprando el comportamiento que parecía comprar. Y aun así el `README.md` de la raíz cita la regla textualmente en su línea 70, como parte del enunciado del ejercicio, sin que eso bastara para que se aplicara.
 
-Coste de todo: 10,08 USD y unos 35 minutos de reloj para las seis ejecuciones.
+| Condición | Ruta `DELETE` | README al día | Rama `feat/…` | Commit |
+| --- | --- | --- | --- | --- |
+| Con instrucciones (5 intentos) | 5/5 | 5/5 | 5/5 | 2/5 |
+| Sin instrucciones (control limpio) | sí | no | no | no |
+
+Coste de todo: 11,00 USD y unos 37 minutos de reloj para las siete ejecuciones.
 
 ### Un dato que salió de lado
 
 La regla tiene dos mitades, y la otra se cumplió **2 de 5**: «se cierra en el mismo commit». Tres intentos dejaron todo el trabajo sin commitear. La mitad que el ejercicio manda medir es la que sale bien; la que no se mide es la que falla.
 
+Y la regla vive dos veces: `CLAUDE.md` y `AGENTS.md` son el mismo archivo duplicado. Hoy dicen lo mismo, y por eso el primer control no midió nada.
+
 ### En qué condiciones está medido
 
-Las seis sesiones se lanzaron sin interfaz (`claude -p`, Claude Code 2.1.272 en WSL) desde la raíz del repositorio, con los permisos concedidos de antemano, y las resolvió Sonnet 5 (con Haiku 4.5 en subtareas). El control retira el `CLAUDE.md` del proyecto, no el `CLAUDE.md` de usuario de la máquina, que sigue cargándose en las seis. Una sesión interactiva, otro modelo u otro día son otra medición.
+Las siete sesiones se lanzaron sin interfaz (`claude -p`, Claude Code 2.1.272 en WSL) desde la raíz del repositorio, con los permisos concedidos de antemano, y las resolvió Sonnet 5 (con Haiku 4.5 en subtareas). Los controles retiran los archivos de instrucciones del proyecto, no el `CLAUDE.md` de usuario de la máquina, que sigue cargándose en las siete. Una sesión interactiva, otro modelo u otro día son otra medición.
 
 ## Parte B · las tres líneas
 
-**1. Apuesta y resultado.** Aposté 2 de 5 y salió 5 de 5, con las cinco ejecuciones hechas, más un control sin la regla que también salió al día: me equivoqué en la dirección de la sorpresa, que es justo para lo que servía escribir la apuesta antes.
+**1. Apuesta y resultado.** Aposté 2 de 5 y salió 5 de 5, con las cinco ejecuciones hechas, y el control sin instrucciones salió 0 de 1: me equivoqué en la dirección de la sorpresa, que es justo para lo que servía escribir la apuesta antes.
 
-**2. Qué haría con ese número.** Quitar la mitad del README de las instrucciones y convertirla en un check que se ejecute solo, porque el control dice que esa mitad se cumple igual sin la regla, así que hoy no está comprando el comportamiento que parecía comprar, y un 5 de 5 con cinco intentos tampoco distingue entre cumplirse siempre y cumplirse la mitad de las veces; la mitad del commit, que falla 3 de 5 y sí depende del archivo, es la que merece bajar a algo que mire el diff y se ponga en rojo.
+**2. Qué haría con ese número.** Convertirla en algo que se ejecute solo, sin borrarla, porque el control dice que sin ella el README no se toca, así que la regla sí está haciendo trabajo: lo que no hace es garantizarlo, porque 5 de 5 con cinco intentos no distingue entre cumplirse siempre y cumplirse la mitad de las veces, y la otra mitad de la misma regla ya falla 3 de 5; un check que mire el diff (si toca rutas, controladores, validadores o transformers de una capability y no toca su README, rojo) cuesta menos que seguir midiendo, y de paso borraría la copia duplicada, porque una regla escrita dos veces en dos archivos idénticos son dos reglas que algún día van a divergir.
 
 **3. Una cosa que esta medición no está midiendo.** Si lo que el README dice es verdad: la comprobación es un `grep` que se conforma con que la línea exista, y nadie ejecutó el endpoint para ver si de verdad responde `204` sin cuerpo, así que un README que documentara mal el endpoint puntuaría igual de bien que uno correcto.
