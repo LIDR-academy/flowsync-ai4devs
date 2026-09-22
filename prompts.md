@@ -35,12 +35,6 @@ Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra
 **Modelo:** Opus 5 (`claude-opus-5`)
 **Herramienta:** Claude Code Desktop en Windows, sesión abierta en otro repositorio y operando sobre WSL
 
-```
-Ok Vamos a hacer el Prework del "Módulo 8. Evals for Agentic Harness":
-Ejercicio FlowSync: mide una regla que creías cumplida 🔴 — 9 min
-[... aquí iba pegado el texto completo de la lección, elidido por longitud ...]
-```
-
 **Qué salió:** montó el proyecto (`make setup`, y 23 tests en verde antes de medir nada), preguntó la apuesta antes de lanzar el primer intento, ejecutó los cinco intentos con la comprobación previa de base limpia y el reset duro posterior, recogió la evidencia de cada uno y escribió `docs/evals/RLL.md`. La condición de control salió de una segunda instrucción: «lanza el control y luego abre el PR».
 
 ---
