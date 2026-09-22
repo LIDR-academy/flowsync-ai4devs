@@ -45,20 +45,30 @@ Antes de cada intento se comprueba que la base es idéntica, y se aborta si no l
 
 **Resultado: 5 de 5.** En los cinco intentos la fila nueva aparece en la tabla de endpoints del README, con la forma que ya usaban las demás filas: `DELETE /tasks/:id` apuntando a `TasksController.destroy` y con `204 · sin cuerpo`. Los cinco tocaron además `docs/api/openapi.json`, y tres escribieron un test funcional que nadie pidió.
 
-Coste: 8,50 USD y 28 minutos de reloj para las cinco ejecuciones.
+### La condición de control: el mismo encargo sin la regla
+
+Un 5 de 5 no dice cuánto de eso lo hace la regla, así que se repitió el encargo una vez más con el `CLAUDE.md` del proyecto **sacado del repositorio**, y todo lo demás igual.
+
+| Intento | Sesión | Turnos | Duración | Ruta `DELETE` | README al día | Rama que creó | Commiteó |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| control | `cb313720` | 40 | 6m 28s | sí | sí | ninguna, se quedó en `s8/start` | no |
+
+Sin la regla escrita en ninguna parte, el README quedó al día igual, con la misma fila y el mismo formato. Lo que sí cambió al quitar el archivo fue otra cosa: los cinco intentos con `CLAUDE.md` crearon su rama `feat/…` y el control no, que es exactamente la otra regla del mismo archivo.
+
+Coste de todo: 10,08 USD y unos 35 minutos de reloj para las seis ejecuciones.
 
 ### Un dato que salió de lado
 
-La regla tiene dos mitades, y la otra se cumplió **2 de 5**: «se cierra en el mismo commit». Tres intentos dejaron todo el trabajo sin commitear. La mitad que se mide aquí es la que sale bien; la que no se mide es la que falla.
+La regla tiene dos mitades, y la otra se cumplió **2 de 5**: «se cierra en el mismo commit». Tres intentos dejaron todo el trabajo sin commitear. La mitad que el ejercicio manda medir es la que sale bien; la que no se mide es la que falla.
 
 ### En qué condiciones está medido
 
-Las cinco sesiones se lanzaron sin interfaz (`claude -p`, Claude Code 2.1.272 en WSL) desde la raíz del repositorio, con los permisos concedidos de antemano, y las resolvió Sonnet 5 (con Haiku 4.5 en subtareas). Una sesión interactiva, otro modelo u otro día son otra medición.
+Las seis sesiones se lanzaron sin interfaz (`claude -p`, Claude Code 2.1.272 en WSL) desde la raíz del repositorio, con los permisos concedidos de antemano, y las resolvió Sonnet 5 (con Haiku 4.5 en subtareas). El control retira el `CLAUDE.md` del proyecto, no el `CLAUDE.md` de usuario de la máquina, que sigue cargándose en las seis. Una sesión interactiva, otro modelo u otro día son otra medición.
 
 ## Parte B · las tres líneas
 
-**1. Apuesta y resultado.** Aposté 2 de 5 y salió 5 de 5, con las cinco ejecuciones hechas: me equivoqué en la dirección de la sorpresa, que es justo para lo que servía escribirla antes.
+**1. Apuesta y resultado.** Aposté 2 de 5 y salió 5 de 5, con las cinco ejecuciones hechas, más un control sin la regla que también salió al día: me equivoqué en la dirección de la sorpresa, que es justo para lo que servía escribir la apuesta antes.
 
-**2. Qué haría con ese número.** Convertirla en algo que se ejecute solo, y dejar en el `CLAUDE.md` solo el porqué: 5 de 5 con cinco intentos no distingue entre una regla que se cumple siempre y una que se cumple la mitad de las veces, así que ese número no autoriza a confiar en ella, y la otra mitad de la misma regla ya falla 3 de 5; un check que mire el diff (si toca rutas, controladores, validadores o transformers de una capability y no toca su README, rojo) cuesta menos que seguir midiendo y no depende de que el modelo esté de buenas.
+**2. Qué haría con ese número.** Quitar la mitad del README de las instrucciones y convertirla en un check que se ejecute solo, porque el control dice que esa mitad se cumple igual sin la regla, así que hoy no está comprando el comportamiento que parecía comprar, y un 5 de 5 con cinco intentos tampoco distingue entre cumplirse siempre y cumplirse la mitad de las veces; la mitad del commit, que falla 3 de 5 y sí depende del archivo, es la que merece bajar a algo que mire el diff y se ponga en rojo.
 
-**3. Una cosa que esta medición no está midiendo.** Qué pasa sin el `CLAUDE.md` puesto: no hay condición de control, así que no sé qué parte de ese 5 de 5 lo hace la regla y qué parte lo hace el modelo por su cuenta, copiando una tabla de endpoints que ya estaba ahí pidiendo una fila más; tampoco mide si lo que el README dice es cierto, porque la comprobación es un `grep` que se conforma con que la línea exista.
+**3. Una cosa que esta medición no está midiendo.** Si lo que el README dice es verdad: la comprobación es un `grep` que se conforma con que la línea exista, y nadie ejecutó el endpoint para ver si de verdad responde `204` sin cuerpo, así que un README que documentara mal el endpoint puntuaría igual de bien que uno correcto.

@@ -17,7 +17,20 @@ Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra
 
 ---
 
-## Prompt 2 · la instrucción al agente que orquestó la medición
+## Prompt 2 · el mismo encargo, en la condición de control
+
+**Modelo:** Sonnet 5 (`claude-sonnet-5`), con Haiku 4.5 (`claude-haiku-4-5`) en subtareas
+**Herramienta:** la misma, con una diferencia: antes de lanzarlo se sacó el `CLAUDE.md` del repositorio, así que la regla no estaba escrita en ninguna parte
+
+```
+Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`.
+```
+
+**Qué salió:** sesión `cb313720`. El README quedó al día igual que en los cinco anteriores. Sin el archivo no creó rama ni commit, y trabajó directamente sobre `s8/start`.
+
+---
+
+## Prompt 3 · la instrucción al agente que orquestó la medición
 
 **Modelo:** Opus 5 (`claude-opus-5`)
 **Herramienta:** Claude Code Desktop en Windows, sesión abierta en otro repositorio y operando sobre WSL
@@ -28,7 +41,7 @@ Ejercicio FlowSync: mide una regla que creías cumplida 🔴 — 9 min
 [... aquí iba pegado el texto completo de la lección, elidido por longitud ...]
 ```
 
-**Qué salió:** montó el proyecto (`make setup`, y 23 tests en verde antes de medir nada), preguntó la apuesta antes de lanzar el primer intento, ejecutó los cinco con la comprobación previa de base limpia y el reset duro posterior, recogió la evidencia de cada uno y escribió `docs/evals/RLL.md`.
+**Qué salió:** montó el proyecto (`make setup`, y 23 tests en verde antes de medir nada), preguntó la apuesta antes de lanzar el primer intento, ejecutó los cinco intentos con la comprobación previa de base limpia y el reset duro posterior, recogió la evidencia de cada uno y escribió `docs/evals/RLL.md`. La condición de control salió de una segunda instrucción: «lanza el control y luego abre el PR».
 
 ---
 
