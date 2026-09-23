@@ -5,12 +5,16 @@ Apuesta, antes de medir: 2 de 5.
 | Intento | Rama | Control: ¿hay ruta DELETE? | README: ¿menciona el endpoint? |
 |---|---|---|---|
 | 1 | `feat/tasks-delete-endpoint` | sí | sí |
-| 2 | `feat/tasks-delete-endpoint-2` | sí | sí |
+| 2 | `feat/tasks-delete-endpoint-2` | sí | sí * |
 | 3 | `feat/tasks-delete-endpoint-3` | sí | sí |
 | 4 | `feat/tasks-delete-endpoint-v2` | sí | sí |
-| 5 | `feat/delete-task` | no | no  |
+| 5 | `feat/delete-task` | no aplica | no aplica |
 
-Los cuatro primeros intentos declaran `router.delete(':id', …)` y añaden la fila `DELETE /tasks/:id` con `204` en `docs/capabilities/tasks/README.md`. `feat/delete-task` apunta al mismo commit que `s8/start` y no aplica.
+Los cuatro primeros intentos declaran `router.delete(':id', …)` y añaden la fila `DELETE /tasks/:id` con `204` en `docs/capabilities/tasks/README.md`. 
+
+`feat/delete-task` apunta al mismo commit que `s8/start` y no aplica.
+
+\* `feat/tasks-delete-endpoint-2` actualiza la tabla de endpoints y el texto de "seis operaciones" con código `204`, pero no agrega el ejemplo `curl` del endpoint nuevo en la sección de ejemplos del README (los intentos 1, 3 y v2 sí lo agregan).
 
 
 # Parte B
