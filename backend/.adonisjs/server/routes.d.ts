@@ -6,13 +6,19 @@ export type ScannedRoutes = {
   ALL: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
+    'auth.social_auth.redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
+    'auth.social_auth.callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
   }
   GET: {
+    'auth.social_auth.redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
+    'auth.social_auth.callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
+    'auth.social_auth.redirect': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
+    'auth.social_auth.callback': { paramsTuple: [ParamValue]; params: {'provider': ParamValue} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
   }
   POST: {

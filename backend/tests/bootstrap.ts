@@ -51,6 +51,9 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
  */
 export const configureSuite: Config['configureSuite'] = (suite) => {
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
-    return suite.setup(() => testUtils.httpServer().start())
+    suite.setup(() => testUtils.httpServer().start())
+    // Envuelve cada test en una transacción que se revierte al terminar, para
+    // que las pruebas que tocan la base de datos no dejen datos residuales.
+    suite.setup(() => testUtils.db().withGlobalTransaction())
   }
 }

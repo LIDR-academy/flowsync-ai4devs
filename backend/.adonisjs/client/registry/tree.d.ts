@@ -9,6 +9,10 @@ export interface ApiDefinition {
     accessTokens: {
       store: typeof routes['auth.access_tokens.store']
     }
+    socialAuth: {
+      redirect: typeof routes['auth.social_auth.redirect']
+      callback: typeof routes['auth.social_auth.callback']
+    }
   }
   profile: {
     profile: {

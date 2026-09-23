@@ -18,6 +18,18 @@ const routes = {
     tokens: [{"old":"/api/v1/auth/login","type":0,"val":"api","end":""},{"old":"/api/v1/auth/login","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/login","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/login","type":0,"val":"login","end":""}],
     types: placeholder as Registry['auth.access_tokens.store']['types'],
   },
+  'auth.social_auth.redirect': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/auth/:provider/redirect',
+    tokens: [{"old":"/api/v1/auth/:provider/redirect","type":0,"val":"api","end":""},{"old":"/api/v1/auth/:provider/redirect","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/:provider/redirect","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/:provider/redirect","type":1,"val":"provider","end":""},{"old":"/api/v1/auth/:provider/redirect","type":0,"val":"redirect","end":""}],
+    types: placeholder as Registry['auth.social_auth.redirect']['types'],
+  },
+  'auth.social_auth.callback': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/auth/:provider/callback',
+    tokens: [{"old":"/api/v1/auth/:provider/callback","type":0,"val":"api","end":""},{"old":"/api/v1/auth/:provider/callback","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/:provider/callback","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/:provider/callback","type":1,"val":"provider","end":""},{"old":"/api/v1/auth/:provider/callback","type":0,"val":"callback","end":""}],
+    types: placeholder as Registry['auth.social_auth.callback']['types'],
+  },
   'profile.profile.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/account/profile',
