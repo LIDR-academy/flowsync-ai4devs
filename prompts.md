@@ -20,16 +20,13 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ---
 
-## Prompt 1
+## Prompt 1 -  Ejecutado 5 veces, despues de limpiar los cambios cada vez y regresar al branch s8/start.
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Claude Opus 5.5 xHigh
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** En una ejecucion agrego la ruta DELETE 5 veces, 4 veces actualizo el README.md. En una ocasion no lo actualizo segun las regla evaluada en del CLAUDE.MD. Nunca alerto ni fallo ninguna comprobacion que esto sucedio. Todas las veces creo su rama de feature e hizo los commits.
