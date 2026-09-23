@@ -11,7 +11,7 @@ Una línea por requisito, con el comando que lo verifica y el síntoma de tenerl
 - **Node 24** (la versión con soporte de largo plazo): `node -v` responde `v24.x`. Con Node 20, `make setup` muere con `ERR_UNKNOWN_FILE_EXTENSION ".ts"`; con la 22 arranca entre decenas de avisos `EBADENGINE`.
 - **make**: `make --version`. Si falta, verás `command not found: make`.
 - **git**: `git --version`. Si falta, verás `command not found: git`.
-- **Claude Code 2.1.269 o posterior**: `claude --version`. En versiones anteriores, el comando que mide responde *"currently in early access"* y no ejecuta nada. Se actualiza con `claude update`.
+- **Claude Code**, instalado y con sesión iniciada: `claude --version` responde algo. No hace falta ninguna versión concreta para este ejercicio.
 
 **Dónde funciona esto:** macOS y Linux tal cual. **En Windows, dentro del Subsistema de Windows para Linux (WSL, por sus siglas en inglés)**, y con **todo** hecho dentro: el clon, Node y `make`. Lo que instales en Windows no existe dentro de WSL. No sirve PowerShell, y el motivo se puede comprobar abriendo el `Makefile` de la raíz: sus atajos usan `cp`, `test` y `rm`, que son de shell de macOS y Linux.
 
@@ -26,8 +26,10 @@ make setup   # solo la primera vez: instala deps, crea los .env, genera APP_KEY 
 **Comprueba que vive antes de seguir**, o vas a depurar la medición cuando lo que falla es el proyecto:
 
 ```bash
-cd backend && npm test    # tiene que terminar en verde
+(cd backend && npm test)    # tiene que terminar en verde
 ```
+
+> 📌 **Los paréntesis no sobran.** Sin ellos te quedas dentro de `backend/`, y ahí no hay `CLAUDE.md`: el siguiente comando que lances parecerá que no encuentra el proyecto. Con ellos vuelves solo a la raíz.
 
 ## La capa de agente
 
@@ -59,7 +61,7 @@ Por eso la entrega a medias no es un problema: **el paso 1 no se puntúa por com
 
 > ⚠️ **La inteligencia artificial no es determinista, y aquí eso no es un aviso legal: es el objeto de estudio.** Si repites el encargo y sale distinto, no lo has hecho mal. Es exactamente lo que vienes a medir. Y cuando repliques este recorrido con los prompts del mentor, tampoco te van a salir sus mismas palabras: lo que se repite es la forma del recorrido, nunca el texto.
 
-> 💳 **Esto consume tu plan, y conviene saberlo antes de empezar.** Cada ensayo que lances es **una sesión de agente completa** contra tu cuenta de Claude. El ejercicio está dimensionado para que salgan **unos seis ensayos en total**, que es poco, y aun así merece que lo sepas antes que después. Dos costumbres que lo mantienen barato y que vas a usar siempre: **fija el modelo pequeño** al lanzar la medición, y **no repitas una tanda "por si acaso"** sin haber leído la anterior.
+> 💳 **Esto consume tu plan, y conviene saberlo antes de empezar.** Cada intento es **una sesión de agente completa** contra tu cuenta de Claude, y el ejercicio pide **cinco**. Es poco, y aun así merece que lo sepas antes que después. La costumbre que lo mantiene barato, y que vas a usar siempre: **no repitas un intento "por si acaso"** sin haber anotado el anterior.
 
 ## Parte A: la medición
 
@@ -74,12 +76,29 @@ Lo que hay que averiguar es **en qué proporción de los intentos se cumple la p
 Cinco pasos, y el orden importa:
 
 1. **Apunta tu apuesta antes de medir nada.** ¿Cuántas veces de cinco crees que el README de la capability va a quedar al día? Escríbela; es media línea y es lo que hace que el resultado te diga algo.
-2. **Prepara el encargo como un caso**, con el proyecto como punto de partida. La suite que se usa en el directo la tienes en el material del módulo: cópiala dentro del proyecto y lánzala desde su raíz.
-3. **Escribe la comprobación del resultado**: el README de la capability `tasks` tiene que mencionar el endpoint nuevo. Es un patrón sobre un archivo, no hace falta nada más.
-4. **Escribe también la comprobación de control**: que la ruta quedó declarada. Sirve para saber si el agente hizo el trabajo, porque si no lo hizo, lo otro no significa nada.
-5. **Lánzalo cinco veces** y anota el resultado de las dos comprobaciones.
+2. **Lanza el encargo tal cual, en una sesión nueva.** Pégalo entero y **no le recuerdes la regla**: si hay que recordársela, ya sabes la respuesta y no hace falta medir nada.
+3. **Comprueba dos cosas a mano cuando termine**, en este orden:
+   - **El control**: ¿quedó declarada la ruta `DELETE`? Si no, el agente no hizo el trabajo, y entonces lo otro no significa nada: ese intento no cuenta.
+   - **El resultado**: ¿menciona `docs/capabilities/tasks/README.md` el endpoint nuevo?
+4. **Deja el proyecto exactamente como estaba**, o el intento siguiente no mide lo mismo. Son tres comandos y van juntos:
 
-> ⚠️ **Cuando suene el reloj, para. Aunque esté a medias.** Tres ensayos leídos valen más que cinco a medio anotar, y decir cuántos hiciste es parte de la respuesta.
+   ```bash
+   git checkout -f s8/start            # vuelve a la rama de partida, descartando cambios
+   git reset --hard upstream/s8/start  # deshace lo que el agente haya commiteado
+   git clean -fd                       # borra los archivos nuevos que dejó
+   ```
+
+   Comprueba que funcionó: `git status -sb` tiene que responder **solo** la línea que empieza por `## s8/start`. Si aparece cualquier otra, todavía queda algo dentro.
+
+5. **Repite hasta cinco veces** y anota las dos casillas de cada intento.
+
+> ⚠️ **`git restore .` no basta, y esto es lo que más gente va a pillar, porque falla en silencio.** La regla de proceso que estás midiendo no es la única del archivo: ese `CLAUDE.md` también le pide al agente **crear una rama y commitear** al cerrar el trabajo. Si lo hizo, descartar cambios no deshace nada: `git status` te dice *limpio*, y sin embargo sigues en la rama del intento anterior, con su trabajo ya dentro. El segundo intento arrancaría desde donde acabó el primero, y los cinco números que te salgan no serían cinco medidas de lo mismo.
+>
+> Las ramas `feat/…` que vaya dejando cada intento puedes ignorarlas: no estorban. Lo que importa es desde dónde arrancas.
+
+> ⏱️ **Sí, es repetitivo, y esa es la mitad de la lección.** Medir una regla significa exactamente esto: el mismo encargo, otra vez, contando.
+
+> ⚠️ **Cuando suene el reloj, para. Aunque esté a medias.** Tres intentos leídos valen más que cinco a medio anotar, y decir cuántos hiciste es parte de la respuesta.
 
 ## Parte B: las tres líneas
 
@@ -145,8 +164,8 @@ git push -u origin evals-<tus-iniciales>
 ## Antes de conectarte, comprueba
 
 - [ ] Estás en tu **fork**, en tu rama, y `git push` funciona.
-- [ ] `claude --version` responde **2.1.269 o posterior**.
-- [ ] `make setup` terminó y `cd backend && npm test` corre en verde.
+- [ ] `claude --version` responde, y has iniciado sesión.
+- [ ] `make setup` terminó y `(cd backend && npm test)` corre en verde.
 - [ ] Existe tu archivo en `docs/evals/`, con la Parte A y las tres líneas.
 - [ ] `prompts.md` está relleno, con modelo y herramienta en cada bloque.
 - [ ] El pull request está abierto.
