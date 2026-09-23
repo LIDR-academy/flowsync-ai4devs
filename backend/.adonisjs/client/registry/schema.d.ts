@@ -127,6 +127,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['show']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'tasks.tasks.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/tasks/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tasks_controller').default['destroy']>>>
+    }
+  }
   'tasks.task_statuses.update': {
     methods: ["PATCH"]
     pattern: '/api/v1/tasks/:id/status'
