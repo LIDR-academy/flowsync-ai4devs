@@ -1,35 +1,96 @@
 # Prompts
 
-Aquí van **todos los prompts que lanzaste** para hacer el ejercicio, en el orden en que los
-lanzaste, con el modelo y la herramienta de cada uno.
+Todos los prompts que lancé para el ejercicio, en el orden en que los lancé.
 
-Esto no es papeleo. Lo que se revisa es **cómo pediste las cosas**, no solo lo que salió: un
-resultado flojo con un prompt bueno y un resultado flojo con un prompt vago necesitan feedback
-distinto, y sin este archivo no se distinguen.
+Los **seis prompts son el mismo texto, palabra por palabra**: son las seis ejecuciones de la
+medición, cada una en una sesión nueva y sobre el proyecto devuelto a `s8/start`. Todos con la misma
+herramienta y el mismo modelo.
 
-## Cómo rellenarlo
+La medición está en [`docs/evals/vb.md`](docs/evals/vb.md).
 
-- Un apartado `## Prompt N` por cada prompt.
-- **Pega el prompt tal cual lo lanzaste**, dentro del bloque de código, aunque ocupe diez líneas
-  y aunque tenga faltas. No lo reescribas para que quede bien: el que arreglaste mentalmente
-  después no es el que lanzaste.
-- Incluye también los que **no funcionaron**. Suelen ser los más útiles de leer.
-- `Modelo` y `Herramienta` en todos. Si cambiaste de una a otra a mitad, se nota aquí.
+Entre una ejecución y la siguiente, a mano y sin agente:
 
-Borra el ejemplo de abajo cuando escribas el primero.
+```bash
+git checkout -f s8/start
+git reset --hard upstream/s8/start
+git clean -fd
+git status -sb   # tiene que responder solo "## s8/start"
+```
 
 ---
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Opus 5 1M
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** funcionó a la primera. Rama `feat/tasks-delete` (`298b54f`): ruta declarada y README al día, con test del borrado. Dejó `docs/api/openapi.json` sin regenerar.
+
+---
+
+## Prompt 2
+
+**Modelo:** Opus 5 1M
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** ruta y README al día. Rama `feat/tasks-delete-endpoint` (`846baa2`), la más escueta de las seis: 3 archivos, sin test, sin regenerar `docs/api/openapi.json` ni `.adonisjs/`.
+
+---
+
+## Prompt 3
+
+**Modelo:** Opus 5 1M
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** la más completa. Rama `feat/borrar-tarea` (`b4b8265`): ruta, README, test y `docs/api/openapi.json` regenerado, los cuatro en el mismo commit.
+
+---
+
+## Prompt 4
+
+**Modelo:** Opus 5 1M
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** ruta, README y test. Rama `feat/eliminar-tarea` (`ab18cb3`). Otra vez `docs/api/openapi.json` sin regenerar, con el controlador ya decorado.
+
+---
+
+## Prompt 5
+
+**Modelo:** Opus 5 1M
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** ruta, README y `docs/api/openapi.json` al día. Rama `feat/delete-task` (`43f49bd`). La única, junto con la 2, que no escribió ningún test.
+
+---
+
+## Prompt 6
+
+**Modelo:** Opus 5 1M
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** la sexta, una más de las cinco que pedía el ejercicio. Rama `feat/tasks-destroy` (`144acbb`): ruta, README, test y `docs/api/openapi.json`.
