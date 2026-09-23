@@ -51,6 +51,7 @@ router
         router.get('/', [controllers.Tasks, 'index'])
         router.post('/', [controllers.Tasks, 'store'])
         router.get(':id', [controllers.Tasks, 'show'])
+        router.delete(':id', [controllers.Tasks, 'destroy'])
         router.patch(':id/status', [controllers.TaskStatuses, 'update'])
         router.put(':id/due-date', [controllers.TaskDueDates, 'update'])
       })

@@ -22,11 +22,13 @@ de `POST /api/v1/auth/login` o de `POST /api/v1/auth/signup`.
 | `GET /tasks` | `status` en query, opcional | [`TasksController.index`](../../../backend/app/controllers/tasks_controller.ts) | `200` · lista de tareas |
 | `POST /tasks` | `{ "title": "..." }` | [`TasksController.store`](../../../backend/app/controllers/tasks_controller.ts) | `201` · la tarea creada |
 | `GET /tasks/:id` | `today=AAAA-MM-DD` en query, **obligatorio** | [`TasksController.show`](../../../backend/app/controllers/tasks_controller.ts) | `200` · la tarea con vencimiento |
+| `DELETE /tasks/:id` | — sin cuerpo ni query | [`TasksController.destroy`](../../../backend/app/controllers/tasks_controller.ts) | `204` · sin cuerpo |
 | `PATCH /tasks/:id/status` | `{ "status": "pending \| in_progress \| done" }` | [`TaskStatusesController.update`](../../../backend/app/controllers/task_statuses_controller.ts) | `200` · la tarea ya cambiada |
 | `PUT /tasks/:id/due-date` | `{ "dueDate": "AAAA-MM-DD" \| null, "today": "AAAA-MM-DD" }` | [`TaskDueDatesController.update`](../../../backend/app/controllers/task_due_dates_controller.ts) | `200` · la tarea con vencimiento |
 
 Toda respuesta va envuelta en `{ "data": ... }` por el serializer de
-[`providers/api_provider.ts`](../../../backend/providers/api_provider.ts).
+[`providers/api_provider.ts`](../../../backend/providers/api_provider.ts) — salvo el `204` del
+borrado, que no lleva cuerpo y por tanto tampoco envoltorio.
 
 ### Dos formas de tarea, no una
 
@@ -58,10 +60,11 @@ recorta a `id`, `fullName` e `initials` — nunca el email.
 
 ### El contrato, servido
 
-Las cinco operaciones están anotadas con los decoradores de `@foadonis/openapi` sobre los propios
+Las seis operaciones están anotadas con los decoradores de `@foadonis/openapi` sobre los propios
 controladores, así que el documento servido en **`/api.json`** (y la interfaz en `/api`) lleva el
 parámetro `status` con sus tres valores, el `today` obligatorio, los cuerpos de las escrituras y los
-códigos `200`/`201`/`401`/`404`/`422` de cada operación, cada uno con la forma de lo que devuelve.
+códigos `200`/`201`/`204`/`401`/`404`/`422` de cada operación —cada uno con la forma de lo que
+devuelve, salvo el `204`, que no devuelve nada—.
 
 Las formas que se repiten viven en
 [`backend/app/openapi/schemas.ts`](../../../backend/app/openapi/schemas.ts) y se publican en
@@ -176,6 +179,14 @@ curl -s -X PATCH http://localhost:3333/api/v1/tasks/1/status \
 curl -s -X PUT http://localhost:3333/api/v1/tasks/1/due-date \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"dueDate":"2026-08-19","today":"2026-08-20"}'
+
+# 7. Borrar la tarea: 204 y respuesta sin cuerpo
+curl -s -o /dev/null -w "%{http_code} %{size_download} bytes\n" -X DELETE \
+  http://localhost:3333/api/v1/tasks/1 -H "Authorization: Bearer $TOKEN"
+
+# 7b. Y ya no está: el mismo DELETE o un GET devuelven 404
+curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:3333/api/v1/tasks/1?today=2026-08-20" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 Ojo: esto **escribe en la base de datos de desarrollo**. Para dejarla como estaba, `node ace

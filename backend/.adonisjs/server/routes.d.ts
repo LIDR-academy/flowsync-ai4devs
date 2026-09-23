@@ -14,6 +14,7 @@ export type ScannedRoutes = {
     'tasks.tasks.index': { paramsTuple?: []; params?: {} }
     'tasks.tasks.store': { paramsTuple?: []; params?: {} }
     'tasks.tasks.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tasks.tasks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'tasks.task_statuses.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'tasks.task_due_dates.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
@@ -38,6 +39,9 @@ export type ScannedRoutes = {
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'tasks.tasks.store': { paramsTuple?: []; params?: {} }
+  }
+  DELETE: {
+    'tasks.tasks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PATCH: {
     'tasks.task_statuses.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

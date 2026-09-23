@@ -580,6 +580,56 @@
             "bearer": []
           }
         ]
+      },
+      "delete": {
+        "summary": "Eliminar una tarea",
+        "description": "La saca de la lista para siempre: no hay papelera ni vía de restauración. No comprueba quién es el responsable, igual que el resto de operaciones de escritura. La confirmación es el propio estado de la respuesta, que no lleva cuerpo.",
+        "tags": [
+          "Tasks"
+        ],
+        "responses": {
+          "204": {
+            "description": "La tarea existía y ya no existe. La respuesta no lleva cuerpo.",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "401": {
+            "description": "Falta el token o no es válido. No se borra ninguna tarea.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ninguna tarea con ese identificador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/tasks/{id}/status": {
