@@ -22,14 +22,87 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Opus 5
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
+Analiza este proyecto, necesito preparar una evaluacion para medir si una regla de proceso se cumple de forma consistente
 
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+La regla es que un cambio que toque rutas controladores validadores o transformers de una capability se cierre en el mismo commit con el documento OpenAPI y el README de esa capability al dia
+
+Para la capability tasks identifica exactamente
+
+1 el archivo README de la capability tasks
+2 el archivo donde estan declaradas las rutas de tasks
+3 el controlador de tasks que deberia recibir DELETE /api/v1/tasks/
+4 el archivo OpenAPI correspondiente si existe
+5 cualquier test relacionado con tasks
+
+una vez que termines de analiza y entender devuelveme las rutas exactas de los archivos y una breve explicacion de que contiene cada uno
+
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** (opcional, una línea) me devolvio unopverview del los apis disponibles asi como puntos clave de la evaluacion
+
+
+## Prompt 2
+
+**Modelo:** Opus 5
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+
+```
+
+**Qué salió:** (opcional, una línea) agrego el nuevo endpoint, 
+
+
+## Prompt 3
+
+**Modelo:** Opus 5
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+
+```
+
+**Qué salió:** (opcional, una línea) agrego el nuevo endpoint, y también dejó al día README.md en el mismo 
+
+
+## Prompt 4 (intento 3)
+
+**Modelo:** Sonnet 5
+**Herramienta:** Claude Code 
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** solo agrego el endpoint 
+
+## Prompt 5 (intento 4)
+
+**Modelo:** Sonnet 5
+**Herramienta:** Claude Code 
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** solo agrego el endpoint y si actualizo el README
+
+## Prompt 5 (intento 5)
+
+**Modelo:** Sonnet 5
+**Herramienta:** Claude Code 
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** agrego la ruta y el controlador, pero no tocó el README 
+
+
+
