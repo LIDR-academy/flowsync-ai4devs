@@ -29,7 +29,7 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 **Eliges qué coger sin preguntar a nadie, y a ti dejan de preguntarte.**
 
 - Decisión que cambia: no empezar algo que otra persona ya está tocando, y elegir lo siguiente sabiendo qué está libre.
-- Por qué se sostiene: quien actualiza cobra en el momento (es su cola de trabajo y deja de recibir interrupciones). El estado se mantiene al día porque actualizar es barato, no porque se obligue a nadie.
+- **Hipótesis central (sin validar)**: el estado se mantendrá al día porque actualizarlo es barato y quien actualiza cobra en el momento (es su cola de trabajo y deja de recibir interrupciones), no porque se obligue a nadie. Es la apuesta que el MVP tiene que probar; si falla, se materializa el riesgo #1.
 - Condición para que funcione: el hábito «primero me la asigno, luego trabajo». Si la tarea no existe cuando alguien empieza, la colisión se repite.
 - Éxito: tras **una semana de uso real**, el equipo cancela la ronda de «¿en qué estás?» y nadie pide que vuelva. Si la siguen haciendo igual, no funcionó. Señal temprana de fallo: alguien pregunta por chat por una tarea que ya está en la lista.
 
@@ -52,7 +52,7 @@ Criterio de «completo»: una persona entra, ve qué está libre, se lo asigna, 
 
 | Excluido | Por qué |
 |---|---|
-| Cambios en vivo sin recargar | La decisión «¿cojo esto?» se toma al abrir la lista; con datos al día al cargar basta. El push solo aporta si antes se demuestra que la gente mantiene el estado al día (riesgo #1). Es lo primero que entra si la hipótesis se sostiene. |
+| Cambios en vivo sin recargar | La decisión «¿cojo esto?» se toma al abrir la lista; con datos al día al cargar basta. El push no mitiga el riesgo #1: lo que se queda viejo es lo que nadie actualizó, y eso no lo arregla verlo antes. Solo acorta el retraso entre que alguien actualiza y los demás lo ven. Es lo primero que entra si la hipótesis se sostiene. |
 | Fecha de vencimiento | No sirve a ninguna de las dos decisiones del producto ni quita la ronda de «¿en qué estás?». Controlar plazos es terreno del gestor pesado, y cada campo extra es algo más que se queda viejo. |
 | «Qué ha cambiado desde tu última visita» | Encaja con «vuelvo y veo qué se ha movido», pero es otra capability. Con 3 a 10 personas, la lista entera cabe en un vistazo. |
 | Descripción, comentarios, adjuntos, etiquetas | Para saber quién está en qué basta con el título. Cada campo acerca la lista al gestor pesado que se sustituye. |
@@ -68,7 +68,8 @@ Criterio de «completo»: una persona entra, ve qué está libre, se lo asigna, 
 | Varios equipos, entidad «equipo», gente en más de uno | El espacio único valida la hipótesis igual; los equipos multiplican permisos y casos borde. **Supuesto**: una instancia = un equipo. |
 | Roles y permisos | Entre pares con roles planos, restringir es fricción sin beneficio. |
 | Presencia, «quién está conectado», indicadores de actividad | Es vigilancia y se rechaza a propósito. El estado es de la tarea, no de la persona. |
-| Notificaciones push, chat, videollamada, edición a la vez sobre lo mismo | La señal es un resumen que espera, no un aviso que interrumpe. Lo demás es otro producto. |
+| Notificaciones push, chat, videollamada | La señal es un resumen que espera, no un aviso que interrumpe. Chat y videollamada son otro producto. |
+| Colaboración simultánea sobre el mismo contenido | «Tiempo real» aquí es ver cambios de estado, no coeditar. Con tareas de un solo título y 3 a 10 personas, que dos editen la misma tarea a la vez es raro; si pasa, gana el último cambio. Resolver conflictos de edición no ayuda a validar la hipótesis. |
 | Deducir el estado de Git/PRs, CI o calendario | Integraciones con OAuth de terceros: otro producto. El estado lo teclea la persona. |
 | Importar o sincronizar con otros gestores | Convivir obliga a actualizar dos veces, y así muere esta categoría. FlowSync sustituye al gestor: crea las tareas, no lee las de otro sitio. |
 | Sprints, estimaciones, épicas, backlog priorizado, informes | Es el «rollo» del que se huye. Un equipo que lo necesite no es nuestro usuario. |
