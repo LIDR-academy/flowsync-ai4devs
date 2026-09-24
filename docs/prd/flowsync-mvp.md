@@ -82,7 +82,7 @@ Una vertical fina que se pueda usar de principio a fin:
 
 ## 5. Épicas del MVP
 
-- **E1 «Cuentas y acceso»:** registro, login y logout (ya existen), crear equipos, añadir miembros, cambiar de equipo y garantizar que solo los miembros ven lo del equipo.
+- **E1 «Cuentas y acceso»:** registro, login y logout (ya existen), crear equipos, añadir y ver miembros, cambiar de equipo y garantizar que solo los miembros ven lo del equipo.
 - **E2 «Gestión de tareas»:** crear tareas y cambiarles el título, el estado, el responsable y la fecha de vencimiento.
 - **E3 «Actividad del equipo»:** la lista del equipo como vista del estado actual: filtrar por estado, marcar las vencidas y mostrar solos los cambios de los demás en menos de 10 segundos.
 
@@ -97,13 +97,13 @@ Cada RF indica su épica. "Miembro" significa un usuario que pertenece al equipo
 - **RF-3** Cualquier usuario con sesión iniciada puede crear un equipo dándole un nombre. El nombre es obligatorio y no puede estar vacío ni tener solo espacios [SUPUESTO: el alcance no fija qué datos tiene un equipo; el nombre hace falta para distinguirlos al cambiar de uno a otro]. Quien lo crea queda como creador y como primer miembro.
 - **RF-4** El creador de un equipo puede añadir miembros escribiendo su email. La persona pasa a ser miembro al momento, sin invitación que aceptar.
 - **RF-5** Si el email no pertenece a ninguna cuenta, no se añade a nadie y se muestra un mensaje que lo explica. Si la persona ya es miembro, tampoco se añade y se informa de ello.
-- **RF-6** Solo el creador puede añadir miembros. Los demás miembros no tienen esa opción.
+- **RF-6** Solo el creador puede añadir miembros. Los demás miembros no tienen esa opción [SUPUESTO: el alcance dice «quien lo crea añade miembros» y excluye traspasar el rol de creador, pero también declara roles planos. Si se prefiere que cualquier miembro pueda añadir, este RF desaparece. Hay que confirmarlo antes de implementar].
 - **RF-7** Cada usuario ve la lista de los equipos a los que pertenece y puede cambiar de equipo activo. Solo hay un equipo activo cada vez. La lista de tareas y todas las acciones sobre tareas se aplican a ese equipo.
-- **RF-8** Al entrar, el usuario ve el último equipo que tuvo activo en ese navegador. Si no hay ninguno, ve el primero de su lista [SUPUESTO].
+- **RF-8** Al entrar, el usuario ve el último equipo que tuvo activo. Si no hay ninguno, ve el primero de su lista [SUPUESTO: ni el alcance ni el producto piden que esa preferencia se conserve entre dispositivos].
 - **RF-9** Un usuario que no pertenece a ningún equipo ve un estado vacío que le ofrece crear uno y le explica que otra persona puede añadirle por su email.
 - **RF-10** Un usuario que no es miembro de un equipo no puede ver sus tareas, ni sus miembros, ni si el equipo existe, ni siquiera con el enlace directo. Tampoco puede crear ni modificar nada en él.
 - **RF-11** Dentro de un equipo, todos los miembros pueden ver y editar todas las tareas, sin distinguir entre creador y resto.
-- **RF-12** Cada miembro puede ver la lista de miembros del equipo activo (nombre o email).
+- **RF-12** Cada miembro puede ver quiénes son los miembros del equipo activo (nombre o email) [SUPUESTO: el alcance no lo pide como funcionalidad propia, pero hace falta para elegir el responsable (RF-16, RF-22) y para que el creador sepa a quién ha añadido ya (RF-5)].
 
 ### E2 — Gestión de tareas
 
@@ -139,7 +139,7 @@ Cada RF indica su épica. "Miembro" significa un usuario que pertenece al equipo
 
 - **RNF-1 · Propagación:** con la red en condiciones normales, pasan menos de 10 segundos desde que se confirma un cambio hasta que aparece en otra sesión abierta del mismo equipo. Se comprueba con dos sesiones en paralelo en al menos 20 cambios seguidos, y los 20 deben cumplirlo [SUPUESTO sobre el método].
 - **RNF-2 · Esfuerzo de actualización:** cambiar el estado de una tarea cuesta dos clics como máximo desde la lista (RF-20). Crear una tarea no pide más de tres campos y solo el título hay que escribirlo.
-- **RNF-3 · Aislamiento entre equipos:** ninguna acción o consulta de un usuario devuelve datos de un equipo del que no es miembro, tampoco a través de enlaces directos o de la propia API. Hay tests automatizados que lo cubren.
+- **RNF-3 · Aislamiento entre equipos:** ninguna acción o consulta de un usuario devuelve datos de un equipo del que no es miembro, tampoco si accede directamente por su enlace ni de ninguna otra forma. Hay tests automatizados que lo cubren.
 - **RNF-4 · Sin vigilancia:** el producto no registra ni muestra nada sobre la presencia de las personas (quién está conectado, última vez visto o actividad por persona). Solo muestra el estado de las tareas.
 - **RNF-5 · Sin interrupciones:** el producto no envía notificaciones de ningún tipo (email, push ni avisos del navegador).
 - **RNF-6 · Rendimiento de la lista:** con un equipo de 10 miembros y 300 tareas, la lista del equipo se ve completa en menos de 2 segundos tras entrar o cambiar de equipo [SUPUESTO sobre el volumen y el tiempo].
