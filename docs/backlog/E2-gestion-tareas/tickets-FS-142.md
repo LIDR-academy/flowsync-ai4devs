@@ -17,7 +17,9 @@ Historia: [FS-142 Filtrar las tareas por estado](us-filtrar-por-estado.md). Las 
 | **FS-142.6** | La vista filtrada se mantiene coherente tras los cambios propios | Frontend | FS-142.4, EXT-4 |
 | **FS-142.7** | Verificación de aceptación de FS-142 | Test | FS-142.5, FS-142.6 |
 
-FS-142.5 y FS-142.6 se pueden hacer en paralelo. **FS-118.8 depende de FS-142.4** (ver [tickets de FS-118](tickets-FS-118.md)).
+FS-142.5 y FS-142.6 se pueden hacer en paralelo.
+
+**Sin estimar.** En la sesión de refinamiento solo se estimó FS-118, así que las tallas de estos tickets siguen pendientes. Hasta que se estimen, no se sabe si alguno es L y habría que partirlo. **FS-118.8 depende de FS-142.4** (ver [tickets de FS-118](tickets-FS-118.md)).
 
 ## Fichas
 

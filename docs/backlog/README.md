@@ -21,7 +21,7 @@ Backlog del MVP derivado del [PRD](../prd/flowsync-mvp.md). Las historias guarda
 - **Tamaño:** cada ticket es una unidad de trabajo que una persona termina en una sesión, de media jornada como máximo.
 - **Criterios:** el ticket **hereda** los criterios de su historia. Su Definition of Done dice *cómo se entrega* (tests, manejo de errores, convenciones); no añade criterios.
 - **Capa:** el ticket **dice qué capa toca** (migración, modelo, endpoint o UI), pero **no la diseña**. Tipos de columna, si un campo admite nulos, índices, nombres de ruta y códigos de estado se deciden al implementar.
-- **Estimación:** se da en tallas (S, M, L), nunca en horas.
+- **Estimación:** se da en tallas (S, M, L), nunca en horas. Si una historia todavía no se ha estimado, se indica en su fichero de tickets.
 
 ## Dependencias externas
 
