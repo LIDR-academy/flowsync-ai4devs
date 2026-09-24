@@ -1,0 +1,1 @@
+Consolida lo anterior en un alcance final en 5 bloques (problema, usuarios, propuesta de valor, alcance, NO-alcance), listo para ser la base de un PRD. Guarda ese alcance consensuado en docs/prd/alcance-mvp.md, para que no dependa de la conversación. Todavía no escribas el PRD.

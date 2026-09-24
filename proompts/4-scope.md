@@ -1,0 +1,4 @@
+- Estados: tres, fijos y no configurables: pendiente / en curso / hecho. "En curso" es la señal que el producto existe para transmitir, así que está DENTRO. "Bloqueado" es otra cosa y está FUERA: es la mitad de la daily que declaramos no resuelta. Los nombres exactos del enum en código bajan a la spec de implementación, no al PRD.
+- Obligatoriedad: responsable SÍ (una tarea sin responsable no cumple el propósito); fecha de vencimiento NO (opcional, y sin fecha nunca aparece como vencida). "Sin campos obligatorios" iba contra la configuración tipo Jira, no contra estos dos.
+- Latencia: 5-10 segundos vale. El sync en tiempo real de E3 no entra en este MVP.
+- Tests: sí, el trabajo llega con tests. Darlo por hecho en el alcance.
