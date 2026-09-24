@@ -61,7 +61,7 @@ CUANDO entro en su lista, con cualquier filtro
 ENTONCES veo un mensaje que dice que el equipo aún no tiene tareas y me ofrece crear una.
 
 **CA-11 · Se pide un estado que no existe**
-DADO que abro la lista con un filtro por un estado que no existe (por ejemplo, desde un enlace con el estado "Bloqueado")
+DADO que se pide la lista filtrada por un estado que no existe (por ejemplo, "Bloqueado")
 CUANDO se carga la lista
 ENTONCES veo un aviso en castellano que dice que ese estado no existe e indica los que sí hay. No se muestra una lista vacía como si no hubiera tareas **[PROPUESTO: y el filtro vuelve a *Todas*]**.
 

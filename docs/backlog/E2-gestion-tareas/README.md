@@ -42,7 +42,7 @@ Historias de usuario de la épica E2 del [PRD del MVP](../../prd/flowsync-mvp.md
   - E2-2 y E2-6 necesitan la lista de miembros del equipo (RF-12).
   - FS-118 necesita el huso horario del equipo (ver "Impacto en E1 y en el PRD").
 - **E3 — Actividad del equipo:**
-  - Cambiar el estado desde la lista (E2-4) y ver la tarea creada (E2-1) necesitan la lista del equipo de RF-27.
+  - Cambiar el estado desde la lista (E2-4), ver la tarea creada (E2-1) y ver la fecha y la marca de vencida (FS-118) necesitan la lista del equipo de RF-27.
   - **[PROPUESTO]** E2-1 entrega una lista mínima con título, responsable y estado, y E3 la amplía.
   - Que los cambios aparezcan en otras sesiones en menos de 10 segundos (RF-31) es de E3. Los criterios de E2 que lo mencionan dependen de esa historia.
 
@@ -76,6 +76,7 @@ Esto abre dos cambios pendientes:
 - **RF-3:** un equipo tiene nombre y huso horario.
 - **RF-28:** "hoy" es el día en el huso horario del equipo, no en el de quien mira la lista. Así desaparece su supuesto: todos los miembros ven la misma tarea vencida a la vez.
 - **Tabla de fuera de alcance:** añadir "Cambiar el huso horario de un equipo ya creado".
+- **Sección 5 (épicas):** la marca de vencida (RF-28, RF-29 y RF-36) pasa de E3 a E2 dentro de FS-118, y el filtro por estado (RF-30) pasa a E2 como FS-142. Hay que actualizar la descripción de E2 y de E3 y la épica que indica cada RF.
 
 **En la historia de E1 "Crear un equipo":** hay que añadirle estos criterios.
 
@@ -102,8 +103,8 @@ ENTONCES no hay ninguna opción para hacerlo.
 ## Preguntas abiertas
 
 1. **FS-118, CA-10:** ¿se admite poner una fecha que ya ha pasado? La propuesta es que sí.
-2. **FS-118, CA-11:** ¿hay un límite para las fechas futuras? Ahora no hay ninguno.
+2. **FS-118:** ¿hay un límite para las fechas futuras? Ningún criterio lo trata, así que ahora no hay ninguno.
 3. **FS-118:** ¿cómo se muestra la fecha en la lista? Puede ser absoluta ("30 sept") o relativa ("vence mañana").
-4. **CA-E1-b:** ¿el huso viene preseleccionado con el de quien crea el equipo?
+4. **CA-E1-b:** ¿se confirma que el huso viene preseleccionado con el de quien crea el equipo?
 5. **Dependencias:** ¿entrega E2-1 una lista mínima, o se planifica antes RF-27 de E3?
 6. **FS-142, CA-11:** cuando se pide un estado que no existe, ¿el filtro vuelve a *Todas*, o solo se muestra el aviso?

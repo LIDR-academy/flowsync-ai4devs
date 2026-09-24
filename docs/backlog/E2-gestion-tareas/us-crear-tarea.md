@@ -87,7 +87,7 @@ ENTONCES veo un mensaje en castellano, la tarea no aparece en la lista **[PROPUE
 
 **CA-16 · Guardar dos veces seguidas no duplica** **[PROPUESTO]**
 DADO que estoy creando una tarea
-CUANDO pulso guardar dos veces muy seguidas
+CUANDO pulso guardar una segunda vez antes de que se confirme la primera
 ENTONCES se crea una sola tarea.
 
 **CA-17 · La nueva tarea no desordena la lista** (RF-34) [SUPUESTO PRD]
