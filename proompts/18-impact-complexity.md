@@ -1,0 +1,1 @@
+Coloca en una matriz impacto vs complejidad las historias de E2 "Gestión de tareas" (incluidas las que quedaron fuera del MVP) y también el sync en tiempo real de E3 "Actividad del equipo", y propón un orden de backlog. Marca los "quick wins" (alto impacto, baja complejidad).

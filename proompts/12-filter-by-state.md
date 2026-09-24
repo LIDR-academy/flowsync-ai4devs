@@ -1,0 +1,2 @@
+Ahora la historia de filtrar las tareas por estado para centrarse en lo pendiente. Si no apareció al descomponer E2 porque ese requisito quedó bajo otra épica, tómala igualmente: para nosotros es una historia de E2 y se llama FS-142.
+Mismos criterios: reglas de negocio observables en Given/When/Then, en español (DADO / CUANDO / ENTONCES), sin endpoints ni status codes. Incluye el caso de que se pida un estado que no existe (el sistema debe avisar del error, no devolver una lista vacía en silencio).

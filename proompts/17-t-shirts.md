@@ -1,0 +1,1 @@
+Estima cada ticket en t-shirt sizing (S/M/L) y da una nota de riesgo. No inventes horas exactas; explica en qué se basa cada talla.

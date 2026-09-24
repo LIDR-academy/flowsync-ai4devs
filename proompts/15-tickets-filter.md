@@ -1,0 +1,4 @@
+Ahora coge la historia FS-142 "Filtrar tareas por estado", de @docs/backlog/E2-gestion-tareas/.
+Descompón esta historia en TICKETS con la misma convención que la anterior: ID derivado de la historia (la historia es FS-142, así que sus tickets son FS-142.1, FS-142.2…), título, tipo (uno de estos: Endpoint/API, Migración/DB, Modelo/Dominio, Frontend, Bug o Test), Definition of Done según su tipo, y dependencias (qué ticket lo bloquea).
+El ticket HEREDA los criterios de la historia; su Definition of Done es una checklist de "cómo lo entregamos" (tests, manejo de error, convenciones), NO criterios nuevos ni estimación en horas.
+El ticket NOMBRA la capa que toca (migración, modelo, endpoint, UI), pero NO diseña: nada de tipos de columna, si admiten nulos, índices, nombres de ruta ni status codes. Esa decisión es de la implementación.
