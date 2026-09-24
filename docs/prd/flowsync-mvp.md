@@ -148,7 +148,7 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 
 ## 9. Métricas de éxito
 
-Todas se miden **tras una semana de uso real** por un equipo que haya dejado su gestor anterior para el trabajo del día a día.
+Todas, salvo M-5 (no medible en este MVP), se miden **tras una semana de uso real** por un equipo que haya dejado su gestor anterior para el trabajo del día a día.
 
 | # | Métrica | Umbral de éxito | Cómo se mide |
 |---|---|---|---|
