@@ -1,8 +1,8 @@
 # FlowSync — PRD del MVP
 
-> Documento de producto. Se basa en el alcance consensuado de [`alcance-mvp.md`](./alcance-mvp.md); si hay discrepancia, manda el alcance y este PRD se corrige.
+> Documento de producto. Se basa en el alcance consensuado de [`alcance-mvp.md`](./alcance-mvp.md); si hay discrepancia, manda el alcance y este PRD se corrige, salvo lo marcado como **[DESVIACIÓN DEL ALCANCE]**: son propuestas pendientes de aprobar que, si se aceptan, obligan a actualizar `alcance-mvp.md`, y si se rechazan, se retiran de aquí.
 >
-> No incluye diseño técnico (modelo de datos, arquitectura, endpoints). Lo marcado como **[SUPUESTO]** no está validado y debe confirmarse o descartarse con uso real.
+> No incluye diseño técnico (modelo de datos, arquitectura, endpoints); §8 solo recoge las restricciones que impone el stack que ya existe. Lo marcado como **[SUPUESTO]** no está validado y debe confirmarse o descartarse con uso real.
 >
 > Etiquetas en los requisitos: **[EXISTE]** = ya implementado en el repo; **[NUEVO]** = a construir en este MVP.
 
@@ -77,7 +77,7 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 | Roles y permisos | Entre pares con roles planos, restringir solo añade fricción. |
 | Presencia, «quién está conectado», indicadores de actividad | Es vigilancia, y se rechaza a propósito. El estado pertenece a la tarea, no a la persona. |
 | Notificaciones push, chat, videollamada | Lo que se busca es un resumen que espera a que lo mires, no un aviso que interrumpe. |
-| Varias personas editando lo mismo a la vez | «Tiempo real» aquí significa ver cambios de estado, no coeditar. Salvo el caso de RF-12, prevalece el último cambio. |
+| Varias personas editando lo mismo a la vez | «Tiempo real» aquí significa ver cambios de estado, no coeditar. Prevalece el último cambio (el alcance lo fija así; RF-12 propone una excepción pendiente de aprobar). |
 | Deducir el estado de Git/PRs, CI o el calendario | Exige integraciones y OAuth de terceros, y eso es otro producto. |
 | Importar o sincronizar con otros gestores | Tener las tareas en dos sitios obliga a actualizar dos veces, y así muere esta categoría. |
 | Sprints, estimaciones, épicas, backlog priorizado, informes | Es justo «el rollo» del que se quiere huir. |
@@ -109,7 +109,7 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 - **RF-9 [NUEVO]** No se puede crear una tarea con el título vacío o formado solo por espacios, y se muestra un error en castellano. **[SUPUESTO]** El título admite hasta 200 caracteres.
 - **RF-10 [NUEVO] Tomar.** Desde la lista, en dos clics como máximo, una persona puede tomar una tarea **Libre**: pasa a ser la responsable y la tarea queda **En curso**.
 - **RF-11 [NUEVO] Asignar.** Desde la lista, una persona puede asignar como responsable a cualquier usuario registrado, incluida ella misma, en cualquier tarea no terminada. La tarea queda **En curso** con ese responsable.
-- **RF-12 [NUEVO] No pisar a otro.** Puede pasar que alguien intente *tomar* una tarea que ya tiene otra persona, porque su lista no estaba actualizada. En ese caso la tarea **no** se reasigna en silencio: se informa de quién la tiene y la lista se actualiza. La reasignación deliberada con RF-11 sigue permitida.
+- **RF-12 [NUEVO] [DESVIACIÓN DEL ALCANCE] No pisar a otro.** Puede pasar que alguien intente *tomar* una tarea que ya tiene otra persona, porque su lista no estaba actualizada. En ese caso la tarea **no** se reasigna en silencio: se informa de quién la tiene y la lista se actualiza. La reasignación deliberada con RF-11 sigue permitida. *Desviación:* `alcance-mvp.md` fija que, en ediciones simultáneas, prevalece el último cambio. Aplicado a *tomar*, eso reproduce en silencio la colisión que el producto existe para evitar. Si no se aprueba, se retira este RF y *tomar* sigue la regla general.
 - **RF-13 [NUEVO] Soltar.** El responsable de una tarea **En curso**, u otra persona, puede quitarle el responsable. La tarea vuelve a **Libre**.
 - **RF-14 [NUEVO] Terminar.** Una tarea **Libre** o **En curso** se puede marcar como **Terminada** en dos clics como máximo, desde la lista. Si tenía responsable, lo conserva, para que se vea quién la terminó.
 - **RF-15 [NUEVO] Reabrir.** Una tarea **Terminada** se puede reabrir. Vuelve a **En curso** si tiene responsable y a **Libre** si no lo tiene.
@@ -128,7 +128,7 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 
 - **RNF-1 Fricción.** Tomar, terminar, soltar o reabrir una tarea cuesta **2 clics como máximo** desde la lista. Crear una cuesta escribir el título y confirmar. Se comprueba contando interacciones en una prueba guiada.
 - **RNF-2 Sin campos obligatorios** salvo el título, en todo el MVP.
-- **RNF-3 Resultado visible.** Tras cada cambio, la persona ve el resultado en la lista sin recargar a mano. Si un cambio no se guarda, lo ve con un mensaje en castellano y la lista no lo muestra como guardado.
+- **RNF-3 Resultado visible.** Tras cada cambio **propio**, quien lo hace ve el resultado en la lista sin recargar a mano. Los cambios de **otras personas** solo aparecen al abrir o recargar (RF-21). Si un cambio no se guarda, lo ve con un mensaje en castellano y la lista no lo muestra como guardado.
 - **RNF-4 Privacidad.** El producto no muestra ni registra, para mostrarlo, ningún dato de actividad de las personas: conexión, «visto por última vez», tiempo en la app. Se comprueba revisando que ninguna pantalla muestra esa información.
 - **RNF-5 Acceso.** Ningún dato de tareas es accesible sin sesión (ver RF-5). Las contraseñas nunca se muestran. **[SUPUESTO]** La instalación no está expuesta a desconocidos, porque cualquiera que pueda registrarse entra en el espacio (RF-6).
 - **RNF-6 Idioma.** Toda la interfaz y todos los mensajes de error están en castellano.
@@ -153,7 +153,7 @@ Todas se miden **tras una semana de uso real** por un equipo que haya dejado su 
 |---|---|---|---|
 | M-1 **(principal)** | Ronda de «¿en qué estás?» en la daily | Se cancela durante la semana y **nadie pide que vuelva** | Observación de la daily y pregunta explícita al equipo al final de la semana |
 | M-2 | Preguntas «¿en qué estás?» o «¿cómo va X?» por chat sobre tareas que ya estaban en la lista | **[SUPUESTO]** Como máximo 1 en toda la semana y todo el equipo | Autoinforme diario de cada persona (sí/no + tarea) |
-| M-3 | Colisiones: dos personas trabajando en lo mismo sin saberlo | **0** en la semana | Pregunta explícita en la retro de fin de semana |
+| M-3 | Colisiones: dos personas trabajando en lo mismo sin saberlo | **[SUPUESTO]** 0 en la semana | Pregunta explícita en la retro de fin de semana |
 | M-4 | Frescura del estado | **[SUPUESTO]** Al menos el 90 % de las tareas En curso las está trabajando de verdad su responsable | Muestreo diario: cada persona confirma sus tareas En curso |
 | M-5 | Adopción | Todas las personas del equipo toman al menos una tarea (RF-10) durante la semana | Revisión de la lista al final de la semana |
 | M-6 (alarma) | Convivencia con el gestor anterior | Nadie mantiene el trabajo en paralelo en otra herramienta | Pregunta explícita al equipo |
