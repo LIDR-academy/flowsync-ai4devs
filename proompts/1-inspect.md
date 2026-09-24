@@ -1,0 +1,1 @@
+Antes de nada, léete el repo y devuélveme el estado real del proyecto: qué capabilities ya existen (auth…) y un diagrama rápido del modelo de datos actual (entidades y relaciones, en Mermaid). No propongas cambios todavía; solo quiero el mapa de lo que hay.
