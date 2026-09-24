@@ -1,0 +1,1 @@
+Muéstrame las dependencias entre los tickets de FS-118 como un grafo simple (qué bloquea a qué) y el orden de implementación recomendado.

@@ -1,0 +1,12 @@
+Materializa el backlog en el tablero FLOW de Jira usando el MCP de Atlassian. Hazlo SECUENCIAL, en este orden, sin lanzar creaciones en paralelo:
+
+1. Crea la HISTORIA FS-118 como issue de tipo "Historia". Título: «FS-118 — Fechas de vencimiento y tareas vencidas». Descripción: sus criterios de aceptación en Given/When/Then, en español (DADO / CUANDO / ENTONCES), tal como los aprobamos (reglas de negocio, sin endpoints ni status codes). Etiquetas: "E2" y "FS-118".
+2. Lee la clave que Jira devuelve para esa historia (tiene la forma FLOW-nnn) y úsala en el paso 3.
+3. Crea cada ticket de esa historia (FS-118.1, FS-118.2, FS-118.3…) como issue de tipo "Subtarea", pasando el parámetro parent con la clave FLOW-nnn de la historia. En cada subtarea: título con su ID derivado («FS-118.1 — …»), descripción con su tipo y su Definition of Done, etiquetas "E2" y su ID.
+4. Repite los pasos 1-3 con la HISTORIA FS-142 «Filtrar tareas por estado» y los tickets que le hayan salido (FS-142.1, FS-142.2…, los que sean). Si esa historia no tiene ningún ticket, créala igualmente como "Historia" y no le cuelgues subtareas.
+5. Crea por último la HISTORIA que encabeza el orden priorizado, como issue de tipo "Historia" y SIN subtareas. Título: «E2-1 — Crear tarea con solo el título». Descripción: que es la primera del orden de backlog por ser prerrequisito de todo lo demás; que junto con E2-2, E2-3 y E2-4 forma la base de la capability de tareas (requisitos RF-5 a RF-9 del PRD: crear con solo el título, título obligatorio, responsable por defecto, los tres estados fijos y cambiar el estado desde la lista); y que sus criterios de aceptación viven en el backlog del repositorio, en docs/backlog/, no en este tablero: hoy en directo hemos enriquecido solo las dos historias de arriba. Etiquetas: "E2" y "E2-1".
+
+Restricciones que debes respetar:
+- Los tipos de issue de este proyecto están EN ESPAÑOL: usa literalmente "Historia" y "Subtarea". "Story" o "Sub-task" no resuelven.
+- Una subtarea NO se puede crear sin parent: la historia va siempre primero y su clave se encadena a cada subtarea.
+- No inventes claves de Jira: la clave real la asigna Jira (FLOW-nnn). FS-118 y FS-118.1 son nuestra convención y viven en el título y las etiquetas, nunca como clave.
