@@ -22,14 +22,13 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Haiku
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
+El fichero @CLAUDE.md linea 134 contine la regla a medir. En que proporcion de los intentos se cumple la parte del @README.md lineas 74 a 99? Cuantas ejecuciones hizo? Mi apuesta previa es 0 de 5. Ahora, lanza los 5 intentos con el agente, cada uno en sesion nueva.
 
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** Lanzo los 5 agentes implementando el endpoint DELETE para la capability "task", actualizó la documentación de OpenAPI, y 2/5 veces el fichero ./backend/docs/capabilities/tasks/README.md.
+
