@@ -52,12 +52,12 @@ Cada criterio indica su origen: *(PRD: …)* si sale del PRD, *(producto)* si lo
 ### Estado que no existe
 
 **CA-7: Pedir un estado que no existe da un aviso, no una lista vacía** *(producto)*
-- **DADO** un miembro del equipo que abre la lista pidiendo un estado que no existe (por ejemplo, con un enlace o un marcador guardado que filtra por «Bloqueada» o por un texto mal escrito)
+- **DADO** un miembro del equipo que pide la lista filtrada por un estado que no existe (por ejemplo, «Bloqueada» o un texto mal escrito)
 - **CUANDO** se carga la lista
 - **ENTONCES** ve un aviso en castellano que dice que ese estado no existe
 - **Y** no se le muestra una lista vacía como si no hubiera tareas en ese estado
 
-> Nota: este caso solo puede darse si el filtro se puede pedir desde fuera de la lista, con un enlace o un marcador. Eso depende de CA-12.
+> Nota **[PROPUESTO]**: todavía no está decidido cómo se puede llegar a pedir un estado que no existe, porque desde el selector solo se puede elegir entre las opciones válidas. Hay dos posibilidades: un enlace o un marcador que conserve el filtro (mecanismo sin aprobar) o un filtro que se ha conservado (CA-12) y que ha dejado de ser válido porque PA-6 ha reducido las opciones. La regla de este criterio es la misma venga de donde venga.
 
 **CA-8: Tras el aviso, puede seguir trabajando** **[PROPUESTO]**
 - **DADO** el aviso de CA-7
@@ -93,7 +93,7 @@ Cada criterio indica su origen: *(PRD: …)* si sale del PRD, *(producto)* si lo
 - **CUANDO** recarga la lista para ver los cambios de los demás
 - **ENTONCES** sigue viendo el mismo filtro
 
-> Nota: recargar es la forma de ver los cambios de los demás (RF-21). Si al recargar se pierde el filtro, se penaliza justo lo que el producto necesita que la gente haga. La alternativa es volver siempre a *Pendientes*. De esta decisión depende que CA-7 pueda llegar a darse.
+> Nota: recargar es la forma de ver los cambios de los demás (RF-21). Si al recargar se pierde el filtro, se penaliza justo lo que el producto necesita que la gente haga. La alternativa es volver siempre a *Pendientes*.
 
 **CA-13: Los cambios de otros se ven al recargar** *(PRD: RF-21)*
 - **DADO** un miembro del equipo que tiene el filtro *Libre* mientras otra persona toma una de esas tareas
@@ -126,7 +126,7 @@ Cada criterio indica su origen: *(PRD: …)* si sale del PRD, *(producto)* si lo
 - **CUANDO** quiere cambiar de filtro
 - **ENTONCES** puede elegir cualquiera de los cinco sin usar el ratón
 
-**CA-18: El filtro activo no se indica solo con color** *(PRD: RNF-7)*
+**CA-18: El filtro activo no se indica solo con color** **[PROPUESTO]** *(extiende RNF-7, que solo lo exige para el estado de la tarea)*
 - **DADO** un filtro aplicado
 - **CUANDO** se muestra cuál está activo
 - **ENTONCES** se indica también con texto o con un icono con etiqueta, no solo con el color

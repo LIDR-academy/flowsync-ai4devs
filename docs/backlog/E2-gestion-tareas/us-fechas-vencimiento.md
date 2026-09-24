@@ -146,7 +146,7 @@ Cada criterio indica de dónde sale: *(PRD: …)* si sale del PRD, o **[PROPUEST
 
 ### Accesibilidad
 
-**CA-22: «Vencida» no se indica solo con color** *(PRD: RNF-7)*
+**CA-22: «Vencida» no se indica solo con color** **[PROPUESTO]** *(extiende RNF-7, que solo lo exige para el estado de la tarea)*
 - **DADO** una tarea vencida
 - **CUANDO** se muestra en la lista
 - **ENTONCES** también se identifica como vencida con texto o con un icono con etiqueta, no solo con el color
