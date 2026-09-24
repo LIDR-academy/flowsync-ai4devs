@@ -56,7 +56,8 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 3. Asignar responsable (a uno mismo o a otra persona) desde la lista.
 4. Cambiar el estado **en dos clics como máximo** desde la lista, sin formularios. El usuario ve tres estados: **Libre**, **En curso** y **Terminada**.
 5. Filtrar por estado.
-6. La lista muestra los datos al día **cada vez que se abre o se recarga**.
+6. Fecha de vencimiento opcional por tarea, con las vencidas visibles de un vistazo.
+7. La lista muestra los datos al día **cada vez que se abre o se recarga**.
 
 **Criterio de «completo»:** una persona entra, ve qué está libre y se la asigna, y el resto del equipo lo ve la siguiente vez que abre la lista.
 
@@ -65,7 +66,6 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 | Excluido | Motivo |
 |---|---|
 | Cambios en vivo sin recargar | La decisión «¿cojo esto?» se toma al abrir la lista, y para eso bastan datos al día al cargar. Actualizar en vivo no evita que el estado se quede viejo si nadie lo cambia. Es lo primero que entra si la hipótesis se sostiene. |
-| Fecha de vencimiento | No ayuda a elegir qué coger ni a evitar colisiones. Controlar plazos es terreno del gestor pesado. |
 | «Qué ha cambiado desde tu última visita» | Es otra capability. Con 3 a 10 personas, la lista entera se lee de un vistazo. |
 | Descripción, comentarios, adjuntos, etiquetas | Para saber quién está en qué basta con el título. |
 | Editar el título | No figura en el alcance consensuado. Si una tarea se crea con el título mal, se marca como terminada y se crea otra. **[SUPUESTO]** Los errores en el título serán raros. Si no lo son, es la primera ampliación de E2. |
@@ -86,8 +86,8 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 ## 5. Épicas del MVP
 
 - **E1 «Cuentas y acceso»**: registro, login, sesión y cierre de sesión (ya existen), más la regla de que todo usuario registrado pertenece al único espacio.
-- **E2 «Gestión de tareas»**: crear tareas y cambiar quién las tiene y en qué estado están (tomar, asignar, soltar, terminar, reabrir).
-- **E3 «Actividad del equipo»**: ver de un vistazo quién está en qué y qué está libre, con la lista filtrable por estado y al día al cargar.
+- **E2 «Gestión de tareas»**: crear tareas, cambiar quién las tiene y en qué estado están (tomar, asignar, soltar, terminar, reabrir), la fecha de vencimiento y el filtrado por estado.
+- **E3 «Actividad del equipo»**: ver de un vistazo quién está en qué y qué está libre, con la lista al día al cargar.
 
 > **Nota sobre E3.** El nombre no implica un feed de actividad, un histórico, actualizaciones en vivo ni presencia de personas: todo eso está fuera de alcance. En este MVP, «actividad del equipo» es el **estado actual de las tareas** del equipo.
 
@@ -115,11 +115,12 @@ Una lista de tareas compartida que es, a la vez, **la cola de trabajo de cada pe
 - **RF-15 [NUEVO] Reabrir.** Una tarea **Terminada** se puede reabrir. Vuelve a **En curso** si tiene responsable y a **Libre** si no lo tiene.
 - **RF-16 [NUEVO] Coherencia visible.** En ningún momento se ve una tarea **Libre** con responsable, ni una tarea **En curso** sin responsable.
 - **RF-17 [NUEVO]** Todo cambio confirmado (crear, tomar, asignar, soltar, terminar, reabrir) persiste. Lo ve cualquier usuario al abrir o recargar la lista, y lo sigue viendo después de cerrar sesión y volver a entrar.
+- **RF-19 [NUEVO]** La lista se puede filtrar por estado: *Pendientes* (Libre + En curso), *Libre*, *En curso*, *Terminada* y *Todas*. El filtro por defecto es *Pendientes*.
+- **RF-23 [NUEVO] [DESVIACIÓN DEL ALCANCE — aprobada] Fecha de vencimiento.** Desde la lista, una persona puede poner, cambiar o quitar una fecha de vencimiento en cualquier tarea. Nunca es obligatoria (RNF-2). Las tareas no terminadas cuya fecha ya ha pasado se distinguen como vencidas en la propia lista. **[SUPUESTO]** Una tarea está vencida a partir del día siguiente a su fecha, según el calendario de quien mira. *Desviación aprobada:* `alcance-mvp.md` la excluye todavía y hay que actualizarlo.
 
 ### E3 — Actividad del equipo
 
 - **RF-18 [NUEVO]** La lista muestra, para cada tarea, el título, el estado y el responsable (si lo hay).
-- **RF-19 [NUEVO]** La lista se puede filtrar por estado: *Pendientes* (Libre + En curso), *Libre*, *En curso*, *Terminada* y *Todas*. El filtro por defecto es *Pendientes*.
 - **RF-20 [NUEVO]** El estado se distingue de un vistazo en la propia lista, sin abrir cada tarea.
 - **RF-21 [NUEVO]** Al abrir o recargar la lista se ven todos los cambios confirmados por cualquier persona hasta ese momento. Mientras no se recarga, la lista **no** se actualiza sola (queda fuera de alcance).
 - **RF-22 [NUEVO]** **[SUPUESTO]** Las tareas aparecen ordenadas de más reciente a más antigua según su creación, y el orden no cambia al cambiar el estado, para que nadie pierda su sitio en la lista.
@@ -155,7 +156,7 @@ Todas se miden **tras una semana de uso real** por un equipo que haya dejado su 
 | M-2 | Preguntas «¿en qué estás?» o «¿cómo va X?» por chat sobre tareas que ya estaban en la lista | **[SUPUESTO]** Como máximo 1 en toda la semana y todo el equipo | Autoinforme diario de cada persona (sí/no + tarea) |
 | M-3 | Colisiones: dos personas trabajando en lo mismo sin saberlo | **[SUPUESTO]** 0 en la semana | Pregunta explícita en la retro de fin de semana |
 | M-4 | Frescura del estado | **[SUPUESTO]** Al menos el 90 % de las tareas En curso las está trabajando de verdad su responsable | Muestreo diario: cada persona confirma sus tareas En curso |
-| M-5 | Adopción | Todas las personas del equipo toman al menos una tarea (RF-10) durante la semana | Revisión de la lista al final de la semana |
+| M-5 | Adopción: todas las personas del equipo toman al menos una tarea por sí mismas (RF-10) durante la semana | — | **No medible en este MVP.** La lista solo muestra el responsable actual (RF-18) y el histórico está fuera de alcance (nota de E3). Al final de la semana no se puede saber quién tomó una tarea y a quién se la asignaron, ni qué tareas pasaron por cada persona. |
 | M-6 (alarma) | Convivencia con el gestor anterior | Nadie mantiene el trabajo en paralelo en otra herramienta | Pregunta explícita al equipo |
 
 **Señal temprana de fallo:** alguien pregunta por chat por una tarea que ya está en la lista (M-2), o una tarea aparece En curso sin que nadie la esté trabajando (M-4).
@@ -163,5 +164,69 @@ Todas se miden **tras una semana de uso real** por un equipo que haya dejado su 
 **Riesgos que miden estas métricas:**
 
 - **Riesgo #1, estado viejo** (incluidas tareas que nunca se crean): lo miden M-3 y M-4.
-- **Riesgo #2, migración cara** porque las tareas tienen muy pocos campos: lo miden M-5 y M-6.
+- **Riesgo #2, migración cara** porque las tareas tienen muy pocos campos: lo mide M-6. M-5 no es medible en este MVP.
 - **Riesgo #3, validación sin cliente real:** ninguna métrica lo cubre. Se resuelve consiguiendo un equipo real.
+
+## 10. Puntos abiertos
+
+Hallazgos de la revisión adversarial que no se aplican en este documento. Cada uno necesita una decisión antes de construir la parte a la que afecta.
+
+### Decisiones de producto
+
+- **PA-1 ¿Sustituir el gestor actual o convivir con él?** (§3, §9)
+  - *Argumento:* con tareas de solo título (sin descripción ni enlaces, y sin poder editar el título), lo probable es que el contexto que necesita el trabajo se quede en el gestor pesado, y el equipo acabe actualizando dos sitios. Si pasa, no se cumple la condición previa de §9 y no se mide nada.
+  - *Para decidir:* observar con un equipo real qué contexto consultan al trabajar una tarea y dónde lo guardan. Con eso, o se añade un campo mínimo de contexto o se reescribe §3 aceptando la convivencia.
+- **PA-2 JTBD-3 («ponerme al día») no lo cubre ningún requisito.**
+  - *Argumento:* sin «qué ha cambiado» ni rastro temporal, quien vuelve ve el estado actual pero no qué se ha movido. En un equipo repartido en 3 husos horarios, ese es el caso asíncrono principal.
+  - *Para decidir:* si JTBD-3 se mantiene (y entonces hace falta alguna señal de cambio) o se retira. Validarlo con un equipo repartido en varios husos.
+- **PA-3 El hábito «primero me la asigno, luego trabajo» no tiene requisito ni métrica.**
+  - *Argumento:* el episodio de referencia pasó porque alguien empezó sin avisar, y el producto ni cambia eso ni lo observa. Medirlo exige un registro mínimo de transiciones, que hoy está fuera de alcance.
+  - *Para decidir:* si el MVP debe facilitar o medir ese hábito, y si eso justifica guardar ese registro mínimo.
+- **PA-4 M-1 a M-4 son difíciles de medir con fiabilidad.**
+  - *Argumento:*
+    - M-1: un solo equipo, una sola semana y efecto novedad, y hoy no hay equipo real.
+    - M-2: llevar el autoinforme cuesta más que usar el producto.
+    - M-3: con un único episodio conocido, cero colisiones en una semana es lo esperable con o sin FlowSync.
+    - M-4: «trabajando de verdad» no está definido, y lo confirma la misma persona que se olvidó de actualizar.
+  - *Para decidir:* un equipo real; la frecuencia actual de colisiones, medida antes de empezar; una definición de «trabajando de verdad»; y si se aceptan métricas autoinformadas o se guarda algún dato en el producto (ver PA-3).
+- **PA-5 Bajas, registro abierto y quién instala.** (RF-6, RNF-5)
+  - *Argumento:* sin roles, nadie puede quitar el acceso a quien se va ni sacarlo de la lista de posibles responsables. Con el registro abierto, el control de acceso depende de un supuesto operativo que el producto no puede comprobar. Y no está definido quién monta la instancia de un equipo.
+  - *Para decidir:* cómo se da de baja a una persona y quién puede hacerlo sin romper los roles planos, y cómo consigue un equipo su instancia.
+- **PA-6 Alcance que añadió el PRD y que no estaba en el alcance consensuado.**
+  - *Argumento:* los requisitos siguientes tienen coste y no venían del alcance:
+    - RNF-7: todo operable con teclado.
+    - RNF-9: cuatro navegadores, Safari incluido.
+    - RNF-3: resultado inmediato y marcha atrás si falla.
+    - RF-12: detectar el conflicto al tomar una tarea.
+    - RF-19: cinco opciones de filtro, con *Pendientes* por defecto. Lo que se cuestiona es el detalle; el filtrado por estado sigue dentro de E2.
+    - RF-6: cambiar la pantalla a la que se llega tras el login, que hoy es el perfil.
+  - *Para decidir:* estimar el coste de cada uno y elegir cuáles entran en el MVP.
+- **PA-7 Fecha de vencimiento (RF-23).** Sigue dentro de E2.
+  - *Argumento* (de la fase de alcance): no ayuda a elegir qué coger ni a evitar colisiones, y es un campo más que puede quedarse viejo. Además, con 3 husos horarios, que una tarea esté «vencida» depende de quién mira.
+  - *Para decidir:* confirmar con uso real que el equipo la usa, y fijar qué calendario manda para marcar una tarea como vencida.
+
+### Subsanables durante la construcción
+
+- **PA-8 RF-12 se puede esquivar con RF-11.**
+  - *Argumento:* asignarse una tarea con RF-11 no tiene la protección que RF-12 da a *tomar*. Tampoco está definido qué pasa con otras acciones hechas sobre una lista desactualizada: terminar una tarea que otra persona acaba de reasignar, soltar una ya terminada o reabrir una que ya ha cogido alguien.
+  - *Para decidir:* si la misma regla se aplica a toda acción que dependa de lo que el usuario estaba viendo.
+- **PA-9 Cualquiera puede soltar la tarea de otra persona (RF-13).**
+  - *Argumento:* quita sin avisar el «esto es mío» de un compañero, y eso puede provocar la colisión que el producto quiere evitar.
+  - *Para decidir:* si solo puede soltarla su responsable, o si soltar la de otro exige confirmación o un aviso.
+- **PA-10 Al reabrir, la tarea vuelve a En curso con el responsable anterior (RF-15).**
+  - *Argumento:* por diseño genera tareas En curso que nadie está trabajando, que es justo lo que castiga M-4.
+  - *Para decidir:* si al reabrir queda Libre o se pide un responsable.
+- **PA-11 Requisitos sin criterio de aprobado: RF-20 («de un vistazo») y RNF-8 («usable»).**
+  - *Para decidir:* un criterio que se pueda comprobar en una prueba guiada.
+- **PA-12 RNF-1 no fija límite para todas las acciones.**
+  - *Argumento:* asignar a otra persona no tiene límite de interacciones, y el límite se cuenta en clics mientras RNF-7 exige que todo se pueda hacer con teclado.
+  - *Para decidir:* un límite para asignar y cuánto equivale en teclado.
+- **PA-13 Se puede terminar una tarea Libre (RF-14).**
+  - *Argumento:* queda terminada sin responsable, así que no se ve quién la hizo.
+  - *Para decidir:* si se permite, o si terminarla implica asignársela.
+- **PA-14 RF-16 fija una máquina de estados.**
+  - *Argumento:* el alcance dejaba los estados internos para más adelante.
+  - *Para decidir:* reformularlo en términos de lo que ve el usuario, o aceptarlo ya como regla.
+- **PA-15 El email queda visible (RF-7).**
+  - *Argumento:* cuando alguien no tiene nombre, todo el equipo ve su email.
+  - *Para decidir:* si es aceptable con RNF-4 o si se exige el nombre.
