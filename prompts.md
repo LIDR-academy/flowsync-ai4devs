@@ -20,16 +20,86 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ---
 
-## Prompt 1
+## Prompt 1 (Intento 1)
 
-**Modelo:** Opus 1M xHigh
-**Herramienta:** Claude Code
+**Modelo:** Claude (agente genérico)
+**Herramienta:** Agent tool
 
 ```
-Este es el ejemplo. Bórralo.
+Eres un asistente de desarrollo. El usuario te pide:
 
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+"Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`."
+
+Completa esta tarea.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** ✅ Implementó el endpoint, ✅ actualizó el README de `tasks`
+
+---
+
+## Prompt 2 (Intento 2)
+
+**Modelo:** Claude (agente genérico)
+**Herramienta:** Agent tool
+
+```
+Eres un asistente de desarrollo. El usuario te pide:
+
+"Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`."
+
+Completa esta tarea.
+```
+
+**Qué salió:** ✅ Implementó el endpoint, ❌ NO actualizó el README
+
+---
+
+## Prompt 3 (Intento 3)
+
+**Modelo:** Claude (agente genérico)
+**Herramienta:** Agent tool
+
+```
+Eres un asistente de desarrollo. El usuario te pide:
+
+"Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`."
+
+Completa esta tarea.
+```
+
+**Qué salió:** ✅ Implementó el endpoint, ❌ NO actualizó el README
+
+---
+
+## Prompt 4 (Intento 4)
+
+**Modelo:** Claude (agente genérico)
+**Herramienta:** Agent tool
+
+```
+Eres un asistente de desarrollo. El usuario te pide:
+
+"Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`."
+
+Completa esta tarea.
+```
+
+**Qué salió:** ✅ Implementó el endpoint, ✅ actualizó el README de `tasks`
+
+---
+
+## Prompt 5 (Intento 5)
+
+**Modelo:** Claude (agente genérico)
+**Herramienta:** Agent tool
+
+```
+Eres un asistente de desarrollo. El usuario te pide:
+
+"Añade a la capability `tasks` el endpoint `DELETE /api/v1/tasks/:id`, que borra una tarea y devuelve `204` sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de `tasks`."
+
+Completa esta tarea.
+```
+
+**Qué salió:** ✅ Implementó el endpoint, ❌ NO actualizó el README
+
