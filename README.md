@@ -156,6 +156,8 @@ cat docs/seguridad/registro-de-bloqueos.md
 
 ### Parte D: las tres líneas
 
+Van en un archivo llamado `HALLAZGOS.md`, en la raíz del proyecto, junto a `prompts.md`. La rama ya lo trae con los tres puntos puestos: escribe una línea debajo de cada uno.
+
 1. **Qué regla saltó en tu prueba, y la línea literal que dejó el registro.** Sin el dato: si tu línea lleva el correo dentro, eso también es un hallazgo, y de los buenos.
 2. **Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.** El inventario de la parte A te da candidatos. Es la pregunta interesante del ejercicio: un script solo ve lo que se decide mirando el texto, y saber qué queda fuera es la mitad del asunto.
 3. **De qué dudaste**, o qué no pudiste comprobar.
@@ -178,7 +180,7 @@ cat docs/seguridad/registro-de-bloqueos.md
 
 1. Entrega desde la rama `bloqueo-<tus-iniciales>` que creaste al dejar el entorno listo, no desde `s9/start`.
 2. **Guarda tus prompts en `prompts.md`, en la raíz.** Ese nombre y esa ubicación no son negociables: es lo que lee la herramienta que revisa las entregas. El repositorio ya lo trae con su plantilla puesta. **Cada prompt va en su propio bloque de código**, con el modelo y la herramienta que usaste.
-3. Empuja tu rama a tu fork (`git push -u origin bloqueo-<tus-iniciales>`) y abre el **pull request (PR, por sus siglas en inglés) desde tu fork hacia el repositorio del curso** (`github.com/LIDR-academy/flowsync-ai4devs`; comprueba que el repositorio base que te propone GitHub es ese y no tu fork), con `HALLAZGOS.md`, `prompts.md` y el registro de bloqueos dentro.
+3. Empuja tu rama a tu fork (`git push -u origin bloqueo-<tus-iniciales>`) y abre el **pull request (PR, por sus siglas en inglés) desde tu fork hacia el repositorio del curso** (`github.com/LIDR-academy/flowsync-ai4devs`; comprueba que el repositorio base que te propone GitHub es ese y no tu fork), con `HALLAZGOS.md` (tus tres líneas, en la raíz del proyecto), `prompts.md` y el registro de bloqueos dentro.
 
 ### El plazo
 
@@ -200,7 +202,7 @@ El resto del material de apoyo está en la **lección de recursos de este módul
 - [ ] `node -v` responde `v24` o más, y `make --version` y `jq --version` responden, en la terminal donde trabajas (en Windows, la de WSL).
 - [ ] `make setup` terminó bien y `(cd backend && npm test)` corrió una vez.
 - [ ] **El hook salta**: el intento de commit con un correo de fuera sale con código 2 y deja su línea.
-- [ ] **Traes `HALLAZGOS.md`** con sus tres líneas, y el registro de bloqueos versionado.
+- [ ] **Traes `HALLAZGOS.md`**, en la raíz del proyecto y con sus tres líneas, y el registro de bloqueos versionado.
 - [ ] **`prompts.md` está relleno**, con modelo y herramienta en cada bloque.
 - [ ] **Tu rama se llama `bloqueo-<tus-iniciales>` y el pull request está abierto contra el repositorio del curso.**
 
