@@ -17,13 +17,14 @@ Todos bajo `/api/v1`, declarados en [`backend/start/routes.ts`](../../../backend
 Todos exigen `Authorization: Bearer <token>`: el grupo lleva `.use(middleware.auth())`. El token sale
 de `POST /api/v1/auth/login` o de `POST /api/v1/auth/signup`.
 
-| Método y ruta | Entrada | Controlador | Devuelve |
-|---|---|---|---|
-| `GET /tasks` | `status` en query, opcional | [`TasksController.index`](../../../backend/app/controllers/tasks_controller.ts) | `200` · lista de tareas |
-| `POST /tasks` | `{ "title": "..." }` | [`TasksController.store`](../../../backend/app/controllers/tasks_controller.ts) | `201` · la tarea creada |
-| `GET /tasks/:id` | `today=AAAA-MM-DD` en query, **obligatorio** | [`TasksController.show`](../../../backend/app/controllers/tasks_controller.ts) | `200` · la tarea con vencimiento |
-| `PATCH /tasks/:id/status` | `{ "status": "pending \| in_progress \| done" }` | [`TaskStatusesController.update`](../../../backend/app/controllers/task_statuses_controller.ts) | `200` · la tarea ya cambiada |
-| `PUT /tasks/:id/due-date` | `{ "dueDate": "AAAA-MM-DD" \| null, "today": "AAAA-MM-DD" }` | [`TaskDueDatesController.update`](../../../backend/app/controllers/task_due_dates_controller.ts) | `200` · la tarea con vencimiento |
+| Método y ruta | Entrada | Controlador | Devuelve | owner |
+|---|---|---|---|---|
+| `GET /tasks` | `status` en query, opcional | [`TasksController.index`](../../../backend/app/controllers/tasks_controller.ts) | `200` · lista de tareas | @l1der |
+| `POST /tasks` | `{ "title": "..." }` | [`TasksController.store`](../../../backend/app/controllers/tasks_controller.ts) | `201` · la tarea creada | @l1der |
+| `GET /tasks/:id` | `today=AAAA-MM-DD` en query, **obligatorio** | [`TasksController.show`](../../../backend/app/controllers/tasks_controller.ts) | `200` · la tarea con vencimiento | @l1der |
+| `DELETE /tasks/:id` |  | [`TasksController.destroy`](../../../backend/app/controllers/tasks_controller.ts) | `204` · sin contenido | @PDN |
+| `PATCH /tasks/:id/status` | `{ "status": "pending \| in_progress \| done" }` | [`TaskStatusesController.update`](../../../backend/app/controllers/task_statuses_controller.ts) | `200` · la tarea ya cambiada | @l1der |
+| `PUT /tasks/:id/due-date` | `{ "dueDate": "AAAA-MM-DD" \| null, "today": "AAAA-MM-DD" }` | [`TaskDueDatesController.update`](../../../backend/app/controllers/task_due_dates_controller.ts) | `200` · la tarea con vencimiento | @l1der |
 
 Toda respuesta va envuelta en `{ "data": ... }` por el serializer de
 [`providers/api_provider.ts`](../../../backend/providers/api_provider.ts).
