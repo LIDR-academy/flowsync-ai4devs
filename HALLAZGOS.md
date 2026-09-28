@@ -9,18 +9,20 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
+Saltó la línea de registro que indica que se bloqueó un correo en `docs/capabilities/tasks/README.md`.
 
+```text
+# Registro de bloqueos del hook datos-que-no-salen
+- 2026-09-28T00:04:13Z BLOQUEADO correo docs/capabilities/tasks/README.md
 -
+```
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
-
+Solo ha saltado el correo, la contraseña secreto123 habría entrado sin problema. Aparentemente ninguna de las tres reglas busca contraseñas: no tienen una forma reconocible, y el mismo agente nos alerta de que el valor prohibido ya aparece en los tests y en el ejemplo con Ada. 
 -
 
 ## 3. Tu duda
 
-De qué dudaste, o qué no pudiste comprobar.
-
+Si es posible que se pueda reintentar con datos hasheados o enmascarados para que el commit pase.
 -
