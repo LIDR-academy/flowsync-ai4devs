@@ -1,0 +1,58 @@
+name: OpenAPI
+
+# Cada cambio propuesto y cada push a la rama principal. Sin filtros de ruta a
+# propósito: el documento se construye desde las rutas, los controladores y los
+# esquemas, así que casi cualquier cambio del backend puede moverlo.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Lo único que hace este trabajo es leer el repositorio y ejecutar un script.
+# No comenta el PR, no publica nada y no escribe en el repositorio.
+permissions:
+  contents: read
+
+# Si llegan dos pushes seguidos a la misma referencia, solo interesa el último.
+concurrency:
+  group: openapi-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: docs/api/openapi.json al día
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # `openapi:check` bootea la aplicación y `start/env.ts` valida estas
+      # variables al arrancar, así que sin ellas el comando ni siquiera llega a
+      # construir el documento. Ninguna es un secreto ni tiene que serlo: la
+      # comprobación no abre el puerto, no toca la base de datos y no firma
+      # nada. `APP_KEY` existe solo para que la validación pase.
+      NODE_ENV: test
+      PORT: 3333
+      HOST: 127.0.0.1
+      LOG_LEVEL: silent
+      APP_KEY: clave-de-ci-sin-valor-secreto
+      APP_URL: http://127.0.0.1:3333
+      SESSION_DRIVER: memory
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias del backend
+        run: npm ci
+
+      # Regenera el documento en `tmp/` y lo compara con `docs/api/openapi.json`.
+      # Si no coinciden, sale con código 1 y enumera las diferencias. No arregla
+      # el fichero versionado: eso se hace en local con `npm run openapi:generate`.
+      - name: Comprobar el documento OpenAPI
+        run: npm run openapi:check
