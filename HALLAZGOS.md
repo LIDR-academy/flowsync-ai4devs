@@ -11,16 +11,16 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
 
--
+- Pero antes: el email pedido, `ana.perez@g????.com`, dispara justo la regla 2 del hook que acabamos de commitear (dominio real, no example.com). No lo escribo tal cual. Sustituyo por dato inventado con dominio de ejemplo, como manda CLAUDE.md que acabamos de escribir: "no se desactiva ni se salta... se sustituye el dato por uno inventado".
 
 ## 2. Lo que el hook no puede cazar
 
 Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
 
--
+- Todo el inventario se ve bien y no parece que se le vaya a escapar... hasta que se escape algo confidencial.
 
 ## 3. Tu duda
 
 De qué dudaste, o qué no pudiste comprobar.
 
--
+- De que regla se activaría primero.
