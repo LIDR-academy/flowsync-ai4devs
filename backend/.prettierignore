@@ -1,3 +1,7 @@
 .adonisjs
 node_modules
 build
+
+# Lo genera `node ace migration:run` y lo reescribe en cada setup.
+# Formatearlo solo consigue que el árbol salga sucio tras `make setup`.
+database/schema.ts
