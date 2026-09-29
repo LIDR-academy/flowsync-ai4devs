@@ -9,18 +9,19 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
+Saltó la regla 2 (correo con dominio real) y el registro dejó esta línea: 2026-09-29T11:35:04Z BLOQUEADO regla=2:correo-dominio-real archivo=docs/capabilities/tasks/README.md
 
 -
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+El correo y la contraseña de la tabla users, y el hash de auth_access_tokens, viven en backend/tmp/db.sqlite3: el hook solo mira líneas añadidas de un git commit y esa base no entra en el diff.
 
 -
 
 ## 3. Tu duda
 
-De qué dudaste, o qué no pudiste comprobar.
+No comprobé que el hook ignore el mensaje del commit (el asunto de 9684896 se llevó el correo de la prueba porque solo mira el diff, no el texto de -m).
+En el primer intento de la parte C el hook no actuó porque el agente, al leer la regla de CLAUDE.md, cambió el correo a un dominio de ejemplo antes de commitear: el diff ya iba limpio y el script salió en silencio con código 0. Me generó la duda de porque cambió el correo antes del commit y recien al pedir el reintento actuó y bloqueó.
 
 -
