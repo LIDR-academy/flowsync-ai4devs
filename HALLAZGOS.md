@@ -9,18 +9,18 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
-
+La regla que salto es la 2  correo-real y la linea fue: 
+- 2026-09-30T22:25:39Z BLOQUEADO regla=correo-real archivo=docs/capabilities/tasks/README.md
 -
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+Un secreto que no entre en los patrones definidos en el script del hook.
 
 -
 
 ## 3. Tu duda
 
-De qué dudaste, o qué no pudiste comprobar.
+Algun caso donde rompa las reglas y se salte el hook, en teoria no es posible porque es deterministico por medio de un script. Es posible hacerlo fallar?
 
 -

@@ -7,3 +7,4 @@
 - 2026-09-30T22:05:06Z BLOQUEADO regla=correo-real archivo=tmp-prueba-hook.txt
 - 2026-09-30T22:05:11Z BLOQUEADO regla=correo-real archivo=tmp-prueba-hook.txt
 - 2026-09-30T22:05:27Z BLOQUEADO regla=correo-real archivo=tmp-prueba-hook.txt
+- 2026-09-30T22:25:39Z BLOQUEADO regla=correo-real archivo=docs/capabilities/tasks/README.md
