@@ -134,3 +134,13 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 - Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día. El documento se construye en cada petición y no hay fichero que generar, así que lo que se commitea es el diff regenerado de `.adonisjs/`; el README es `docs/capabilities/<nombre>/README.md`.
 - `gh pr create` (con una descripción completa de los cambios en el cuerpo del PR) y el pase del subagente `adversarial-reviewer` sobre ese PR van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición. El review adversarial es lo último, antes de dar la unidad por terminada.
 - Cuando abras el PR, no repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
+
+### Hook de seguridad: datos-que-no-salen
+
+Existe un hook PreToolUse en `.claude/hooks/datos-que-no-salen.sh` que se ejecuta antes de cada comando Bash. Bloquea tres cosas en cualquier `git commit`:
+
+1. **Claves con forma reconocible**: prefijos de AWS, Anthropic, GitHub, Google y Slack, bloques de clave privada PEM, y líneas de variable de entorno con la clave de la aplicación.
+2. **Correos reales**: cualquier dirección de correo cuyo dominio no sea `example.com`, `example.org`, `example.net` ni `github.com`.
+3. **Ficheros `.env`**: el fichero `.env` (nombre exacto, en cualquier carpeta). Los `.env.example` no cuentan.
+
+Cuando el hook bloquea un commit, **no se desactiva ni se salta**. Se sustituye el dato por uno inventado (correo con dominio `example.com`, clave ficticia) y se vuelve a intentar el commit. El registro en `docs/seguridad/registro-de-bloqueos.md` se commitea junto con el resto del cambio: es la evidencia de que el hook funciona.

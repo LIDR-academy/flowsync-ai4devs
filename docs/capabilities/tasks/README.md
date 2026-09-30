@@ -178,6 +178,13 @@ curl -s -X PUT http://localhost:3333/api/v1/tasks/1/due-date \
   -d '{"dueDate":"2026-08-19","today":"2026-08-20"}'
 ```
 
+```bash
+# 7. Obtener token con la cuenta de pruebas de Ana Pérez
+curl -s -X POST http://localhost:3333/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ana.perez@example.com","password":"secreto123"}'
+```
+
 Ojo: esto **escribe en la base de datos de desarrollo**. Para dejarla como estaba, `node ace
 migration:fresh`.
 

@@ -1,26 +1,13 @@
 # Hallazgos
 
-Aquí van **las tres líneas** del ejercicio, una por cada punto de abajo. Es lo único que hay que
-traer hecho: una parte del hook a medias con estas tres líneas escritas vale más que lo contrario,
-porque lo que se discute en el directo es dónde te chocaste.
-
-Escribe **una sola línea por punto**, con tus palabras, y **sin el dato dentro**: si tu línea
-repite el correo o el secreto, eso es otra copia del dato (y también es un hallazgo, de los buenos).
-
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
-
--
+Saltó la regla `correo-real`. Línea del registro: `2026-09-30T01:18:01Z BLOQUEADO REGLA: correo-real | ARCHIVO: docs/capabilities/tasks/README.md`. El correo no aparece en el registro.
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+El `full_name` de la tabla `users`. Si alguien pone en un fichero el nombre completo de un usuario sacado de la base de datos, el hook no lo detecta: solo busca patrones con forma reconocible (prefijos de clave, arroba de correo, nombre `.env`). Un nombre propio no tiene forma de patrón, así que pasa sin decir nada.
 
--
+## 3. Mi duda
 
-## 3. Tu duda
-
-De qué dudaste, o qué no pudiste comprobar.
-
--
+El hook se detectaba a sí mismo: los patrones escritos como texto en el propio script y en CLAUDE.md activaban la regla de claves al commitear. Tuve que excluir el archivo del hook del diff y reescribir la documentación sin los patrones literales. No pude comprobar si eso crea un punto ciego real (alguien podría meter un secreto dentro del propio archivo del hook y el hook no lo vería).
