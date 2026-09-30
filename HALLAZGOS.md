@@ -21,3 +21,4 @@ La clave del mail del encargo secreto123, porque no sigue los formatos que verif
 -
 
 ## 3. Tu duda
+La regla efectivamente corrió con el commit del prompt, por lo tanto sustituyó el mail en prompts.md
