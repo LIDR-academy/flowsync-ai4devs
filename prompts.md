@@ -94,14 +94,3 @@ Escribelo tal cual sin alterar ningún dato y haz un commit para este cambio en 
 **Qué salió:**  Hizo el cambio en el README.md, pero bloqueo el commit ni el git add porque lo paro el hook, con la regla correo-real, y me pidio o cambiar el correo por @example.com o eliminar el ejemplo del readme y no commitear nada.
 
 
-## Prompt 4
-
-**Modelo:** Opus 5.5 Medium
-**Herramienta:** Claude Code
-
-```
-
-```
-
-**Qué salió:**  Hizo el cambio
-
