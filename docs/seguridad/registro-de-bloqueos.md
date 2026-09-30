@@ -5,3 +5,5 @@
 - 2026-09-29T02:00:49Z BLOQUEADO — regla 1 (clave con forma reconocible) — `prompts.md`
 - 2026-09-29T02:00:49Z BLOQUEADO — regla 2 (correo de una persona) — `prompts.md`
 - 2026-09-29T02:19:27Z BLOQUEADO — regla 2 (correo de una persona) — `docs/capabilities/tasks/README.md`
+- 2026-09-30T01:37:35Z BLOQUEADO — regla 1 (clave con forma reconocible) — `prompts.md`
+- 2026-09-30T01:37:35Z BLOQUEADO — regla 2 (correo de una persona) — `prompts.md`
