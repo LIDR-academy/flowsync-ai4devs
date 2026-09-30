@@ -9,18 +9,15 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
+Saltó la regla del hook.
+Línea de registro: 2026-09-30T22:41:12Z BLOQUEADO correo `docs/capabilities/tasks/README.md`
 
 -
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+La clave del mail del encargo secreto123, porque no sigue los formatos que verifica.
 
 -
 
 ## 3. Tu duda
-
-De qué dudaste, o qué no pudiste comprobar.
-
--
