@@ -134,3 +134,10 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 - Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día. El documento se construye en cada petición y no hay fichero que generar, así que lo que se commitea es el diff regenerado de `.adonisjs/`; el README es `docs/capabilities/<nombre>/README.md`.
 - `gh pr create` (con una descripción completa de los cambios en el cuerpo del PR) y el pase del subagente `adversarial-reviewer` sobre ese PR van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición. El review adversarial es lo último, antes de dar la unidad por terminada.
 - Cuando abras el PR, no repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
+
+### Protección de datos: hook `datos-que-no-salen`
+
+- `.claude/hooks/datos-que-no-salen.sh` corre como `PreToolUse` (matcher `Bash`) antes de cada `git commit` y bloquea el commit si entra alguna de estas tres cosas: una clave o secreto con forma reconocible (AWS, Anthropic, GitHub, Google, Slack, bloques de clave privada, `APP_KEY` con valor), un correo cuyo dominio no sea `example.com`, `example.org`, `example.net` ni `github.com`, o un fichero `.env` (los `.env.example` no cuentan).
+- El hook **nunca se deshabilita ni se salta**: nada de tocar `.claude/settings.json`, renombrar el script ni buscar otro camino para commitear.
+- Ante un bloqueo, se sustituye el dato por uno inventado (p. ej. un correo `@example.com`) y se vuelve a intentar el commit.
+- Cada bloqueo deja una línea en `docs/seguridad/registro-de-bloqueos.md` (fecha UTC, regla y archivo, nunca el dato). Ese registro se commitea con el resto: es la evidencia del ejercicio.
