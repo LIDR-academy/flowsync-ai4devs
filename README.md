@@ -1,12 +1,16 @@
 <!-- Generado desde la lección de ejercicio del módulo: no se edita a mano. -->
 
-# Ejercicio FlowSync: bloquea el dato que no debe salir y guarda el rastro
+# Ejercicio FlowSync: cambia el motor y averigua qué se ha perdido
 
-Es la última lección del módulo y la única que se hace con el portátil delante. Trae el setup del entorno, la tarea y cómo se entrega, todo en un sitio.
+Es la última lección antes del directo, y la que más se subestima. Trae el entorno que hay que dejar listo, la tarea y cómo se entrega. Todo está aquí y solo aquí.
 
-> 📌 **Ve guardando cada prompt tal cual lo lanzas**, desde el primero. Se entregan, y reescribirlos al final de memoria no sirve: lo que se revisa es **cómo lo pediste**, no la versión limpia que recuerdas. Hay un archivo esperándolos en el propio repositorio.
+> 🚨 **Ve guardando cada prompt tal cual lo lanzas, desde el primero.** No al final, no reconstruido de memoria. La mitad de lo que se revisa es **cómo lo pediste**, y eso no se puede recuperar después.
 
-El ejercicio tiene cuatro partes: el inventario (A), el hook (B), probarlo con un dato que no debe entrar (C) y las tres líneas que entregas (D).
+**Cambiar el motor de base de datos del proyecto, de SQLite a PostgreSQL en Docker, con dos bases separadas: una de desarrollo y otra de pruebas. Y después averiguar qué se ha perdido por el camino**, que es la parte que importa.
+
+Es exactamente el mismo encargo que se resuelve en el directo, con la misma unidad de trabajo y los mismos insumos. Lo que no te damos son los prompts: esos los escribes tú.
+
+Son dos partes técnicas y las tres líneas que entregas: en la A cambias el motor, en la B averiguas qué se ha perdido, y en la C escribes las tres líneas.
 
 ---
 
@@ -16,11 +20,11 @@ Hay tres momentos, y saberlos cambia cómo aprovechas cada uno.
 
 **1. Lo intentas tú.** Sobre el proyecto de abajo, con tu agente y con el reloj puesto. Entregas lo que te salga, **con lo que tenga**. La entrega a medias no es un problema: este paso no se puntúa por completarlo, y lo que se discute en vivo son las cosas con las que te chocaste.
 
-**2. Lo ves resuelto en el directo.** El mentor monta este mismo hook, con las mismas tres reglas y sobre este mismo proyecto. Si a ti no te salió, ahí ves que se puede y cómo. Por eso conviene **mirar sin teclear**: lo vas a repetir con calma después.
+**2. Lo ves resuelto en el directo.** El mentor hace esta misma migración de motor, con las mismas restricciones y sobre este mismo proyecto. Si a ti no te salió, ahí ves que se puede y cómo. Por eso conviene **mirar sin teclear**: lo vas a repetir con calma después.
 
 **3. Lo replicas.** Los prompts que use el mentor te llegan por escrito. Con ellos vuelves a tu entorno y rehaces el recorrido, que es donde se asienta.
 
-> ⚠️ **En el paso 3 no esperes salidas idénticas, y no es un fallo tuyo.** La inteligencia artificial (IA) no es determinista: con el mismo prompt cambian la redacción del script, el orden en que escribe las reglas y hasta si el agente se niega antes de llegar al commit o deja que salte el hook. En la parte C las **dos** salidas posibles son igual de buenas, y saber cuál te tocó es parte de lo que se entrega. Lo que se repite es **la forma del recorrido**, no el texto.
+> ⚠️ **En el paso 3 no esperes salidas idénticas, y no es un fallo tuyo.** La inteligencia artificial (IA) no es determinista: con el mismo prompt cambian los nombres de las variables, el orden de los servicios del fichero de Compose y hasta cuántos atajos deja en el Makefile. Lo que no cambia son las restricciones, que por eso van escritas. Lo que se repite es **la forma del recorrido**, no el texto.
 
 ---
 
@@ -28,54 +32,67 @@ Hay tres momentos, y saberlos cambia cómo aprovechas cada uno.
 
 ### 1. Comprueba lo que necesita tu máquina
 
-Cinco cosas, cada una con el comando que dice si la tienes y el síntoma de tenerla mal. Compruébalas **antes** de clonar nada: fallan más tarde y con mensajes que no mencionan la causa. **No hace falta Docker en este módulo.**
+Las herramientas se instalan en la lección anterior, que deja lista **la máquina**. Esta deja listo **el proyecto**, y empieza comprobando cuatro cosas. Pega esto en una terminal:
 
-- **Node.js 24 o superior**: `node -v`. El proyecto declara **24 como mínimo**. Medido: con Node 20 la instalación muere con un `Unknown file extension ".ts"` que no menciona la versión por ningún lado; con la 22 arranca entre avisos `EBADENGINE`. Se instala desde `https://nodejs.org`.
-- **`make`**: `make --version`. Si no responde: en macOS viene con las herramientas de línea de comandos (`xcode-select --install`); en Linux, con el paquete `build-essential` o equivalente.
-- **`git`**: `git --version`. Cualquier versión reciente vale.
-- **`jq`**: `jq --version`. El hook que vas a montar lee su entrada con él, igual que el hook de Prettier que el proyecto ya lleva. Sin `jq`, el hook **falla en silencio y parece que no existe**. En macOS, `brew install jq`; en Linux y en WSL, el paquete `jq` de tu distribución.
-- **Una cuenta de GitHub**: la entrega es un pull request desde tu propio fork hacia el repositorio del curso.
+```bash
+docker ps
+node -v
+make --version
+git --version
+```
 
-> 🖥️ **Dónde funciona esto, porque no es en todas partes igual.** En **macOS** y en **Linux**, tal cual. En **Windows**, **dentro de WSL** (*Windows Subsystem for Linux*, el subsistema de Linux para Windows), y esto no es una preferencia: los atajos del proyecto están escritos con órdenes de shell de macOS y Linux (`cp`, `test`, `rm`), así que **en PowerShell no funcionan**.
+Qué tiene que responder cada una, y **qué vas a ver si la tienes mal**, que es lo que de verdad ahorra tiempo:
+
+- **`docker ps`** tiene que devolver una tabla de columnas, aunque esté vacía. Si responde `Cannot connect to the Docker daemon`, Docker está instalado pero **apagado**: ábrelo como cualquier otra aplicación. Es el fallo número uno y su mensaje es idéntico al de no tenerlo instalado.
+- **`node -v`** tiene que devolver **`v24`** o superior. Es lo que pide el mapeador de base de datos de este proyecto, que declara ese mínimo en su propio paquete. **Medido sobre este proyecto:** con Node 20 la instalación muere con un `Unknown file extension ".ts"` que no menciona la versión de Node por ningún lado, y con Node 22 arranca pero avisando de que la versión no es compatible. Si te sale cualquiera de las dos cosas, es esto.
+- **`make --version`** tiene que responder `GNU Make` y un número.
+- **`git --version`** tiene que responder cualquier número reciente.
+
+> 🪟 **En Windows esto va dentro de WSL, y no es opcional.** WSL es el *Windows Subsystem for Linux*, el Linux que corre dentro de Windows. El proyecto se levanta con `make`, que **no existe en Windows a secas**, y sus atajos usan órdenes de shell de macOS y Linux (`cp`, `test`, `rm`). En PowerShell no funcionan, y el error no dirá que el problema es el sistema operativo.
 >
-> Y la parte que se olvida: **todo tiene que estar dentro de WSL**, no solo el último comando. El clon, Node, `make` y `jq`. Lo que instales en Windows no existe dentro de esa terminal. Clona además dentro del sistema de ficheros de Linux (`~/…`) y no en `/mnt/c`, o la instalación de dependencias irá muy lenta.
+> **Haz todo dentro de WSL**: el clon, Node, `make` y los comandos de esta lección. Lo que instales fuera **no aparece** en esa terminal, y mezclar los dos entornos es la fuente número uno de *«a mí no me funciona»*. Y clona dentro del sistema de ficheros de Linux (`~/…`), no en `/mnt/c`, o la instalación irá muy lenta.
+>
+> ⚠️ **No damos por hecho que `make` venga con tu distribución de WSL**: comprueba `make --version` y, si no responde, instálalo con el gestor de paquetes de tu distribución.
 
 ### 2. Forkea y clona el proyecto
 
 Se trabaja sobre **tu propio fork**, porque sobre el repositorio del curso no tienes permiso de escritura: la entrega es un pull request desde él hacia el del curso.
 
-1. Entra en **https://github.com/LIDR-academy/flowsync-ai4devs** y pulsa **Fork**.
-2. Clona **tu fork** y entra en la carpeta.
-3. Añade el repositorio original como `upstream` y trae de ahí la rama de partida:
+**1. Forkea el repositorio.** Entra en **https://github.com/LIDR-academy/flowsync-ai4devs** y pulsa **Fork**.
+
+**2. Clona tu fork** y entra en la carpeta.
+
+**3. Trae la rama de partida desde el repositorio original, no desde tu fork:**
 
 ```bash
 git remote add upstream https://github.com/LIDR-academy/flowsync-ai4devs.git
 git fetch upstream
-git checkout -b s9/start upstream/s9/start
+git checkout -b s10/start upstream/s10/start
 ```
 
-> 🚨 **La rama de partida se trae de `upstream`, no de tu fork.** El formulario de Fork de GitHub trae marcada la casilla de copiar **solo la rama por defecto**, así que tu fork se lleva `main` y nada más. Un `git checkout s9/start` a secas moriría con un `did not match any file(s) known to git` que **no menciona al fork por ningún lado**. Y aunque desmarcaras la casilla, un fork es **una foto del momento**: no recibe las ramas que se publiquen después.
+> 🚨 **Esa última línea es la que más se falla, y el error no te va a ayudar.** El formulario de Fork de GitHub trae marcada la casilla de copiar **solo la rama por defecto**, así que tu fork se lleva `main` y nada más. Un `git checkout s10/start` a secas muere con un `did not match any file(s) known to git` que **no menciona al fork por ningún lado**. Y aunque desmarcaras la casilla, un fork es **una foto del momento**: no recibe las ramas que se publiquen después. Traerla de `upstream` es inmune a las dos cosas.
 
 ### 3. Instálalo y levántalo
 
-No hay `package.json` en la raíz. Los comandos de `npm` se ejecutan dentro de `backend/` y de `frontend/`, y el `Makefile` de la raíz ya lo hace por ti.
+**Levanta el proyecto.** Desde la raíz:
 
 ```bash
-make setup   # solo la primera vez: instala dependencias, crea los .env, genera la clave de la aplicación y migra
-make start   # levanta backend y frontend a la vez; Ctrl-C para los dos
-make help    # lista todos los atajos
+make setup
+make start
 ```
 
-`make start` **se queda corriendo en esa terminal**: para lo demás, abre otra. Para este ejercicio no hace falta tener el servidor levantado; sí hace falta que `make setup` haya terminado bien, porque el agente va a leer el proyecto entero.
+- **`make setup`** se ejecuta **una sola vez**: instala las dependencias de las dos partes del proyecto, crea los ficheros de configuración y prepara la base de datos. Tarda unos minutos la primera vez.
+- **`make start`** levanta a la vez la parte de servidor y la parte de navegador, y **se queda ocupando esa terminal**. Se para con `Ctrl-C`, y para los dos a la vez.
+- **`make help`** lista todos los atajos que trae el proyecto. Léelo: te va a hacer falta.
 
-Comprueba que cada pieza vive:
+**Cómo compruebas que vive**, que no es lo mismo que «no ha dado error»:
 
-- **Backend** en `http://localhost:3333`. Desde otra terminal: `curl -s http://localhost:3333`.
-- **Frontend** en `http://localhost:5173`. Ábrelo en el navegador.
+- La parte de servidor responde en `http://localhost:3333`. Pruébala con `curl -s http://localhost:3333` desde otra terminal: tiene que devolver algo, no un error de conexión.
+- La parte de navegador se abre en `http://localhost:5173`.
 
 ### 4. Corre las pruebas del backend
 
-Y la batería de pruebas del backend, una vez, antes de tocar nada. Es la mejor comprobación de que el entorno está bien montado:
+**Corre la batería de pruebas antes de tocar nada.** Es la mejor comprobación de que el entorno está bien montado, y además es tu línea de partida: necesitas saber que estaba en verde **antes**.
 
 ```bash
 (cd backend && npm test)
@@ -83,16 +100,12 @@ Y la batería de pruebas del backend, una vez, antes de tocar nada. Es la mejor 
 
 > 📌 **Los paréntesis no sobran.** Sin ellos te quedas dentro de `backend/`, y ahí no hay `CLAUDE.md`: el siguiente comando que lances parecerá que no encuentra el proyecto. Con ellos vuelves solo a la raíz.
 
-### 5. Mira dos archivos que el agente carga solo
+### 5. Crea tu rama
 
-> 🔎 **Antes de empezar, mira dos archivos que el agente carga solo cada vez que arranca aquí:** el `CLAUDE.md` de la raíz y `.claude/settings.json`. Fíjate en que en el segundo ya hay un hook registrado, el que formatea el frontend, y en cómo lee su entrada. Es el modelo del que vas a montar.
-
-### 6. Crea tu rama
-
-Trabaja en **tu propia rama**, no en `s9/start`. Créala **antes del primer prompt** con este nombre:
+Trabaja en **tu propia rama**, no en `s10/start`. Créala **antes del primer prompt** con este nombre:
 
 ```bash
-git checkout -b bloqueo-<tus-iniciales>
+git checkout -b motor-<tus-iniciales>
 ```
 
 Es la rama desde la que vas a entregar. Si el agente commitea en una rama suya, tráete esos commits a la tuya con `git merge <esa-rama>` antes de empujar.
@@ -101,76 +114,50 @@ Es la rama desde la que vas a entregar. Si el agente commitea en una rama suya, 
 
 ## 📋 La tarea
 
-**Monta un hook que impida que un secreto, el correo de una persona o un fichero `.env` entren al repositorio en un commit, que deje una línea escrita cada vez que actúe, y pruébalo pidiéndole al agente un dato que no debe entrar.**
+### 🅰️ Parte A: cambia el motor
 
-Es el mismo encargo que se resuelve en el directo, con la misma unidad de trabajo y los mismos insumos. **Los prompts los escribes tú**, y son la mitad de lo que se entrega.
+Pídele a tu agente que migre el proyecto de SQLite a **PostgreSQL corriendo en Docker**, con **dos** bases de datos: una de desarrollo y otra de pruebas.
 
-**La unidad de trabajo es una y está nombrada:** un hook de Claude Code llamado **`datos-que-no-salen`**, con **tres reglas** que están escritas más abajo y no se cambian, y **un registro** en `docs/seguridad/registro-de-bloqueos.md`. Es pequeño a propósito: lo que se estudia no es el script, es qué deja escrito cuando actúa y qué no puede ver.
+**Las restricciones son estas, y no son negociables**, porque son las mismas con las que se resuelve en el directo. Pásaselas a tu agente:
 
-> ✋ **Y el corte es fijo: el ejercicio termina con el hook montado y probado.** Lo que viene después se ve resuelto en el directo, y lo que se compara allí es **tu registro con el de la clase**.
+- El fichero de Compose se llama **`compose.yaml`** y los dos servicios se llaman **`db`** y **`db-test`**.
+- La imagen es **`pgvector/pgvector:pg17`**. Es la imagen oficial de PostgreSQL con la extensión de vectores ya dentro.
+- Los puertos son **54410** para desarrollo y **54411** para pruebas. **No el 5432**: quien tenga un PostgreSQL suyo levantado se lo encontraría ocupado, y el error que vería no menciona a Docker por ningún lado.
+- **La base de pruebas va en memoria, sin volumen.** Es efímera a propósito: una batería de pruebas que depende de lo que dejó la anterior no es una batería de pruebas.
+- **Los dos servicios llevan comprobación de salud**, y el arranque espera a que estén sanos. La propia imagen avisa de que, la primera vez, crea la base y **no acepta conexiones mientras tanto**, y de que eso rompe a quien levanta varios contenedores a la vez.
+- **Sin la clave `version:`** en el fichero de Compose: está obsoleta y Docker imprime un aviso.
+- La batería de pruebas apunta a la otra base por su propio fichero de entorno, que el framework carga solo cuando el entorno es de pruebas.
+- Y deja **atajos en el Makefile** para levantar las bases, pararlas, migrar **las dos** y correr las pruebas.
 
-### 🅰️ Parte A: el inventario, antes de tocar nada
+**Ninguna migración existente se toca.** Si tu agente propone cambiar una, párate y anótalo: es un hallazgo, y de los buenos.
 
-Pídele al agente que haga el inventario de qué es dato personal o secreto en este proyecto, **y de qué lee él** para trabajar aquí. Tres listas: las tablas y columnas que guardan datos de una persona identificable (que lo lea en las migraciones, no que lo suponga) y los ficheros con ejemplos de correos o nombres; los ficheros que llevan o pueden llevar claves, tokens o contraseñas, estén o no en el repositorio; y **lo que él ha leído o leería por defecto** para hacer un cambio en el backend (el fichero de instrucciones del repositorio, la configuración del harness, los ficheros de entorno, la base de datos local), diciendo de cada uno si su contenido sale de tu máquina cuando trabaja contigo. Sin cambiar ningún archivo.
+### 🅱️ Parte B: averigua qué se ha perdido
 
-La tercera lista es la que importa, y es la que nadie hace. Léela despacio: es tu propia máquina contestando la primera pregunta del módulo.
+Esta es la mitad que de verdad se revisa, y **se hace aunque la parte A se te haya quedado a medias**.
 
-### 🅱️ Parte B: el hook, en dos piezas
+Cuando la batería de pruebas vuelva a estar en verde, **no des el trabajo por terminado**. Haz estas tres cosas y escribe lo que veas:
 
-Pídeselo al agente. **Las restricciones son estas, y no son negociables**, porque son las mismas con las que se resuelve en el directo. Pásaselas:
+1. **Corre la comprobación de tipos** (`(cd backend && npm run typecheck)`) y di si está en verde o en rojo. Las dos respuestas son normales, y las dos enseñan algo.
+2. **Mira el diff del fichero de tipos generado** (`backend/database/schema.ts`) entre la rama de partida y lo que tienes ahora. **Ninguna migración ha cambiado, y ese fichero sí.** Di qué declaraciones han cambiado de tipo, y de qué a qué.
+3. **Busca cómo decide el proyecto si una tarea está vencida** y léelo con el diff delante. Hay un comentario en ese código que explica por qué la comparación funciona. Di si ese comentario sigue siendo verdad.
 
-- **Pieza 1**: un hook de Claude Code en **`.claude/hooks/datos-que-no-salen.sh`**, registrado en `.claude/settings.json` como **`PreToolUse`** con el matcher **`Bash`**, junto al que ya hay. Lee el JSON (*JavaScript Object Notation*, el formato de texto en que la herramienta le pasa los datos) de la entrada estándar con `jq` (el comando viene en `.tool_input.command`), como hace el hook de Prettier. `set -uo pipefail`.
-- **Solo actúa si el comando contiene `git commit`.** Con cualquier otro comando sale con 0 sin decir nada.
-- **Mira las líneas añadidas** de lo que va a entrar: el diff preparado (`git diff --cached`). Y si el mismo comando también hace `git add`, además los cambios sin preparar y los archivos nuevos sin seguimiento, porque en ese caso todavía no están en el índice.
-- **Tres reglas, y solo estas tres:**
-  1. Una clave con forma reconocible: `AKIA` seguido de 16 caracteres (Amazon Web Services, AWS), `sk-ant-` (Anthropic), `ghp_` o `github_pat_` (GitHub), `AIza` seguido de 35 caracteres (Google), `xoxb-`/`xoxp-`/`xoxa-` (Slack), un bloque `-----BEGIN ... PRIVATE KEY-----`, o una línea `APP_KEY=` con valor.
-  2. Una dirección de correo cuyo dominio **no** sea `example.com`, `example.org`, `example.net` ni `github.com`. La lista es corta a propósito: los ejemplos y las pruebas de este proyecto ya usan `example.com`, que es un dominio reservado para eso.
-  3. El fichero `.env` (ese nombre exacto, en cualquier carpeta) entre lo que entra. Los `.env.example` no cuentan.
-- **Si encuentra algo:** sale con **código 2**, escribe por la salida de error qué regla saltó, en qué archivo, y que se sustituya el dato por uno inventado. Y añade **una línea** a **`docs/seguridad/registro-de-bloqueos.md`** con la fecha y hora en UTC (tiempo universal coordinado) en formato ISO 8601, la palabra BLOQUEADO, la regla y el archivo. **Nunca el valor encontrado**: un registro que repite el dato es otra copia del dato. Si el registro no existe, lo crea con una cabecera de una línea.
-- **Si no encuentra nada,** sale con 0 y no escribe nada.
-- **Pieza 2**: un bloque corto en el `CLAUDE.md` del repositorio, en su sección de reglas de proceso, que diga que ese hook existe, qué tres cosas bloquea, que cuando bloquea **no se desactiva ni se salta** (se sustituye el dato por uno inventado y se vuelve a intentar), y que el registro se commitea con el resto: es la evidencia. `AGENTS.md` no se toca: que mire antes qué es.
+### Parte C: las tres líneas
 
-Y que lo pruebe antes de darlo por hecho: un archivo temporal con un correo de `gmail.com`, `git add`, un intento de commit. Tiene que salir con 2 y dejar su línea en el registro. Después, fuera el archivo temporal. **La línea se queda**: es la primera evidencia de que el hook existe.
+**El entregable no es que la migración funcione: son las tres líneas.** Van en el fichero `HALLAZGOS.md` de la raíz. La rama de partida ya lo trae con los tres puntos puestos: escribe una línea debajo de cada uno.
 
-> 📖 **Glosario exprés**
->
-> - **Hook `PreToolUse`**: una comprobación que la herramienta lanza por su cuenta **antes** de ejecutar una acción del agente (aquí, antes de cada comando de terminal). Si sale con código 2, la acción no se ejecuta y el mensaje de error le llega al agente.
-> - **Diff preparado**: lo que ya está marcado para entrar en el siguiente commit (`git add`). Lo que está cambiado pero no preparado no entra, y por eso el hook lo mira solo cuando el mismo comando lo prepara.
-> - **Dominio reservado**: `example.com`, `example.org` y `example.net` existen precisamente para escribir ejemplos sin señalar a nadie. Un correo con ese dominio no es de una persona.
+1. **Cuántas filas cambian de valor** en tu cambio de esquema, medido con una consulta, y **en qué rama del árbol de reversibilidad** cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
+2. **Una cosa que la batería de pruebas no podía ver.** Si no encontraste ninguna, escribe qué buscaste y dónde.
+3. **De qué dudaste**, o qué no pudiste comprobar. Esta es la que más sirve en el directo.
 
-### Parte C: probarlo con un dato que no debe entrar
-
-Ahora pídele al agente **a propósito lo que el proyecto no quiere**: que añada a `docs/capabilities/tasks/README.md`, en la sección de cómo probar a mano contra el servidor real, un ejemplo de `curl` que obtenga el token con la cuenta de pruebas de **Ana Pérez: correo `ana.perez@gmail.com`, contraseña `secreto123`**. Que lo escriba **tal cual, sin cambiar ningún dato, y que cierre con un commit**.
-
-El correo es inventado, y eso es lo que hace bueno el ejemplo: el hook no sabe si Ana Pérez existe. Sabe que `gmail.com` no está en la lista.
-
-Mira qué hace el agente. Puede que el hook salte y el agente sustituya el correo y vuelva a intentarlo; puede que lea la regla del `CLAUDE.md` y se niegue antes de llegar al commit. **Las dos salidas son buenas**, y son distintas: en la primera actuó la pieza 1; en la segunda, la pieza 2. Si pasa lo segundo, pídele que lo intente igual, para ver la primera.
-
-Y después, léelo con tus ojos:
-
-```bash
-cat docs/seguridad/registro-de-bloqueos.md
-```
-
-> 🔀 **No te asustes si el agente se lleva el trabajo a otra rama.** El propio proyecto le prohíbe commitear en una rama de partida, así que en cuanto tenga algo que guardar creará una rama nueva y commiteará ahí sin pedírtelo. Es el proyecto haciendo lo que se le mandó, no un descuido. `git branch` y `git log --oneline` te enseñan dónde está todo. Y tiene un efecto que despista: después, `git status` sale limpio aunque acaben de escribirse cuatro archivos. **Lo que dice la verdad aquí es el registro.**
-
-### Parte D: las tres líneas
-
-Van en un archivo llamado `HALLAZGOS.md`, en la raíz del proyecto, junto a `prompts.md`. La rama ya lo trae con los tres puntos puestos: escribe una línea debajo de cada uno.
-
-1. **Qué regla saltó en tu prueba, y la línea literal que dejó el registro.** Sin el dato: si tu línea lleva el correo dentro, eso también es un hallazgo, y de los buenos.
-2. **Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.** El inventario de la parte A te da candidatos. Es la pregunta interesante del ejercicio: un script solo ve lo que se decide mirando el texto, y saber qué queda fuera es la mitad del asunto.
-3. **De qué dudaste**, o qué no pudiste comprobar.
-
-**El entregable no es tener el hook perfecto: son las tres líneas.** Una parte B a medias con las tres líneas escritas vale más que lo contrario, porque lo que se discute en el directo es dónde te chocaste.
+> 💡 **Y si te atascas, entrega igual.** Una parte A a medias con la parte B escrita vale más que una parte A perfecta sin ella. Lo que se discute en el directo son los choques, y quien no entrega es justo quien se queda sin ese rato.
 
 ### Cómo saber que la has hecho bien
 
-- **El registro tiene al menos una línea fechada, y no lleva el dato dentro.** Si tu línea repite el correo, eso es otra copia del dato: apúntalo, que es un hallazgo de los buenos.
-- **El hook sale con 0 y en silencio ante cualquier comando que no sea `git commit`.** Pruébalo con un `git status` a través del agente: si también canta, está mirando de más.
-- **Las tres listas de la parte A las sacó de las migraciones y de los ficheros, no de su memoria.** Abre una y compruébalo tú: si nombra una columna que no existe, se la inventó.
-- **La segunda línea nombra algo concreto que el hook no puede cazar**, y no *«datos personales en general»*. Un script solo ve lo que se decide mirando el texto.
-- **No hay ni un archivo modificado** que no sea el hook, su registro, el `CLAUDE.md` y lo que pediste en la parte C. Si hay más, el agente se puso a arreglar por su cuenta.
+- **Ninguna migración existente está tocada.** Míralo con `git diff` sobre esa carpeta: si hay cambios ahí, el agente reescribió el pasado y tu medida de qué se perdió ya no mide.
+- **La base de pruebas no tiene volumen.** Si lo tiene, la segunda vez que corras la suite arrancará con lo que dejó la primera.
+- **Los dos servicios esperan a estar sanos.** Bájalos y súbelos otra vez: si la primera migración falla por conexión rechazada, la comprobación de salud no está haciendo su trabajo.
+- **La primera línea es un número que saliste a buscar**, no una estimación. Si escribiste *«pocas filas»*, falta la consulta.
+- **Las tres líneas están escritas y son concretas.** La segunda vale incluso si es *«no encontré ninguna»*, siempre que diga qué buscaste y dónde.
 
 > Entrégalo con lo que tenga.
 
@@ -178,60 +165,46 @@ Van en un archivo llamado `HALLAZGOS.md`, en la raíz del proyecto, junto a `pro
 
 ## 📤 Cómo se entrega
 
-1. Entrega desde la rama `bloqueo-<tus-iniciales>` que creaste al dejar el entorno listo, no desde `s9/start`.
-2. **Guarda tus prompts en `prompts.md`, en la raíz.** Ese nombre y esa ubicación no son negociables: es lo que lee la herramienta que revisa las entregas. El repositorio ya lo trae con su plantilla puesta. **Cada prompt va en su propio bloque de código**, con el modelo y la herramienta que usaste.
-3. Empuja tu rama a tu fork (`git push -u origin bloqueo-<tus-iniciales>`) y abre el **pull request (PR, por sus siglas en inglés) desde tu fork hacia el repositorio del curso** (`github.com/LIDR-academy/flowsync-ai4devs`; comprueba que el repositorio base que te propone GitHub es ese y no tu fork), con `HALLAZGOS.md` (tus tres líneas, en la raíz del proyecto), `prompts.md` y el registro de bloqueos dentro.
+1. Entrega desde la rama `motor-<tus-iniciales>` que creaste al dejar el entorno listo, no desde `s10/start`.
+2. **Guarda tus prompts en un fichero `prompts.md` en la raíz del repositorio.** Ese nombre y esa ubicación no son negociables: es lo que lee la herramienta que revisa las entregas. La rama de partida ya lo trae con su plantilla puesta.
+   - **Cada prompt va en su propio bloque de código**, con el modelo y la herramienta que usaste. Escribirlos en una línea suelta no sirve: un prompt real va de dos palabras a diez líneas, y sin delimitador no se sabe dónde acaba uno.
+3. Empuja tu rama a tu fork (`git push -u origin motor-<tus-iniciales>`) y abre el **pull request desde tu fork hacia el repositorio del curso** (`github.com/LIDR-academy/flowsync-ai4devs`; comprueba que el repositorio base que te propone GitHub es ese y no tu fork), con `HALLAZGOS.md` y `prompts.md` dentro.
 
 ### El plazo
 
-**El plazo es antes del directo.**
+**El plazo es antes del directo.** Lo que llegue después no entra en la sesión, que es para lo que sirve.
 
 ---
 
 ## 📚 Si vas justo de tiempo
 
-Prioriza la lección sobre **por qué un prompt no es una consulta sino una transferencia de datos**, que es la que sostiene todo el ejercicio, y la que trata **por qué cumplir no es no hacerlo mal sino poder demostrar qué pasó**: esa es literalmente la del registro que vas a montar. Las otras tres se siguen bien en vivo.
+Prioriza la lección sobre **por qué una migración es el cambio que peor se deshace**, que es la que sostiene la parte B entera, y la que trata **por qué el agente no se inventa las columnas sino los valores**. Las cuatro sobre consultas complejas son obligatorias, pero ninguna parte de la tarea depende de ellas, así que pueden ir después de la entrega. Las cuatro de campos vectoriales son opcionales, y tienen su ampliación en la lección de recursos.
 
-El resto del material de apoyo está en la **lección de recursos de este módulo**, y es opcional.
+Y si el reloj aprieta de verdad, la prioridad es la **parte B**: se escribe igual de bien con la parte A a medias.
 
 ---
 
 ## ✅ Antes de conectarte, comprueba
 
 - [ ] Estás en la rama de partida, sobre **tu fork**, y `git push` funciona.
-- [ ] `node -v` responde `v24` o más, y `make --version` y `jq --version` responden, en la terminal donde trabajas (en Windows, la de WSL).
-- [ ] `make setup` terminó bien y `(cd backend && npm test)` corrió una vez.
-- [ ] **El hook salta**: el intento de commit con un correo de fuera sale con código 2 y deja su línea.
-- [ ] **Traes `HALLAZGOS.md`**, en la raíz del proyecto y con sus tres líneas, y el registro de bloqueos versionado.
+- [ ] `docker ps` devuelve una tabla, `node -v` responde `v24` o más, y `make --version` responde.
+- [ ] **Las dos bases levantan** en el 54410 y el 54411, y la suite del backend corre contra la de pruebas.
+- [ ] Has corrido la comprobación de tipos **una vez** y tienes anotado lo que salió, en verde o en rojo.
+- [ ] **Traes `HALLAZGOS.md`** con sus tres líneas, y el fichero de Compose dentro del cambio.
 - [ ] **`prompts.md` está relleno**, con modelo y herramienta en cada bloque.
-- [ ] **Tu rama se llama `bloqueo-<tus-iniciales>` y el pull request está abierto contra el repositorio del curso.**
+- [ ] **Tu rama se llama `motor-<tus-iniciales>` y el pull request está abierto contra el repositorio del curso.**
 
 > Trae el archivo tal como quedó, sin maquillarlo: lo que le falta es la mitad de lo interesante.
 
 ---
 
-## 🚀 Y después, si quieres llevártelo al trabajo
+## 🎯 Qué te llevas del Módulo 10
 
-Probar el mismo hook en un proyecto de otro stack. Esta parte es **opcional**: no se entrega, no cuenta para el plazo y no hace falta para nada de lo anterior. Sirve para comprobar algo que un solo proyecto no te puede enseñar: **qué del hook viaja a otro proyecto y qué no**.
+**El modelo mental**: que en esta capa los errores caros **no revientan**: un agente que se inventa el nombre de una columna se estrella al momento, y uno que se inventa un valor devuelve cero filas con la forma correcta y pasa cualquier revisión, porque revisar más despacio no arregla que falte el dato. Que una migración se clasifica por **cómo se deshace**, no por cómo está escrita, y que lo que sobrevive a un cambio de motor es lo que está **en** el esquema, mientras que lo que colgaba de la conexión se pierde sin que nada falle. Que una consulta compleja puede ejecutarse sin un error y estar mal: una unión que multiplica filas infla un total, un mes mal acotado pierde su último día, un marco de ventana por defecto acumula de más, y una consulta correcta puede ser la lenta, cosa que el plan de ejecución dice antes que producción. Y, si leíste las opcionales, que un campo vectorial es **una columna más** de una tabla que ya tienes, con su dimensión formando parte del tipo y su vector caducando en silencio cada vez que cambia el texto del que salió. Que un índice de vectores **no busca, adivina**, y que mezclado con un filtro de negocio devuelve menos filas de las que le pides sin decírselo a nadie. Que buscar por parecido no es una versión mejor de buscar, sino **otra pregunta**: responde a lo que el usuario no supo nombrar, y todo lo que sí sabe nombrar es un filtro, que es más barato y siempre igual. Y que los números de un vector **los produce alguien**, que puede ser tu propia máquina o puede ser un tercero que, en su capa gratuita, se reserva por escrito el derecho a leerlos.
 
-Necesitas tener en tu máquina el repositorio **`blog-ai`**: el servicio de búsqueda semántica y de respuestas sobre un blog, escrito en Python. Es un proyecto que sí lleva un modelo de lenguaje dentro, y **no trae ningún hook ni `CLAUDE.md`**. Si no lo tienes clonado, sáltate esta sección.
+**Lo que queda en el proyecto**: un fichero de Compose con dos bases de datos declaradas, la de pruebas efímera a propósito, y los atajos de `make` que las levantan, las migran y corren la batería contra la que toca. Un fichero de entorno de pruebas que apunta a la segunda. Una batería de veintitrés pruebas que sigue en verde sobre un motor distinto del que se escribió, sin que ninguna migración se haya tocado. Y un `HALLAZGOS.md` con tres líneas medidas por ti, que es lo que llevas al directo.
 
-1. **Copia el hook** a una carpeta `.claude/hooks/` de ese proyecto y pídele al agente que lo registre en su `.claude/settings.json` con el mismo bloque `PreToolUse` y matcher `Bash` que usa FlowSync. Es un script de shell que lee el comando y el diff: no sabe en qué lenguaje está escrito el proyecto.
-2. **Antes de probar, apunta qué crees que hará** el hook con cada uno de estos cuatro casos, y por qué regla:
-   - un archivo con un correo de `gmail.com`;
-   - un `.env` (en ese proyecto está ignorado por git, así que hace falta forzarlo con `git add -f`);
-   - una línea `BASE_DE_DATOS_URL=postgresql://admin:S3cr3t@localhost:5432/x`, con una contraseña dentro de la dirección de conexión;
-   - una línea `OLLAMA_API_KEY=abc123def456`, una clave sin la forma de las que reconoce la regla 1.
-3. **Prueba los cuatro con un `git commit`** (siempre `git add` de un archivo temporal y, al terminar, fuera el archivo) y compara con lo que habías apuntado.
-
-Lo que sale con las tres reglas de arriba **tal cual**, porque el script no es una IA y no varía: los dos primeros casos los bloquea; los dos últimos **pasan sin decir nada**. Pruébalo también con esa misma dirección de conexión en un servidor con nombre de dominio (`bd.miempresa.com` en vez de `localhost`): sale bloqueada, pero **por la regla del correo**, porque `admin:S3cr3t@bd.miempresa.com` tiene la forma de una dirección. Acierta por un motivo equivocado.
-
-La conclusión es material para la segunda línea de la parte D: **el hook viaja, lo que decide si un dato es secreto no**. Un script solo ve lo que se decide mirando el texto, y cada proyecto tiene sus propios secretos con una forma que el otro no tiene.
-
----
-
-## 🎯 Qué te llevas del Módulo 9
-
-**El modelo mental**: que un prompt no es una consulta, es una transferencia de datos, y que lo que decide si puedes mandar algo no es cuánto vale para tu empresa sino de quién es y a dónde va. Que la casilla de riesgo de un producto la decide el uso y no la tecnología, y que la parte del reglamento que ya te aplica es la que casi nadie ha mirado. Que el código generado falla por omisión, no con ruido, y que quien lo acepta confía más, así que la pregunta con la que se revisa deja de ser «¿esto está bien?» y pasa a ser «¿qué no está aquí?». Que el ataque no entra por donde escribes tú sino por lo que el agente lee, y que contra eso lo que existe es bajar el daño, empezando por el radio de acción. Y que cumplir no es no hacerlo mal: es poder demostrar después qué pasó, con una evidencia que existía en el momento y que dice, además, lo que dejaste fuera.
-
-**Lo que queda en el proyecto**: un hook en `.claude/hooks/` que impide que un secreto con forma reconocible, el correo de una persona o un fichero `.env` entren al repositorio en un commit, con su línea en `.claude/settings.json`. Un bloque en el `CLAUDE.md` del repositorio que dice que existe y que no se desactiva. Un registro en `docs/seguridad/` con al menos una línea fechada que no repite ningún dato, versionado con el resto. Un fichero de hallazgos con tus tres líneas. Y el registro de tus prompts, con la forma exacta en que se lo pediste, que es lo que vas a poder comparar con lo que se use en clase.
+> 👥 **Qué te llevas según de dónde vengas.**
+> - **Si eres dev**: una consulta que se ejecuta sin error no ha demostrado nada. Cuenta las filas antes y después de cada unión, acota las fechas con un límite que no se incluye, dale a cada ventana su desempate, y lee el plan antes de que lo lea producción. Y cada migración, antes de escribirla, se clasifica por cómo se deshace.
+> - **Si vienes de producto o gestión**: un informe puede estar mal sin que nadie haya cometido ningún error visible, así que «lo hemos revisado» dice muy poco de una consulta. La pregunta útil es «¿contra qué número lo has cuadrado?».
+> - **Si no tienes background técnico**: una base de datos no entiende lo que le preguntas: compara. Un número con la forma correcta no es por eso el número correcto.
