@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Comprobando datos que no deben salir...",
+            "timeout": 30,
+            "command": "cat | \"$CLAUDE_PROJECT_DIR/.claude/hooks/datos-que-no-salen.sh\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
