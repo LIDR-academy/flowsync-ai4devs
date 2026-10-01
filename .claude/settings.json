@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/frontend/*) cd \"$CLAUDE_PROJECT_DIR/frontend\" && npx prettier --write --ignore-unknown \"$f\";; esac; } >/dev/null 2>&1 || true",
+            "timeout": 30,
+            "statusMessage": "Formateando con prettier..."
+          }
+        ]
+      }
+    ]
+  }
+}
