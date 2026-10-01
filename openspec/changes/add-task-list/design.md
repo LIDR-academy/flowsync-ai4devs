@@ -9,12 +9,12 @@ La motivación y el alcance están en `proposal.md`, y el comportamiento observa
 - Los modelos no declaran columnas: extienden la clase que se genera en `database/schema.ts` al migrar.
 - Los controladores se referencian desde `#generated/controllers`, y ese fichero se regenera al arrancar.
 - Toda respuesta pasa por `serialize()`, que envuelve el resultado en `{ data }`, con un transformer que elige qué campos salen.
-- El bodyparser ya recorta los espacios del principio y del final, y convierte las cadenas vacías en `null`. Por eso un título de solo espacios llega como `null` y falla la regla `required`. Esto se comprobó en la ingeniería inversa de `auth`.
+- El bodyparser ya recorta los espacios del principio y del final, y convierte las cadenas vacías en `null`. Por eso un título de solo espacios llega como `null` y falla la regla `required`. Es el valor por defecto (`trimWhitespaces`) y `config/bodyparser.ts` no lo cambia; se comprobó con `curl` contra el registro de cuentas.
 
 **Frontend.** React 19, react-router y Tailwind v4.
 
 - Los únicos componentes de `components/ui/` son `alert`, `button`, `card`, `input` y `label`. No se pueden añadir dependencias.
-- Toda llamada a la API pasa por `lib/api.ts`, que hoy solo admite `GET` y `POST` y traduce los errores 400, 401 y 422.
+- Toda llamada a la API pasa por `lib/api.ts`, que hoy solo admite `GET` y `POST` y traduce los errores 400, 401 y 422; cualquier otro código acaba en un mensaje genérico de servidor.
 - Los formularios usan `useAuthForm`, que reparte los errores entre los campos y el aviso general, y `FieldError`.
 - La protección de rutas la hace `ProtectedRoute`.
 
@@ -62,7 +62,7 @@ No hay columna de vencimiento ni de creador. La de creador no hace falta porque 
 
 ### D4. Validadores
 
-- **Creación:** `{ title: vine.string().maxLength(255) }`. Las claves no declaradas se descartan, así que no se pueden colar ni `status` ni `assigneeId`.
+- **Creación:** `{ title: vine.string().trim().maxLength(255) }`. El `trim()` repite lo que ya hace el bodyparser, para que el comportamiento de la spec no dependa de su configuración. Las claves no declaradas se descartan, así que no se pueden colar ni `status` ni `assigneeId`.
 - **Actualización:**
   - `status: vine.enum(TASK_STATUSES).optional().requiredIfMissing('assigneeId')`;
   - `assigneeId: vine.number().exists({ table: 'users', column: 'id' }).optional()`.
@@ -73,7 +73,7 @@ No hay columna de vencimiento ni de creador. La de creador no hace falta porque 
 
 ### D5. Controlador `TasksController` con tres acciones y rutas mínimas
 
-Las rutas van bajo `/api/v1/tasks`, en un grupo con `.use(middleware.auth())`:
+Las rutas van bajo `/api/v1/tasks`, en un grupo con `.prefix('tasks').as('tasks').use(middleware.auth())`, siguiendo la convención `.prefix().as()` de los grupos existentes para que los nombres del registro generado sean coherentes:
 
 - `router.get('/', [controllers.Tasks, 'index'])`
 - `router.post('/', [controllers.Tasks, 'store'])`
@@ -93,7 +93,7 @@ Se usa `201` en la creación, aunque el registro de cuentas responda `200`, porq
 
 - Hay una ruta nueva `/tasks` dentro del `ProtectedRoute` existente.
 - No se tocan las redirecciones por defecto a `/profile`: cambiar la pantalla de aterrizaje modificaría la capability `auth`.
-- El perfil gana un enlace «Ver tareas del equipo» y la lista un enlace «Mi perfil». Los dos son `Link` de react-router con estilo de `Button` `variant="link"` o `outline`.
+- El perfil gana un enlace «Ver tareas del equipo» y la lista un enlace «Mi perfil». Los dos son `<Button asChild variant="outline"><Link …/></Button>`, para no anidar `<a>` dentro de `<button>`.
 
 La página `pages/tasks-page.tsx` sigue el marco visual de las pantallas actuales (fondo `bg-muted/40` con `Card`) y tiene estas piezas:
 
@@ -101,6 +101,14 @@ La página `pages/tasks-page.tsx` sigue el marco visual de las pantallas actuale
 - el formulario de creación;
 - un `Alert` para los errores de carga o de cambio de estado;
 - la lista o el estado vacío.
+
+La página tiene tres fases: `loading`, `error` y `ready`.
+
+- En `loading` se ve un indicador de carga.
+- En `error` se ve un `Alert` con el mensaje y, debajo, un `Button` «Reintentar». Es una composición en la página, porque `components/ui` no tiene un `Alert` con acción.
+- Solo en `ready` se pintan el formulario de creación y la lista o el estado vacío.
+
+Así no se puede crear una tarea sobre una lista sin cargar, y no hay carrera entre la carga y el añadido local. Los errores de cambio de estado se muestran en un `Alert` aparte, sin «Reintentar», encima de la lista.
 
 Las filas viven en `components/task-row.tsx` y el selector de estado en `components/task-status-toggle.tsx`.
 
@@ -121,7 +129,7 @@ Al pulsar un estado:
 
 1. La fila se actualiza en local de inmediato (CA-1 de E2-4) y sus botones se deshabilitan mientras dura la petición.
 2. Se lanza `PATCH`.
-3. Si la petición falla, se restaura el estado anterior y se muestra el `Alert` con el mensaje del `ApiError`, o con uno genérico. Si el fallo es `401`, se llama a `logout()` del contexto de auth y `ProtectedRoute` lleva a `/login`.
+3. Si la petición falla, se restaura el estado anterior **solo de esa tarea**: se busca por `id` en el estado actual, no se restaura una copia de la lista entera, para no pisar otras filas con peticiones en vuelo. Después se muestra el `Alert` con el mensaje del `ApiError`, o con uno genérico. Si el fallo es `401`, se llama a `logout()` del contexto de auth y `ProtectedRoute` lleva a `/login`.
 
 Si al terminar la petición la fila sigue en el estado optimista, se sustituye por la tarea que devuelve el servidor.
 
@@ -129,7 +137,9 @@ Si al terminar la petición la fila sigue en el estado optimista, se sustituye p
 
 ### D9. Creación: validación local y añadido sin recargar
 
-El formulario reutiliza `useAuthForm(['title'])`: aunque el nombre diga «auth», el hook es genérico. Renombrarlo queda fuera del alcance.
+El formulario reutiliza `useAuthForm(FIELDS)`, con `const FIELDS = ['title'] as const` a nivel de módulo, como hacen las pantallas de login y registro. Así el array no se recrea en cada render ni invalida el `submit` memorizado. Aunque el nombre del hook diga «auth», es genérico, y renombrarlo queda fuera del alcance.
+
+Si la creación responde `401`, la acción que se pasa a `submit` llama a `logout()` antes de relanzar el error, igual que en D8, para que nadie quede atascado en `/tasks` con un aviso de sesión caducada que no puede resolver.
 
 Antes de llamar al servidor:
 
@@ -145,7 +155,7 @@ Si la creación va bien, la tarea devuelta se **añade al final** del array loca
 - `RequestOptions.method` admite también `'PATCH'`.
 - Se añaden `listTasks(token)`, `createTask(token, { title })` y `updateTask(token, id, { status?, assigneeId? })`. El cliente solo envía `status`, porque no hay gesto de reasignación.
 - `FIELD_LABELS` incorpora `title: 'el título'`, `status: 'el estado'` y `assigneeId: 'el responsable'`.
-- `toApiError` trata el `404` como «Esa tarea ya no existe. Recarga la lista.».
+- El `404` no se traduce de forma global en `toApiError`, porque un 404 de otra llamada (o una URL de API mal configurada) daría un texto engañoso. Lo traduce solo `updateTask`, como «Esa tarea ya no existe. Recarga la lista.».
 - `lib/types.ts` gana los tipos `Task`, `TaskStatus` y `TaskAssignee`.
 
 ## Risks / Trade-offs
@@ -154,6 +164,7 @@ Si la creación va bien, la tarea devuelta se **añade al final** del array loca
 - **[Riesgo] La tarea recién creada aparece al final en local y puede cambiar de sitio al recargar.** → Mitigación: aceptado mientras PA-3 siga abierto. Lo resuelve cualquier regla de orden futura.
 - **[Riesgo] Dos personas cambian el estado de la misma tarea a la vez y gana la última escritura**, sin aviso (PA-8). → Mitigación: aceptado. La lista es correcta en el momento de cargarla, y el refresco en vivo es E3-2.
 - **[Riesgo] La API permite reasignar, pero ninguna pantalla lo hace.** Es superficie sin consumidor. → Mitigación: es una restricción explícita del usuario, está acotada por `exists` y la cubre la spec.
+- **[Riesgo] Con `exists`, una cuenta autenticada puede averiguar qué ids de cuenta existen**, porque responde `422` o `200` según el caso. → Mitigación: aceptado. Los ids son secuenciales y la reasignación libre es una decisión explícita; no expone ningún dato de la cuenta.
 - **[Trade-off] El límite de 255 caracteres es técnico, no de producto (PA-9).** → Mitigación: está centralizado en el validador, la migración y el check del cliente, y se puede cambiar con una migración.
 - **[Trade-off] Reutilizar `useAuthForm` para un formulario que no es de auth.** → Mitigación: el hook no tiene ninguna dependencia de auth. El nombre se puede corregir en un refactor aparte.
 - **[Riesgo] `requiredIfMissing` produce el error del cuerpo vacío en el campo `status`**, aunque el problema sea de los dos campos. → Mitigación: la spec solo exige `422` en ese caso, y el cliente nunca envía un cuerpo vacío.

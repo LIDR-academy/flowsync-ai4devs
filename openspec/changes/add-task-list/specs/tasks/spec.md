@@ -39,7 +39,7 @@ Toda tarea devuelta por la API SHALL tener exactamente `id`, `title`, `status` y
 - **WHEN** se lista o se crea una tarea cuyo responsable es Ada Lovelace
 - **THEN** la tarea tiene `id`, `title`, `status` y `assignee: { "id": <id de Ada>, "fullName": "Ada Lovelace" }`, sin más claves
 
-#### Scenario: Responsable sin nombre
+#### Scenario: Responsable sin nombre en la API
 
 - **WHEN** el responsable de una tarea es una cuenta sin nombre
 - **THEN** `assignee.fullName` es `null` y la tarea no incluye el correo de esa cuenta
@@ -86,7 +86,7 @@ El sistema SHALL rechazar con `422` y un error con `field: "title"` toda creaci�
 - **WHEN** se envía `{ "title": "    " }`
 - **THEN** la respuesta es `422` con un error `rule: "required"` y `field: "title"`, y no aparece ninguna tarea sin texto
 
-#### Scenario: Título demasiado largo
+#### Scenario: Título demasiado largo en la API
 
 - **WHEN** se envía un título de 256 caracteres
 - **THEN** la respuesta es `422` con un error `rule: "maxLength"`, `field: "title"` y `meta.max: 255`, y no se crea ninguna tarea
@@ -194,6 +194,16 @@ La aplicación web SHALL ofrecer la lista de tareas en `/tasks` solo a quien tie
 - **WHEN** una persona con sesión pulsa el enlace a la lista en su perfil
 - **THEN** ve la lista de tareas del equipo
 
+#### Scenario: No hay vista «mis tareas»
+
+- **WHEN** alguien busca en la aplicación otra vista, ruta o filtro de tareas
+- **THEN** no existe ninguna vista de «mis tareas» ni ninguna lista por persona: la de `/tasks` es la única
+
+#### Scenario: Sin contenido reservado
+
+- **WHEN** dos cuentas cualesquiera abren `/tasks`
+- **THEN** ambas ven las mismas tareas y los mismos controles, sin nada reservado a ningún rol
+
 ### Requirement: Cada fila dice título, responsable y estado
 
 Cada tarea de la lista SHALL mostrar, sin abrirla, su título, el nombre de su responsable y su estado como «Pendiente», «En curso» o «Hecho». Si el responsable no tiene nombre, SHALL mostrarse «Sin nombre». La lista SHALL NOT mostrar correos, identificadores, fechas, marcas de vencida ni señales de presencia o actividad de nadie.
@@ -203,7 +213,7 @@ Cada tarea de la lista SHALL mostrar, sin abrirla, su título, el nombre de su r
 - **WHEN** la lista incluye «Preparar la demo», a cargo de Ada Lovelace y en `in_progress`
 - **THEN** su fila muestra «Preparar la demo», «Ada Lovelace» y «En curso» como estado actual
 
-#### Scenario: Responsable sin nombre
+#### Scenario: Responsable sin nombre en pantalla
 
 - **WHEN** el responsable de una tarea es una cuenta sin nombre
 - **THEN** la fila muestra «Sin nombre» y en ningún sitio su correo ni su id
@@ -250,7 +260,7 @@ Si el título está vacío, solo tiene espacios o supera los 255 caracteres, la 
 - **WHEN** alguien pulsa «Crear tarea» con el campo vacío o solo con espacios
 - **THEN** ve bajo el campo «Falta rellenar el título.» y la lista no gana ninguna fila
 
-#### Scenario: Título demasiado largo
+#### Scenario: Título demasiado largo en pantalla
 
 - **WHEN** alguien pega un título de 300 caracteres y pulsa «Crear tarea»
 - **THEN** ve bajo el campo un aviso de que el título no puede superar los 255 caracteres, y el campo conserva los 300 caracteres que escribió
@@ -277,18 +287,23 @@ Cada fila SHALL ofrecer los tres estados como un grupo de botones «Pendiente»,
 #### Scenario: El cambio falla
 
 - **WHEN** alguien cambia el estado de una tarea y el servidor rechaza el cambio o no responde
-- **THEN** la fila vuelve a marcar el estado anterior y se muestra un aviso explicando que no se pudo guardar
+- **THEN** esa fila, y solo esa, vuelve a marcar su estado anterior y se muestra un aviso explicando que no se pudo guardar
 
 ### Requirement: Fallo al cargar la lista
 
-Si la lista no se puede cargar, la pantalla SHALL mostrar un aviso en castellano y una forma de reintentar, en lugar de una lista vacía. Si el servidor rechaza la sesión, la aplicación SHALL cerrarla y llevar a la persona a la pantalla de inicio de sesión.
+Si la lista no se puede cargar, la pantalla SHALL mostrar un aviso en castellano y una forma de reintentar, en lugar de una lista vacía, y SHALL NOT ofrecer el formulario de creación hasta que la lista se haya cargado. Si el servidor rechaza la sesión al cargar, crear o cambiar un estado, la aplicación SHALL cerrarla y llevar a la persona a la pantalla de inicio de sesión.
 
 #### Scenario: Servidor caído
 
 - **WHEN** alguien abre la lista con el servidor apagado
-- **THEN** ve el aviso «No se pudo conectar con el servidor. Comprueba que el backend está arrancado.» y un botón «Reintentar», y no ve el estado vacío
+- **THEN** ve el aviso «No se pudo conectar con el servidor. Comprueba que el backend está arrancado.» y un botón «Reintentar», y no ve ni el estado vacío ni el formulario de creación
 
-#### Scenario: Sesión revocada
+#### Scenario: Sesión revocada al cargar
 
 - **WHEN** alguien abre la lista con una sesión que el servidor ya no reconoce
 - **THEN** pasa a la pantalla de inicio de sesión
+
+#### Scenario: Sesión revocada al crear o cambiar un estado
+
+- **WHEN** con la lista ya abierta, la sesión deja de ser válida y la persona crea una tarea o cambia un estado
+- **THEN** no se crea ni se cambia nada y pasa a la pantalla de inicio de sesión
