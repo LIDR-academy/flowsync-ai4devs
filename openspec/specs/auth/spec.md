@@ -20,6 +20,11 @@ El sistema SHALL aceptar `POST /api/v1/auth/signup` con un cuerpo JSON que conte
 - **WHEN** se envía un registro válido con `fullName: null`
 - **THEN** la respuesta es `200` y `data.user.fullName` es `null`
 
+#### Scenario: Nombre vacío o en blanco
+
+- **WHEN** se envía un registro válido con `fullName: ""` o `fullName: "  "`
+- **THEN** la respuesta es `200` y `data.user.fullName` es `null`, igual que si se hubiera enviado `null`
+
 #### Scenario: El token del registro sirve para autenticarse
 
 - **WHEN** se usa el `data.token` devuelto por el registro como `Authorization: Bearer <token>` en `GET /api/v1/account/profile`
@@ -27,7 +32,7 @@ El sistema SHALL aceptar `POST /api/v1/auth/signup` con un cuerpo JSON que conte
 
 ### Requirement: Validación de los datos de registro
 
-El sistema SHALL rechazar con `422` cualquier registro que no cumpla las reglas siguientes, devolviendo `{ "errors": [ { "message", "rule", "field", "meta"? } ] }` con una entrada por cada regla incumplida: la clave `fullName` MUST estar presente (aunque sea `null`); `email` MUST ser una dirección de email válida de como máximo 254 caracteres y MUST NOT coincidir exactamente con el de una cuenta existente; `password` y `passwordConfirmation` MUST tener entre 8 y 32 caracteres; y `passwordConfirmation` MUST ser idéntica a `password`. Ante un rechazo, el sistema SHALL NOT crear ninguna cuenta.
+El sistema SHALL rechazar con `422` cualquier registro que no cumpla las reglas siguientes, devolviendo `{ "errors": [ { "message", "rule", "field", "meta"? } ] }` con como máximo un error por campo (el de la primera regla que ese campo incumple): la clave `fullName` MUST estar presente (aunque sea `null`); `email` MUST ser una dirección de email válida de como máximo 254 caracteres y MUST NOT coincidir exactamente con el de una cuenta existente; `password` y `passwordConfirmation` MUST tener entre 8 y 32 caracteres; y `passwordConfirmation` MUST ser idéntica a `password`. Ante un rechazo, el sistema SHALL NOT crear ninguna cuenta.
 
 #### Scenario: Cuerpo vacío
 
@@ -42,7 +47,7 @@ El sistema SHALL rechazar con `422` cualquier registro que no cumpla las reglas 
 #### Scenario: Email mal formado
 
 - **WHEN** se envía `email: "nope"`
-- **THEN** la respuesta es `422` con un error `rule: "email"` y `field: "email"`
+- **THEN** la respuesta es `422` con un único error para `email`, `rule: "email"`, sin comprobar además si el email ya existe
 
 #### Scenario: Contraseña demasiado corta
 
@@ -104,7 +109,7 @@ El sistema SHALL responder `422` con errores por campo cuando falten `email` o `
 
 ### Requirement: Representación pública del usuario
 
-Siempre que la API devuelva un usuario, el sistema SHALL exponer únicamente `id`, `fullName`, `email`, `initials`, `createdAt` y `updatedAt` (fechas en ISO 8601), y SHALL NOT incluir la contraseña ni ningún derivado de ella. `initials` SHALL calcularse así: si hay nombre, las iniciales en mayúscula de sus dos primeras palabras, o las dos primeras letras en mayúscula si tiene una sola palabra; si no hay nombre, la primera letra de la parte local del email seguida de la primera letra de su dominio, en mayúscula.
+Siempre que la API devuelva un usuario, el sistema SHALL exponer únicamente `id`, `fullName`, `email`, `initials`, `createdAt` y `updatedAt` (fechas en ISO 8601), y SHALL NOT incluir la contraseña ni ningún derivado de ella. `initials` SHALL calcularse así: si hay nombre, las iniciales en mayúscula de sus dos primeras palabras separadas por un espacio simple, o las dos primeras letras en mayúscula si no contiene ningún espacio; si no hay nombre, la primera letra de la parte local del email seguida de la primera letra de su dominio, en mayúscula.
 
 #### Scenario: Iniciales con nombre y apellido
 
@@ -115,6 +120,11 @@ Siempre que la API devuelva un usuario, el sistema SHALL exponer únicamente `id
 
 - **WHEN** la cuenta tiene `fullName: "Grace"`
 - **THEN** `initials` es `"GR"`
+
+#### Scenario: Iniciales con un espacio doble
+
+- **WHEN** la cuenta tiene `fullName: "Ada  Lovelace"` (dos espacios)
+- **THEN** `initials` es `"AD"`
 
 #### Scenario: Iniciales sin nombre
 
@@ -216,6 +226,11 @@ La pantalla de inicio de sesión SHALL mostrar el título "Inicia sesión", camp
 - **WHEN** la persona envía el formulario con el email vacío o con un formato inválido
 - **THEN** ve bajo el campo Email un mensaje en castellano ("Falta rellenar el email." o "Introduce una dirección de email válida.") y no se abre la sesión
 
+#### Scenario: Contraseña vacía
+
+- **WHEN** la persona envía el formulario con un email válido y la contraseña vacía
+- **THEN** ve "Falta rellenar la contraseña." bajo el campo Contraseña y no se abre la sesión
+
 #### Scenario: Envío en curso
 
 - **WHEN** la persona pulsa "Entrar" y la respuesta aún no ha llegado
@@ -266,7 +281,7 @@ La pantalla de perfil SHALL mostrar las iniciales de la persona en un círculo, 
 
 ### Requirement: Cierre de sesión en la aplicación
 
-Al pulsar "Cerrar sesión", la aplicación SHALL cerrar la sesión en el navegador y llevar a la persona a la pantalla de inicio de sesión, aunque el servidor no confirme el cierre; durante el proceso, el botón SHALL mostrar "Cerrando sesión…" y estar deshabilitado. Tras cerrar sesión, recargar la página SHALL NOT restaurar la sesión.
+Al pulsar "Cerrar sesión", la aplicación SHALL cerrar la sesión en el navegador y llevar a la persona a la pantalla de inicio de sesión, de inmediato, sin esperar a que el servidor confirme el cierre y aunque no llegue a confirmarlo. Tras cerrar sesión, recargar la página SHALL NOT restaurar la sesión.
 
 #### Scenario: Cerrar sesión
 
@@ -276,11 +291,11 @@ Al pulsar "Cerrar sesión", la aplicación SHALL cerrar la sesión en el navegad
 #### Scenario: Cerrar sesión con el servidor caído
 
 - **WHEN** la persona pulsa "Cerrar sesión" y el servidor no responde
-- **THEN** igualmente pasa a la pantalla de inicio de sesión y, al recargar, sigue sin sesión
+- **THEN** igualmente pasa a la pantalla de inicio de sesión y, al recargar, sigue sin sesión en el navegador (aunque el token pueda seguir siendo válido en el servidor)
 
 ### Requirement: Persistencia de la sesión entre recargas
 
-La aplicación SHALL conservar la sesión abierta al recargar la página o volver a abrirla en el mismo navegador, verificándola contra el servidor al arrancar. Si el servidor rechaza la sesión guardada, la aplicación SHALL descartarla y mostrar en la pantalla de inicio de sesión el aviso "Tu sesión ha caducado. Vuelve a iniciar sesión.". Si el servidor no está disponible, la aplicación SHALL mostrar la pantalla de inicio de sesión con el aviso "No se pudo conectar con el servidor. Comprueba que el backend está arrancado." pero SHALL conservar la sesión guardada, de modo que una recarga posterior con el servidor disponible la restaure.
+La aplicación SHALL conservar la sesión abierta al recargar la página o volver a abrirla en el mismo navegador, verificándola contra el servidor al arrancar. Si el servidor rechaza la sesión guardada, la aplicación SHALL descartarla y mostrar en la pantalla de inicio de sesión el aviso "Tu sesión ha caducado. Vuelve a iniciar sesión.". Si el servidor no está disponible o responde con un error distinto de rechazar la sesión, la aplicación SHALL tratar a la persona como sin sesión y mostrar el aviso correspondiente ("No se pudo conectar con el servidor. Comprueba que el backend está arrancado." o "Algo ha ido mal en el servidor. Inténtalo de nuevo en un momento."), pero SHALL conservar la sesión guardada, de modo que una recarga posterior con el servidor disponible la restaure. Estos avisos SHALL mostrarse solo en la pantalla de inicio de sesión, no en la de registro.
 
 #### Scenario: Recarga con sesión válida
 
@@ -297,6 +312,16 @@ La aplicación SHALL conservar la sesión abierta al recargar la página o volve
 - **WHEN** la persona recarga la aplicación con una sesión guardada y el servidor no responde
 - **THEN** ve la pantalla de inicio de sesión con el aviso "No se pudo conectar con el servidor. Comprueba que el backend está arrancado."
 
+#### Scenario: Error interno del servidor al arrancar
+
+- **WHEN** la persona recarga la aplicación con una sesión guardada y la consulta del perfil responde con un error 500
+- **THEN** ve la pantalla de inicio de sesión con el aviso "Algo ha ido mal en el servidor. Inténtalo de nuevo en un momento." y una recarga posterior con el servidor sano restaura la sesión
+
+#### Scenario: Recarga en la pantalla de registro
+
+- **WHEN** la persona recarga estando en `/register` con una sesión guardada que el servidor rechaza o no puede verificar
+- **THEN** sigue en la pantalla de registro sin ningún aviso de sesión perdida
+
 #### Scenario: El servidor vuelve
 
 - **WHEN** después de ese fallo el servidor vuelve a estar disponible y la persona recarga la página
@@ -304,7 +329,7 @@ La aplicación SHALL conservar la sesión abierta al recargar la página o volve
 
 #### Scenario: El aviso desaparece al entrar
 
-- **WHEN** la persona ve un aviso de sesión perdida e inicia sesión correctamente
+- **WHEN** la persona ve un aviso de sesión perdida e inicia sesión o se registra correctamente
 - **THEN** el aviso deja de mostrarse
 
 ### Requirement: Errores de conexión y de servidor en los formularios
