@@ -2,8 +2,11 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.DEV ? "http://localhost:3333/api/v1" : undefined);
 
-if (!API_URL) {
-  throw new Error("Falta VITE_API_URL: configúrala antes de compilar.");
+// "" es válido (mismo origen con proxy); solo falla si no está definida.
+if (API_URL === undefined) {
+  throw new Error(
+    "Falta VITE_API_URL: defínela al compilar (ver .env.example).",
+  );
 }
 
 export const TOKEN_KEY = "flowsync.token";
@@ -73,16 +76,16 @@ export function fieldMessage(error: ApiError, field: string) {
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+  if (init.body) headers.set("Content-Type", "application/json");
+  if (token && !headers.has("Authorization"))
+    headers.set("Authorization", `Bearer ${token}`);
   let response: Response;
   try {
     response = await fetch(`${API_URL}${path}`, {
       ...init,
-      headers: {
-        Accept: "application/json",
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...init.headers,
-      },
+      headers,
     });
   } catch {
     throw new ApiError(
@@ -109,7 +112,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       fieldRules,
     );
   }
-  if (!body || !("data" in body)) {
+  if (typeof body !== "object" || body === null || !("data" in body)) {
     throw new ApiError(response.status, "Respuesta inesperada del servidor.");
   }
   return body.data as T;
