@@ -14,21 +14,23 @@ import {
 import { api, ApiError, type User } from "@/lib/api";
 
 export default function ProfilePage() {
-  const { logout } = useAuth();
+  const { user, hydrated, logout, expireSession } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<User | null>(null);
+  // Tras una recarga el contexto ya pidió GET /account/profile: se reutiliza.
+  const [profile, setProfile] = useState<User | null>(hydrated ? user : null);
   const [error, setError] = useState<string | null>(null);
 
-  // Consume GET /account/profile en cada visita a la vista protegida.
+  // Consume GET /account/profile al entrar a la vista protegida.
   useEffect(() => {
+    if (hydrated) return;
     let cancelled = false;
     api
       .profile()
       .then((data) => !cancelled && setProfile(data))
-      .catch(async (e) => {
+      .catch((e) => {
         if (cancelled) return;
         if (e instanceof ApiError && e.status === 401) {
-          await logout();
+          expireSession();
           navigate("/login", { replace: true });
         } else {
           setError(
@@ -39,7 +41,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [logout, navigate]);
+  }, [hydrated, expireSession, navigate]);
 
   async function onLogout() {
     await logout();

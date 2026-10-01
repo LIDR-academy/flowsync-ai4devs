@@ -1,4 +1,10 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api/v1";
+const API_URL =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.DEV ? "http://localhost:3333/api/v1" : undefined);
+
+if (!API_URL) {
+  throw new Error("Falta VITE_API_URL: configúrala antes de compilar.");
+}
 
 export const TOKEN_KEY = "flowsync.token";
 
@@ -13,20 +19,23 @@ export type User = {
 
 export type AuthResult = { user: User; token: string };
 
-type ErrorItem = { field?: string; message: string };
+type ErrorItem = { field?: string; message: string; rule?: string };
 
 export class ApiError extends Error {
   status: number;
   fieldErrors: Record<string, string>;
+  fieldRules: Record<string, string>;
 
   constructor(
     status: number,
     message: string,
     fieldErrors: Record<string, string> = {},
+    fieldRules: Record<string, string> = {},
   ) {
     super(message);
     this.status = status;
     this.fieldErrors = fieldErrors;
+    this.fieldRules = fieldRules;
   }
 }
 
@@ -47,6 +56,21 @@ export function setToken(token: string | null) {
   }
 }
 
+const RULE_MESSAGES: Record<string, string> = {
+  required: "Este campo es obligatorio.",
+  email: "Introduce un email válido.",
+  minLength: "El valor es demasiado corto.",
+  maxLength: "El valor es demasiado largo.",
+  sameAs: "Las contraseñas no coinciden.",
+  "database.unique": "Este email ya está registrado.",
+};
+
+/** Mensaje en español para un error de validación, según la regla del backend. */
+export function fieldMessage(error: ApiError, field: string) {
+  const rule = error.fieldRules[field];
+  return (rule && RULE_MESSAGES[rule]) ?? error.fieldErrors[field];
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   let response: Response;
@@ -54,9 +78,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     response = await fetch(`${API_URL}${path}`, {
       ...init,
       headers: {
-        "Content-Type": "application/json",
         Accept: "application/json",
+        ...(init.body ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init.headers,
       },
     });
   } catch {
@@ -70,15 +95,22 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     const items: ErrorItem[] = Array.isArray(body?.errors) ? body.errors : [];
     const fieldErrors: Record<string, string> = {};
+    const fieldRules: Record<string, string> = {};
     for (const item of items) {
-      if (item.field && !fieldErrors[item.field])
+      if (item.field && !fieldErrors[item.field]) {
         fieldErrors[item.field] = item.message;
+        if (item.rule) fieldRules[item.field] = item.rule;
+      }
     }
     throw new ApiError(
       response.status,
       items[0]?.message ?? "Ha ocurrido un error inesperado.",
       fieldErrors,
+      fieldRules,
     );
+  }
+  if (!body || !("data" in body)) {
+    throw new ApiError(response.status, "Respuesta inesperada del servidor.");
   }
   return body.data as T;
 }

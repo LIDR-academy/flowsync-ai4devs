@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, notice, clearNotice } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +28,7 @@ export default function LoginPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    clearNotice();
     setSubmitting(true);
     try {
       await login(email, password);
@@ -54,7 +55,7 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-6">
           <CardContent className="flex flex-col gap-4">
-            {error && <Alert>{error}</Alert>}
+            {(error ?? notice) && <Alert>{error ?? notice}</Alert>}
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input

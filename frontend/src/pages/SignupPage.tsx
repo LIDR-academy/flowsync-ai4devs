@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError } from "@/lib/api";
+import { ApiError, fieldMessage } from "@/lib/api";
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -43,13 +43,11 @@ export default function SignupPage() {
       navigate("/profile", { replace: true });
     } catch (e) {
       if (e instanceof ApiError && e.status === 422) {
-        setFieldErrors(e.fieldErrors);
-        if (e.fieldErrors.email)
-          setFieldErrors({
-            ...e.fieldErrors,
-            email: "Este email ya está registrado.",
-          });
-        if (Object.keys(e.fieldErrors).length === 0) setError(e.message);
+        const translated = Object.fromEntries(
+          Object.keys(e.fieldErrors).map((f) => [f, fieldMessage(e, f)]),
+        );
+        setFieldErrors(translated);
+        if (Object.keys(translated).length === 0) setError(e.message);
       } else {
         setError(
           e instanceof ApiError
