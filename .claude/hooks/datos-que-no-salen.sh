@@ -5,15 +5,35 @@
 # log. The log never stores the matched value: that would be another copy.
 set -uo pipefail
 
-cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null)
+# When the check itself cannot run, a commit does not go through unchecked.
+fail_closed() {
+  echo "Commit bloqueado por .claude/hooks/datos-que-no-salen.sh: $1. No se puede comprobar lo que entra, así que no pasa. Corrige el entorno y vuelve a intentarlo; no desactives este hook." >&2
+  exit 2
+}
+
+input=$(cat)
+if ! cmd=$(jq -r '.tool_input.command // empty' <<<"$input" 2>/dev/null); then
+  # Without jq the command cannot be parsed: fail closed only if it looks like a commit.
+  [[ $input == *"git commit"* ]] && fail_closed "no se pudo leer la entrada con jq"
+  exit 0
+fi
 [[ $cmd == *"git commit"* ]] || exit 0
 
-cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null || exit 0
-top=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-cd "$top" || exit 0
+cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null || fail_closed "no se pudo entrar en el proyecto"
+top=$(git rev-parse --show-toplevel 2>/dev/null) || fail_closed "no se encontró el repositorio git"
+cd "$top" || fail_closed "no se pudo entrar en la raíz del repositorio"
 
-with_add=0
-[[ $cmd == *"git add"* ]] && with_add=1
+# What else enters besides the index: `git add` brings unstaged and untracked
+# files, `git add -f` also ignored ones, and `git commit -a` the unstaged
+# changes to tracked files. Each command's options end at ; & or |.
+with_add=0 with_force=0 with_all=0
+if [[ $cmd =~ git\ add([^\;\&\|]*) ]]; then
+  with_add=1
+  [[ " ${BASH_REMATCH[1]} " =~ [[:space:]](-[[:alnum:]]*f[[:alnum:]]*|--force)[[:space:]] ]] && with_force=1
+fi
+if [[ $cmd =~ git\ commit([^\;\&\|]*) ]]; then
+  [[ " ${BASH_REMATCH[1]} " =~ [[:space:]](-[[:alnum:]]*a[[:alnum:]]*|--all)[[:space:]] ]] && with_all=1
+fi
 
 # Added lines as "path<TAB>content". A "+++" header only counts right after
 # "diff --git", so an added line starting with "++ " is not taken for a path.
@@ -26,28 +46,30 @@ added_from_diff() {
     /^\+/ { print f "\t" substr($0, 2) }'
 }
 
+# Every line of each NUL-separated text file read from stdin, as "path<TAB>content".
+whole_files() {
+  while IFS= read -r -d '' f; do
+    [[ -f $f ]] && grep -Iq '' "$f" 2>/dev/null || continue
+    awk -v f="$f" '{ print f "\t" $0 }' "$f"
+  done
+}
+
 added_lines() {
   added_from_diff --cached
-  if ((with_add)); then
-    added_from_diff
-    git ls-files --others --exclude-standard -z |
-      while IFS= read -r -d '' f; do
-        [[ -f $f ]] && grep -Iq '' "$f" 2>/dev/null || continue
-        awk -v f="$f" '{ print f "\t" $0 }' "$f"
-      done
-  fi
+  ((with_add || with_all)) && added_from_diff
+  ((with_add)) && git ls-files --others --exclude-standard -z | whole_files
+  # --directory folds ignored folders (node_modules/) into one entry, which
+  # whole_files skips; ignored files are read one by one.
+  ((with_force)) && git ls-files --others --ignored --exclude-standard --directory -z | whole_files
+  return 0
 }
 
 incoming_paths() {
   git diff --cached --name-only --diff-filter=ACMR
-  if ((with_add)); then
-    git diff --name-only --diff-filter=ACMR
-    git ls-files --others --exclude-standard
-    # `git add -f` can bring in an ignored file, `.env` being the usual one.
-    if [[ $cmd =~ git\ add.*(-f|--force) ]]; then
-      git ls-files --others --ignored --exclude-standard --directory
-    fi
-  fi
+  ((with_add || with_all)) && git diff --name-only --diff-filter=ACMR
+  ((with_add)) && git ls-files --others --exclude-standard
+  ((with_force)) && git ls-files --others --ignored --exclude-standard --directory
+  return 0
 }
 
 lines=$(added_lines)

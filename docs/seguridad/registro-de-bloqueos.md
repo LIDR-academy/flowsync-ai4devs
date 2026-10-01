@@ -3,3 +3,5 @@
 - 2026-09-30T14:41:05Z BLOQUEADO — regla: correo con dominio no reservado — archivo: docs/capabilities/tasks/README.md
 - 2026-09-30T15:07:01Z BLOQUEADO — regla: clave con forma reconocible — archivo: prompts.md
 - 2026-09-30T15:07:01Z BLOQUEADO — regla: correo con dominio no reservado — archivo: prompts.md
+- 2026-10-01T20:15:42Z BLOQUEADO — regla: fichero .env — archivo: backend/.env
+- 2026-10-01T20:15:42Z BLOQUEADO — regla: fichero .env — archivo: frontend/.env
