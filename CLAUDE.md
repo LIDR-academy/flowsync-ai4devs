@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 FlowSync is a course practice project (team task management). It is a monorepo with two independent npm packages and no root `package.json`:
 
 - `backend/` — AdonisJS 7 JSON API (TypeScript, Lucid ORM, SQLite via better-sqlite3), runs on `http://localhost:3333`
-- `frontend/` — React 19 + Vite 8, runs on `http://localhost:5173` (still the Vite starter template; not yet wired to the API)
+- `frontend/` — React 19 + Vite 8, runs on `http://localhost:5173` (Tailwind v4 + shadcn/ui-style components, `react-router`; login/signup/profile wired to the API via `src/lib/api.ts`, API base from `VITE_API_URL`, see `frontend/.env.example`)
 
 Work happens on the `s1/start` branch. Project docs and commit messages are in Spanish.
 
