@@ -9,18 +9,17 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
+La regla del hook "correo con dominio no reservado" bloqueó el commit
 
 -
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+Mas allá de que modifica el dominio del mail el nombre de usuario no se modifica, así como tampoco la clave. Por un lado se están subiendo datos personales al respositorio así como también teniendo el nombre de usuario y la password solo faltaría inferir el dominio del correo y estaríamos con un problema de seguridad
 
 -
 
 ## 3. Tu duda
 
-De qué dudaste, o qué no pudiste comprobar.
+Tengo dudas sobre las contraseñas, no se de que manera se puede frenar el hecho de enviarlas al LLM ya que al no tener una regla definida no es posible filtrarlas
 
--
