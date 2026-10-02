@@ -178,6 +178,16 @@ curl -s -X PUT http://localhost:3333/api/v1/tasks/1/due-date \
   -d '{"dueDate":"2026-08-19","today":"2026-08-20"}'
 ```
 
+Si la cuenta de pruebas ya existe, el token sale del login en vez del alta:
+
+```bash
+# El token de la cuenta de pruebas de Ana Pérez
+TOKEN=$(curl -s -X POST http://localhost:3333/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ana.perez@example.com","password":"secreto123"}' \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['data']['token'])")
+```
+
 Ojo: esto **escribe en la base de datos de desarrollo**. Para dejarla como estaba, `node ace
 migration:fresh`.
 
