@@ -10,7 +10,7 @@
 
 > **Nota de estado.** Los criterios marcados **[PROPUESTO]** siguen pendientes de validación: no derivan del PRD, sino que cubren huecos detectados al redactarlos. El resto sale directamente de los requisitos.
 
-> **Por qué esta historia se escribe con más cuidado del que su tamaño sugiere.** Es la única acción irreversible del producto. No hay papelera, no hay histórico y los roles son planos: cualquiera puede borrar el trabajo de cualquiera y nadie puede deshacerlo. Los criterios de abajo son casi todos guardarraíles, y esa proporción es deliberada.
+> **Por qué esta historia se escribe con más cuidado del que su tamaño sugiere.** Era la única acción irreversible del producto: los roles son planos, así que cualquiera puede borrar el trabajo de cualquiera. **Desde el 2026-10-02 lo borrado va a una papelera** (PA-2 resuelto, RF-12 enmendado), y los criterios de abajo se han reescrito para eso. Siguen siendo casi todos guardarraíles, y esa proporción es deliberada.
 
 ---
 
@@ -40,10 +40,10 @@ DADO que pido borrar una tarea
 CUANDO se me responde
 ENTONCES se me pide confirmar de forma explícita antes de borrar nada.
 
-**CA-5 — La confirmación dice que no hay vuelta atrás**
+**CA-5 — La confirmación dice adónde va**
 DADO que se me está pidiendo confirmar un borrado
 CUANDO leo lo que se me pregunta
-ENTONCES entiendo que la tarea no se puede recuperar después.
+ENTONCES entiendo que la tarea va a la papelera y que se puede restaurar desde allí.
 
 **CA-6 — Echarse atrás no borra nada**
 DADO que se me está pidiendo confirmar un borrado
@@ -59,16 +59,28 @@ ENTONCES borrar cuesta más, y nunca se puede completar por accidente en el mism
 
 ### Límites y criterios negativos
 
-**CA-8 — No hay papelera**
+**CA-8 — Lo borrado está en la papelera**
 DADO que he borrado una tarea
-CUANDO busco por el producto la manera de recuperarla
-ENTONCES no existe ninguna.
+CUANDO consulto la papelera
+ENTONCES la tarea está ahí, con quién la llevaba y cuándo se borró.
+
+**CA-8b — Restaurar la devuelve tal cual**
+DADO que una tarea está en la papelera
+CUANDO la restauro
+ENTONCES vuelve a la lista con su título, estado, responsable y fecha de vencimiento intactos
+Y desaparece de la papelera.
+
+**CA-8c — Lo borrado no sale por ningún otro camino**
+DADO que una tarea está en la papelera
+CUANDO alguien la busca por la lista, por cualquier filtro o abriéndola por su identificador
+ENTONCES no la encuentra
+Y no se le puede cambiar el estado ni la fecha.
 
 **CA-9 — Borrar no es «marcar como hecha»**
 DADO que quiero quitar de la vista una tarea terminada
 CUANDO uso el estado «Hecho»
 ENTONCES sale de la vista por defecto pero sigue siendo consultable
-Y eso es un camino distinto del borrado, que sí la destruye.
+Y eso es un camino distinto del borrado, que la manda a la papelera.
 
 **CA-10 — Borrar exige haber entrado**
 DADO que no he iniciado sesión

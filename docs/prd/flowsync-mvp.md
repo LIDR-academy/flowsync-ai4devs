@@ -182,8 +182,8 @@ Esta épica **ya está implementada de punta a punta** en el repositorio. Se enu
 **RF-11 — Editar una tarea.** Debe poder modificarse el título de cualquier tarea, propia o ajena.
 *Aceptación:* el cambio queda reflejado para todos los miembros del espacio.
 
-**RF-12 — Borrar una tarea.** Debe poder borrarse cualquier tarea, propia o ajena.
-*Aceptación:* la acción pide confirmación explícita, ya que no hay histórico ni papelera y la pérdida es irreversible; tras confirmar, la tarea desaparece para todos.
+**RF-12 — Borrar una tarea.** Debe poder borrarse cualquier tarea, propia o ajena. **Borrar la manda a la papelera**: desaparece para todos, y cualquier miembro del espacio puede restaurarla *(enmendado al resolver PA-2, 2026-10-02)*.
+*Aceptación:* la acción pide confirmación explícita; tras confirmar, la tarea desaparece para todos de cualquier vista y de cualquier filtro. La papelera se puede consultar, y restaurar una tarea la devuelve con su título, estado, responsable y fecha intactos. Cuánto tiempo se guarda una tarea en la papelera queda fuera de este corte: hoy no se vacía sola.
 
 **RF-13 — Fecha de vencimiento opcional.** Una tarea puede tener una fecha de vencimiento, y crearla **sin** fecha debe ser el camino por defecto.
 *Aceptación:* el flujo de creación no contiene el campo fecha ni lo sugiere; la fecha se consulta y se establece únicamente al abrir la tarea; una tarea sin fecha es un estado normal y no genera aviso ni marca de ningún tipo.
@@ -317,6 +317,7 @@ Del PA-3 en adelante, los puntos proceden de una revisión adversarial del propi
 **PA-1 — «De un vistazo» frente a «fuera de la vista principal».** La fecha de vencimiento entró en el alcance porque se quería ver de un vistazo qué se ha pasado de plazo, pero una de las dos condiciones de su inclusión la saca de la lista (RF-15). Ambas cosas no se cumplen a la vez: en el MVP, el vencimiento **no** se ve de un vistazo. Se construye según lo acordado —la condición prevalece— y se deja anotado para decidir después de usarlo, no antes.
 
 **PA-2 — Papelera o deshacer.** RF-12 borra de forma irreversible y lo compensa con una confirmación. Con roles planos, cualquiera puede borrar el trabajo de cualquiera. Es aceptable para un caso de estudio; para uso real habría que revisarlo.
+*✅ Resuelto el 2026-10-02: papelera.* Borrar deja de ser irreversible: la tarea va a la papelera y se puede restaurar (RF-12 enmendado). Se eligió papelera y no «deshacer» porque deshacer solo protege a quien acaba de borrar, y con roles planos el problema es que borre otra persona. Lo que no resuelve: cuánto se guarda lo borrado, y si alguien puede vaciarla.
 
 **PA-3 — Cómo se ordena y se agrupa la lista.** RF-17 promete que alguien pueda enumerar en qué trabaja cada miembro sin abrir nada. Sin embargo, ningún requisito fija el orden de la lista, no existe agrupación por persona y RF-20 descarta el filtro por responsable. Con las 200 tareas de RNF-5, la promesa no se sostiene: responder «quién está en qué» obliga a recorrer la lista entera filtrando nombres a ojo. Es la decisión que más condiciona si el producto responde su propia pregunta.
 *Para decidirlo hace falta:* fijar una regla de orden por defecto, decidir si la lista se agrupa por persona y revisar si el filtro por responsable debe volver — o si el tamaño real de uso lo hace innecesario. Conviene decidirlo con una lista poblada delante, no en abstracto.

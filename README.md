@@ -138,8 +138,8 @@ Esta es la mitad que de verdad se revisa, y **se hace aunque la parte A se te ha
 Cuando la batería de pruebas vuelva a estar en verde, **no des el trabajo por terminado**. Haz estas tres cosas y escribe lo que veas:
 
 1. **Corre la comprobación de tipos** (`(cd backend && npm run typecheck)`) y di si está en verde o en rojo. Las dos respuestas son normales, y las dos enseñan algo.
-2. **Mira el diff del fichero de tipos generado** (`backend/database/schema.ts`) entre la rama de partida y lo que tienes ahora. **Ninguna migración ha cambiado, y ese fichero sí.** Di qué declaraciones han cambiado de tipo, y de qué a qué.
-3. **Busca cómo decide el proyecto si una tarea está vencida** y léelo con el diff delante. Hay un comentario en ese código que explica por qué la comparación funciona. Di si ese comentario sigue siendo verdad.
+2. **Mira el diff del fichero de tipos generado** (`backend/database/schema.ts`) entre la rama de partida y lo que tienes ahora. Puede salir con declaraciones cambiadas o **vacío**, y las dos salidas son normales. Si salen cambios, di qué declaraciones han cambiado de tipo y de qué a qué. Si sale vacío, busca **qué fija esos tipos** para que no cambien al cambiar de motor, porque vacío no quiere decir que no haya cambiado nada: quiere decir que lo que cambió no está en lo que el proyecto declara.
+3. **Busca cómo decide el proyecto si una tarea está vencida** y léelo con lo que encontraste en el punto anterior delante. Hay un comentario en ese código que explica por qué la comparación funciona. Di si ese comentario sigue siendo verdad, y compruébalo con una tarea que ya debería estar vencida, no leyéndolo.
 
 ### Parte C: las tres líneas
 
